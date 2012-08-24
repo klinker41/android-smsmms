@@ -100,6 +100,7 @@ public class ContentType {
         sSupportedContentTypes.add(AUDIO_MID);
         sSupportedContentTypes.add(AUDIO_MIDI);
         sSupportedContentTypes.add(AUDIO_MP3);
+        sSupportedContentTypes.add(AUDIO_MP4);
         sSupportedContentTypes.add(AUDIO_MPEG3);
         sSupportedContentTypes.add(AUDIO_MPEG);
         sSupportedContentTypes.add(AUDIO_MPG);
