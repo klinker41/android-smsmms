@@ -44,6 +44,8 @@ import android.provider.Telephony.Threads;
 import android.provider.Telephony.Mms.Addr;
 import android.provider.Telephony.Mms.Part;
 import android.provider.Telephony.MmsSms.PendingMessages;
+import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -279,11 +281,14 @@ public class PduPersister {
     private final Context mContext;
     private final ContentResolver mContentResolver;
     private final DrmManagerClient mDrmManagerClient;
+    private final TelephonyManager mTelephonyManager;
 
     private PduPersister(Context context) {
         mContext = context;
         mContentResolver = context.getContentResolver();
         mDrmManagerClient = new DrmManagerClient(context);
+        mTelephonyManager = (TelephonyManager)context
+                .getSystemService(Context.TELEPHONY_SERVICE);
      }
 
     /** Get(or create if not exist) an instance of PduPersister */
@@ -1308,25 +1313,24 @@ public class PduPersister {
         if ((msgType == PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND)
                 || (msgType == PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF)
                 || (msgType == PduHeaders.MESSAGE_TYPE_SEND_REQ)) {
-            EncodedStringValue[] array = null;
             switch (msgType) {
                 case PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND:
                 case PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF:
-                    array = addressMap.get(PduHeaders.FROM);
+                    // For received messages, we want to associate this message with the thread
+                    // composed of all the recipients. This includes the person who sent the
+                    // message or the FROM field in addition to the other people the message
+                    // was addressed to or the TO field.
+                    loadRecipients(PduHeaders.FROM, recipients, addressMap);
+                    loadRecipients(PduHeaders.TO, recipients, addressMap);
                     break;
                 case PduHeaders.MESSAGE_TYPE_SEND_REQ:
-                    array = addressMap.get(PduHeaders.TO);
+                    loadRecipients(PduHeaders.TO, recipients, addressMap);
                     break;
             }
 
-            if (array != null) {
-                for (EncodedStringValue v : array) {
-                    if (v != null) {
-                        recipients.add(v.getString());
-                    }
-                }
-            }
             if (!recipients.isEmpty()) {
+                // Given all the recipients associated with this message, find (or create) the
+                // correct thread.
                 long threadId = Threads.getOrCreateThreadId(mContext, recipients);
                 values.put(Mms.THREAD_ID, threadId);
             }
@@ -1385,6 +1389,29 @@ public class PduPersister {
         }
 
         return res;
+    }
+
+    /**
+     * For a given address type, extract the recipients from the headers.
+     *
+     * @param addressType can be PduHeaders.FROM or PduHeaders.TO
+     * @param recipients a HashSet that is loaded with the recipients from the FROM or TO headers
+     * @param addressMap a HashMap of the addresses from the ADDRESS_FIELDS header
+     */
+    private void loadRecipients(int addressType, HashSet<String> recipients,
+            HashMap<Integer, EncodedStringValue[]> addressMap) {
+        EncodedStringValue[] array = addressMap.get(addressType);
+        String myNumber = mTelephonyManager.getLine1Number();
+        for (EncodedStringValue v : array) {
+            if (v != null) {
+                String number = v.getString();
+                if ((myNumber == null || !PhoneNumberUtils.compare(number, myNumber)) &&
+                        !recipients.contains(number)) {
+                    // Only add numbers which aren't my own number.
+                    recipients.add(number);
+                }
+            }
+        }
     }
 
     /**
