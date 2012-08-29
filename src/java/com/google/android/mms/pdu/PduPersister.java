@@ -1320,11 +1320,11 @@ public class PduPersister {
                     // composed of all the recipients. This includes the person who sent the
                     // message or the FROM field in addition to the other people the message
                     // was addressed to or the TO field.
-                    loadRecipients(PduHeaders.FROM, recipients, addressMap);
-                    loadRecipients(PduHeaders.TO, recipients, addressMap);
+                    loadRecipients(PduHeaders.FROM, recipients, addressMap, false);
+                    loadRecipients(PduHeaders.TO, recipients, addressMap, true);
                     break;
                 case PduHeaders.MESSAGE_TYPE_SEND_REQ:
-                    loadRecipients(PduHeaders.TO, recipients, addressMap);
+                    loadRecipients(PduHeaders.TO, recipients, addressMap, false);
                     break;
             }
 
@@ -1397,11 +1397,15 @@ public class PduPersister {
      * @param addressType can be PduHeaders.FROM or PduHeaders.TO
      * @param recipients a HashSet that is loaded with the recipients from the FROM or TO headers
      * @param addressMap a HashMap of the addresses from the ADDRESS_FIELDS header
+     * @param excludeMyNumber if true, the number of this phone will be excluded from recipients
      */
     private void loadRecipients(int addressType, HashSet<String> recipients,
-            HashMap<Integer, EncodedStringValue[]> addressMap) {
+            HashMap<Integer, EncodedStringValue[]> addressMap, boolean excludeMyNumber) {
         EncodedStringValue[] array = addressMap.get(addressType);
-        String myNumber = mTelephonyManager.getLine1Number();
+        if (array == null) {
+            return;
+        }
+        String myNumber = excludeMyNumber ? mTelephonyManager.getLine1Number() : null;
         for (EncodedStringValue v : array) {
             if (v != null) {
                 String number = v.getString();
