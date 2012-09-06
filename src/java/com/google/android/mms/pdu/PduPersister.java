@@ -1213,6 +1213,19 @@ public class PduPersister {
      * @return A Uri which can be used to access the stored PDU.
      */
     public Uri persist(GenericPdu pdu, Uri uri) throws MmsException {
+        return persist(pdu, uri, true);
+    }
+
+    /**
+     * Persist a PDU object to specific location in the storage.
+     *
+     * @param pdu The PDU object to be stored.
+     * @param uri Where to store the given PDU object.
+     * @param createThreadId if true, this function may create a thread id for the recipients
+     * @return A Uri which can be used to access the stored PDU.
+     */
+
+    public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId) throws MmsException {
         if (uri == null) {
             throw new MmsException("Uri may not be null.");
         }
@@ -1328,7 +1341,7 @@ public class PduPersister {
                     break;
             }
 
-            if (!recipients.isEmpty()) {
+            if (createThreadId && !recipients.isEmpty()) {
                 // Given all the recipients associated with this message, find (or create) the
                 // correct thread.
                 long threadId = Threads.getOrCreateThreadId(mContext, recipients);
