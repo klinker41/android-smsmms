@@ -694,6 +694,10 @@ public class PduPersister {
         }
     }
 
+    private static String getPartContentType(PduPart part) {
+        return part.getContentType() == null ? null : toIsoString(part.getContentType());
+    }
+
     public Uri persistPart(PduPart part, long msgId)
             throws MmsException {
         Uri uri = Uri.parse("content://mms/" + msgId + "/part");
@@ -704,10 +708,8 @@ public class PduPersister {
             values.put(Part.CHARSET, charset);
         }
 
-        String contentType = null;
-        if (part.getContentType() != null) {
-            contentType = toIsoString(part.getContentType());
-
+        String contentType = getPartContentType(part);
+        if (contentType != null) {
             // There is no "image/jpg" in Android (and it's an invalid mimetype).
             // Change it to "image/jpeg"
             if (ContentType.IMAGE_JPG.equals(contentType)) {
@@ -1352,18 +1354,40 @@ public class PduPersister {
         // Save parts first to avoid inconsistent message is loaded
         // while saving the parts.
         long dummyId = System.currentTimeMillis(); // Dummy ID of the msg.
+
+        // Figure out if this PDU is a text-only message
+        boolean textOnly = true;
+
         // Get body if the PDU is a RetrieveConf or SendReq.
         if (pdu instanceof MultimediaMessagePdu) {
             body = ((MultimediaMessagePdu) pdu).getBody();
             // Start saving parts if necessary.
             if (body != null) {
                 int partsNum = body.getPartsNum();
+                if (partsNum > 2) {
+                    // For a text-only message there will be two parts: 1-the SMIL, 2-the text.
+                    // Down a few lines below we're checking to make sure we've only got SMIL or
+                    // text. We also have to check then we don't have more than two parts.
+                    // Otherwise, a slideshow with two text slides would be marked as textOnly.
+                    textOnly = false;
+                }
                 for (int i = 0; i < partsNum; i++) {
                     PduPart part = body.getPart(i);
                     persistPart(part, dummyId);
+
+                    // If we've got anything besides text/plain or SMIL part, then we've got
+                    // an mms message with some other type of attachment.
+                    String contentType = getPartContentType(part);
+                    if (contentType != null && !ContentType.APP_SMIL.equals(contentType)
+                            && !ContentType.TEXT_PLAIN.equals(contentType)) {
+                        textOnly = false;
+                    }
                 }
             }
         }
+        // Record whether this mms message is a simple plain text or not. This is a hint for the
+        // UI.
+        values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
 
         Uri res = null;
         if (existingUri) {
