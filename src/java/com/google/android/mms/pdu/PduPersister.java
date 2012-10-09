@@ -35,7 +35,6 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.drm.DrmManagerClient;
 import android.net.Uri;
-import android.os.FileUtils;
 import android.provider.MediaStore;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
@@ -1212,22 +1211,15 @@ public class PduPersister {
      *
      * @param pdu The PDU object to be stored.
      * @param uri Where to store the given PDU object.
-     * @return A Uri which can be used to access the stored PDU.
-     */
-    public Uri persist(GenericPdu pdu, Uri uri) throws MmsException {
-        return persist(pdu, uri, true);
-    }
-
-    /**
-     * Persist a PDU object to specific location in the storage.
-     *
-     * @param pdu The PDU object to be stored.
-     * @param uri Where to store the given PDU object.
      * @param createThreadId if true, this function may create a thread id for the recipients
+     * @param groupMmsEnabled if true, all of the recipients addressed in the PDU will be used
+     *  to create the associated thread. When false, only the sender will be used in finding or
+     *  creating the appropriate thread or conversation.
      * @return A Uri which can be used to access the stored PDU.
      */
 
-    public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId) throws MmsException {
+    public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId, boolean groupMmsEnabled)
+            throws MmsException {
         if (uri == null) {
             throw new MmsException("Uri may not be null.");
         }
@@ -1336,7 +1328,9 @@ public class PduPersister {
                     // message or the FROM field in addition to the other people the message
                     // was addressed to or the TO field.
                     loadRecipients(PduHeaders.FROM, recipients, addressMap, false);
-                    loadRecipients(PduHeaders.TO, recipients, addressMap, true);
+                    if (groupMmsEnabled) {
+                        loadRecipients(PduHeaders.TO, recipients, addressMap, true);
+                    }
                     break;
                 case PduHeaders.MESSAGE_TYPE_SEND_REQ:
                     loadRecipients(PduHeaders.TO, recipients, addressMap, false);
