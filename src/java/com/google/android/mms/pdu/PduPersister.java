@@ -1323,11 +1323,14 @@ public class PduPersister {
             switch (msgType) {
                 case PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND:
                 case PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF:
-                    // For received messages, we want to associate this message with the thread
-                    // composed of all the recipients. This includes the person who sent the
-                    // message or the FROM field in addition to the other people the message
-                    // was addressed to or the TO field.
                     loadRecipients(PduHeaders.FROM, recipients, addressMap, false);
+
+                    // For received messages when group MMS is enabled, we want to associate this
+                    // message with the thread composed of all the recipients -- all but our own
+                    // number, that is. This includes the person who sent the
+                    // message or the FROM field (above) in addition to the other people the message
+                    // was addressed to or the TO field. Our own number is in that TO field and
+                    // we have to ignore it in loadRecipients.
                     if (groupMmsEnabled) {
                         loadRecipients(PduHeaders.TO, recipients, addressMap, true);
                     }
@@ -1434,6 +1437,11 @@ public class PduPersister {
             HashMap<Integer, EncodedStringValue[]> addressMap, boolean excludeMyNumber) {
         EncodedStringValue[] array = addressMap.get(addressType);
         if (array == null) {
+            return;
+        }
+        // If the TO recipients is only a single address, then we can skip loadRecipients when
+        // we're excluding our own number because we know that address is our own.
+        if (excludeMyNumber && array.length == 1) {
             return;
         }
         String myNumber = excludeMyNumber ? mTelephonyManager.getLine1Number() : null;
