@@ -1339,13 +1339,13 @@ public class PduPersister {
                     loadRecipients(PduHeaders.TO, recipients, addressMap, false);
                     break;
             }
-
+            long threadId = 0;
             if (createThreadId && !recipients.isEmpty()) {
                 // Given all the recipients associated with this message, find (or create) the
                 // correct thread.
-                long threadId = Threads.getOrCreateThreadId(mContext, recipients);
-                values.put(Mms.THREAD_ID, threadId);
+                threadId = Threads.getOrCreateThreadId(mContext, recipients);
             }
+            values.put(Mms.THREAD_ID, threadId);
         }
 
         // Save parts first to avoid inconsistent message is loaded
