@@ -697,7 +697,7 @@ public class PduPersister {
         return part.getContentType() == null ? null : toIsoString(part.getContentType());
     }
 
-    public Uri persistPart(PduPart part, long msgId)
+    public Uri persistPart(PduPart part, long msgId, HashMap<Uri, InputStream> preOpenedFiles)
             throws MmsException {
         Uri uri = Uri.parse("content://mms/" + msgId + "/part");
         ContentValues values = new ContentValues(8);
@@ -755,7 +755,7 @@ public class PduPersister {
             throw new MmsException("Failed to persist part, return null.");
         }
 
-        persistData(part, res, contentType);
+        persistData(part, res, contentType, preOpenedFiles);
         // After successfully store the data, we should update
         // the dataUri of the part.
         part.setDataUri(res);
@@ -773,11 +773,12 @@ public class PduPersister {
      * @param part The PDU part which contains data to be saved.
      * @param uri The URI of the part.
      * @param contentType The MIME type of the part.
+     * @param preOpenedFiles if not null, a map of preopened InputStreams for the parts.
      * @throws MmsException Cannot find source data or error occurred
      *         while saving the data.
      */
     private void persistData(PduPart part, Uri uri,
-            String contentType)
+            String contentType, HashMap<Uri, InputStream> preOpenedFiles)
             throws MmsException {
         OutputStream os = null;
         InputStream is = null;
@@ -825,6 +826,8 @@ public class PduPersister {
                                 " can not be converted.");
                     }
                 }
+                // uri can look like:
+                // content://mms/part/98
                 os = mContentResolver.openOutputStream(uri);
                 if (data == null) {
                     dataUri = part.getDataUri();
@@ -832,7 +835,14 @@ public class PduPersister {
                         Log.w(TAG, "Can't find data for this part.");
                         return;
                     }
-                    is = mContentResolver.openInputStream(dataUri);
+                    // dataUri can look like:
+                    // content://com.google.android.gallery3d.provider/picasa/item/5720646660183715586
+                    if (preOpenedFiles != null && preOpenedFiles.containsKey(dataUri)) {
+                        is = preOpenedFiles.get(dataUri);
+                    }
+                    if (is == null) {
+                        is = mContentResolver.openInputStream(dataUri);
+                    }
 
                     if (LOCAL_LOGV) {
                         Log.v(TAG, "Saving data to: " + uri);
@@ -1072,7 +1082,8 @@ public class PduPersister {
         SqliteWrapper.update(mContext, mContentResolver, uri, values, null, null);
     }
 
-    private void updatePart(Uri uri, PduPart part) throws MmsException {
+    private void updatePart(Uri uri, PduPart part, HashMap<Uri, InputStream> preOpenedFiles)
+            throws MmsException {
         ContentValues values = new ContentValues(7);
 
         int charset = part.getCharset();
@@ -1121,7 +1132,7 @@ public class PduPersister {
         // 2. The Uri of the part is different from the current one.
         if ((part.getData() != null)
                 || (uri != part.getDataUri())) {
-            persistData(part, uri, contentType);
+            persistData(part, uri, contentType, preOpenedFiles);
         }
     }
 
@@ -1130,9 +1141,10 @@ public class PduPersister {
      *
      * @param uri The PDU which need to be updated.
      * @param body New message body of the PDU.
+     * @param preOpenedFiles if not null, a map of preopened InputStreams for the parts.
      * @throws MmsException Bad URI or updating failed.
      */
-    public void updateParts(Uri uri, PduBody body)
+    public void updateParts(Uri uri, PduBody body, HashMap<Uri, InputStream> preOpenedFiles)
             throws MmsException {
         try {
             PduCacheEntry cacheEntry;
@@ -1191,12 +1203,12 @@ public class PduPersister {
 
             // Create new parts which didn't exist before.
             for (PduPart part : toBeCreated) {
-                persistPart(part, msgId);
+                persistPart(part, msgId, preOpenedFiles);
             }
 
             // Update the modified parts.
             for (Map.Entry<Uri, PduPart> e : toBeUpdated.entrySet()) {
-                updatePart(e.getKey(), e.getValue());
+                updatePart(e.getKey(), e.getValue(), preOpenedFiles);
             }
         } finally {
             synchronized(PDU_CACHE_INSTANCE) {
@@ -1215,10 +1227,12 @@ public class PduPersister {
      * @param groupMmsEnabled if true, all of the recipients addressed in the PDU will be used
      *  to create the associated thread. When false, only the sender will be used in finding or
      *  creating the appropriate thread or conversation.
+     * @param preOpenedFiles if not null, a map of preopened InputStreams for the parts.
      * @return A Uri which can be used to access the stored PDU.
      */
 
-    public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId, boolean groupMmsEnabled)
+    public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId, boolean groupMmsEnabled,
+            HashMap<Uri, InputStream> preOpenedFiles)
             throws MmsException {
         if (uri == null) {
             throw new MmsException("Uri may not be null.");
@@ -1370,7 +1384,7 @@ public class PduPersister {
                 }
                 for (int i = 0; i < partsNum; i++) {
                     PduPart part = body.getPart(i);
-                    persistPart(part, dummyId);
+                    persistPart(part, dummyId, preOpenedFiles);
 
                     // If we've got anything besides text/plain or SMIL part, then we've got
                     // an mms message with some other type of attachment.
