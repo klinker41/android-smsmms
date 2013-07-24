@@ -985,7 +985,7 @@ public class PduComposer {
                 arraycopy(partData, 0, partData.length);
                 dataLength = partData.length;
             } else {
-                InputStream cr;
+                InputStream cr = null;
                 try {
                     byte[] buffer = new byte[PDU_COMPOSER_BLOCK_SIZE];
                     cr = mResolver.openInputStream(part.getDataUri());
@@ -1001,6 +1001,13 @@ public class PduComposer {
                     return PDU_COMPOSE_CONTENT_ERROR;
                 } catch (RuntimeException e) {
                     return PDU_COMPOSE_CONTENT_ERROR;
+                } finally {
+                    if (cr != null) {
+                        try {
+                            cr.close();
+                        } catch (IOException e) {
+                        }
+                    }
                 }
             }
 
