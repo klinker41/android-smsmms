@@ -67,7 +67,40 @@ sendTransaction.sendNewMessage(message, threadId)
 
 Note: threadId can be nullified, but this sometimes results in a new thread being created instead of the message being added to an existing thread
 
-That's it, you're done :)
+That's it, you're done sending :)
+
+You'll also need to register a few receivers for when the messages have been sent and for delivery reports to mark them as read... In your manifest, add these lines:
+
+```xml
+<receiver android:name="com.klinker.android.send_message.SentReceiver" >
+	<intent-filter>
+		<action android:name="com.klinker.android.send_message.SMS_SENT" />
+	</intent-filter> 
+</receiver>
+        
+<receiver android:name="com.klinker.android.send_message.DeliveredReceiver" >
+	<intent-filter>
+                <action android:name="com.klinker.android.send_message.SMS_DELIVERED" />
+	</intent-filter> 
+</receiver>
+```
+
+Lastly, you'll need to include permissions in your manifest depending on what you want to do. Here are all of them:
+
+```xml
+<uses-permission android:name="android.permission.SEND_SMS"/>
+<uses-permission android:name="android.permission.READ_SMS" />
+<uses-permission android:name="android.permission.WRITE_SMS"/>
+<uses-permission android:name="android.permission.RECEIVE_SMS"/>
+<uses-permission android:name="android.permission.RECEIVE_MMS"/>
+<uses-permission android:name="android.permission.VIBRATE"/>
+<uses-permission android:name="android.provider.Telephony.SMS_RECEIVED" />
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
 
 ---
 
