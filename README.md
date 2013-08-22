@@ -4,7 +4,7 @@ These are the APIs that Google has so far left out of the Android echosystem for
 
 ##### This library is still in __BETA__ and has a long way to go... APIs may not be final and things will most likely change.
 
-If you've got a better way to do things, send me a pull request! The library was created specifically for [Sliding Messaging Pro] (https://play.google.com/store/apps/details?id=com.klinker.android.messaging_donate&hl=en) and some things work the way they do specifically for that app.
+If you've got a better way to do things, send me a pull request! The library was created specifically for [Sliding Messaging Pro](https://play.google.com/store/apps/details?id=com.klinker.android.messaging_donate&hl=en) and some things work the way they do specifically for that app.
 
 ---
 
