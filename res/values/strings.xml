@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="message_delivered">Message Delivered</string>
+    <string name="message_not_delivered">Message Not Delivered</string>
+    <string name="error">Error</string>
+</resources>
