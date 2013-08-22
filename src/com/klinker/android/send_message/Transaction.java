@@ -197,7 +197,7 @@ public class Transaction {
             values.put("date", cal.getTimeInMillis() + "");
             values.put("read", 1);
 
-            if (threadId == null) {
+            if (threadId == null || addresses.length > 1) {
                 threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]) + "";
             }
 
