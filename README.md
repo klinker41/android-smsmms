@@ -32,19 +32,19 @@ sendSettings.setSendLongAsMms(true);
 sendSettings.setSendLongAsMmsAfter(3);
 ```
 
-MMSC - the URL of your mms provider, found on your phone's APN settings page
-Proxy - more mms information that needs to be set for more providers to send
-Port - again, more mms stuff
-Group - whether you want to send message to multiple senders as an MMS group message or separate SMS/Voice messages
-WiFi MMS Fix - will disable wifi to send the message, only way I've found to do it, so if you can find the problem, submit a pull request :)
-Prefer Voice - send through Google Voice instead of SMS
-Delivery Reports - request reports for when SMS has been delivered
-Split - splits SMS messages when sent if they are longer than 160 characters
-Split Counter - attaches a split counter to message, ex. (1/3) in front of each message
-Strip Unicode - converts Unicode characters to GSM compatible characters
-Signature - signature to attach at the end of messages
-Send Long as MMS - when a message is a certain length, it is sent as MMS instead of SMS
-Send Long as MMS After - length to convert the long SMS into an MMS
+* MMSC - the URL of your mms provider, found on your phone's APN settings page
+* Proxy - more mms information that needs to be set for more providers to send
+* Port - again, more mms stuff
+* Group - whether you want to send message to multiple senders as an MMS group message or separate SMS/Voice messages
+* WiFi MMS Fix - will disable wifi to send the message, only way I've found to do it, so if you can find the problem, submit a pull request :)
+* Prefer Voice - send through Google Voice instead of SMS
+* Delivery Reports - request reports for when SMS has been delivered
+* Split - splits SMS messages when sent if they are longer than 160 characters
+* Split Counter - attaches a split counter to message, ex. (1/3) in front of each message
+* Strip Unicode - converts Unicode characters to GSM compatible characters
+* Signature - signature to attach at the end of messages
+* Send Long as MMS - when a message is a certain length, it is sent as MMS instead of SMS
+* Send Long as MMS After - length to convert the long SMS into an MMS
 
 Next, attach that settings object to the sender
 
