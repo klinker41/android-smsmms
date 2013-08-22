@@ -17,9 +17,9 @@ First, create a settings object with all of your required information for what y
 ``` java
 Settings sendSettings = new Settings();
 
-sendSettings.setMmsc(http://mmsc.cingular.com);
-sendSettings.setProxy(66.209.11.33);
-sendSettings.setPort(80);
+sendSettings.setMmsc("http://mmsc.cingular.com");
+sendSettings.setProxy("66.209.11.33");
+sendSettings.setPort("80");
 sendSettings.setGroup(true);
 sendSettings.setWifiMmsFix(true);
 sendSettings.setPreferVoice(false);
@@ -69,7 +69,7 @@ Note: threadId can be nullified, but this sometimes results in a new thread bein
 
 That's it, you're done :)
 
---
+---
 
 ## License
 
