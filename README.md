@@ -2,6 +2,8 @@
 
 These are the APIs that Google has so far left out of the Android echosystem for easily sending any type of message without digging through source code and what not. 
 
+Right now, there is no Google Voice support but I hope to add it soon. So just SMS and MMS for now.
+
 ##### This library is still in __BETA__ and has a long way to go... APIs may not be final and things will most likely change.
 
 If you've got a better way to do things, send me a pull request! The library was created specifically for [Sliding Messaging Pro](https://play.google.com/store/apps/details?id=com.klinker.android.messaging_donate&hl=en) and some things work the way they do specifically for that app.
