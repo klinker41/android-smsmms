@@ -179,7 +179,7 @@ public class Transaction {
                         }
                     });
                 } catch (Exception f) {
-                    // context not an activity maybe
+
                 }
             }
         }
@@ -739,6 +739,7 @@ public class Transaction {
                     apns = helper.getMMSApns();
                 } catch (Exception e)
                 {
+                    Log.v("apn_error", "could not retrieve system apns, using manual values instead");
                     APN apn = new APN(settings.getMmsc(), settings.getPort(), settings.getProxy());
                     apns.add(apn);
 
