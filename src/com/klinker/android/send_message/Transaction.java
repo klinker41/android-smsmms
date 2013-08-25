@@ -750,7 +750,7 @@ public class Transaction {
                 try {
                     Log.v("apns_to_use", apns.get(0).MMSCenterUrl + " " + apns.get(0).MMSPort + " " + apns.get(0).MMSProxy);
                     ensureRouteToHost(apns.get(0).MMSCenterUrl, apns.get(0).MMSProxy);
-                    HttpUtils.httpConnection(context, 4444L, apns.get(0).MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.get(0).MMSProxy), apns.get(0).MMSProxy, Integer.parseInt(apns.get(0).MMSPort));
+                    HttpUtils.httpConnection(context, -1L, apns.get(0).MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.get(0).MMSProxy), apns.get(0).MMSProxy, Integer.parseInt(apns.get(0).MMSPort));
 
                     IntentFilter filter = new IntentFilter();
                     filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
