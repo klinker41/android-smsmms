@@ -799,18 +799,18 @@ public class Transaction {
 
             context.registerReceiver(receiver, filter);
         } catch (IOException e) {
+            e.printStackTrace();
+
             if (!retrying) {
-                // sleep and try again in half second to see if that give wifi and mobile data a chance to toggle in time
+                // sleep and try again in three seconds to see if that give wifi and mobile data a chance to toggle in time
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(3000);
                 } catch (Exception f) {
 
                 }
 
                 trySending(apns, bytesToSend, true);
             } else {
-                e.printStackTrace();
-
                 if (settings.getWifiMmsFix())
                 {
                     try {
