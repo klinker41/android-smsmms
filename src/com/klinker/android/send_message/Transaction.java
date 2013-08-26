@@ -747,56 +747,43 @@ public class Transaction {
                     apns.get(0).MMSCenterUrl = mmscUrl;
                 }
 
-                try {
-                    Log.v("apns_to_use", apns.get(0).MMSCenterUrl + " " + apns.get(0).MMSPort + " " + apns.get(0).MMSProxy);
-                    ensureRouteToHost(apns.get(0).MMSCenterUrl, apns.get(0).MMSProxy);
-                    HttpUtils.httpConnection(context, -1L, apns.get(0).MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.get(0).MMSProxy), apns.get(0).MMSProxy, Integer.parseInt(apns.get(0).MMSPort));
+                trySending(apns.get(0), bytesToSend, false);
 
-                    IntentFilter filter = new IntentFilter();
-                    filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-                    BroadcastReceiver receiver = new BroadcastReceiver() {
+            }
 
-                        @Override
-                        public void onReceive(Context context, Intent intent) {
-                            Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
-                            query.moveToFirst();
-                            String id = query.getString(query.getColumnIndex("_id"));
-                            query.close();
+        }).start();
 
-                            ContentValues values = new ContentValues();
-                            values.put("msg_box", 2);
-                            String where = "_id" + " = '" + id + "'";
-                            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+    }
 
-                            context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
-                            context.unregisterReceiver(this);
-                            if (settings.getWifiMmsFix())
-                            {
-                                try {
-                                    context.unregisterReceiver(settings.discon);
-                                } catch (Exception e) {
+    private void trySending(APN apns, byte[] bytesToSend, boolean retrying) {
+        try {
+            Log.v("apns_to_use", apns.MMSCenterUrl + " " + apns.MMSPort + " " + apns.MMSProxy);
+            ensureRouteToHost(apns.MMSCenterUrl, apns.MMSProxy);
+            HttpUtils.httpConnection(context, -1L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
 
-                                }
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            BroadcastReceiver receiver = new BroadcastReceiver() {
 
-                                WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                                wifi.setWifiEnabled(false);
-                                wifi.setWifiEnabled(settings.currentWifiState);
-                                wifi.reconnect();
-                                setMobileDataEnabled(context, settings.currentDataState);
-                            }
-                        }
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
+                    query.moveToFirst();
+                    String id = query.getString(query.getColumnIndex("_id"));
+                    query.close();
 
-                    };
+                    ContentValues values = new ContentValues();
+                    values.put("msg_box", 2);
+                    String where = "_id" + " = '" + id + "'";
+                    context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
 
-                    context.registerReceiver(receiver, filter);
-                } catch (Exception e) {
-                    e.printStackTrace();
-
+                    context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+                    context.unregisterReceiver(this);
                     if (settings.getWifiMmsFix())
                     {
                         try {
                             context.unregisterReceiver(settings.discon);
-                        } catch (Exception f) {
+                        } catch (Exception e) {
 
                         }
 
@@ -806,32 +793,60 @@ public class Transaction {
                         wifi.reconnect();
                         setMobileDataEnabled(context, settings.currentDataState);
                     }
-
-                    Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
-                    query.moveToFirst();
-                    String id = query.getString(query.getColumnIndex("_id"));
-                    query.close();
-
-                    ContentValues values = new ContentValues();
-                    values.put("msg_box", 5);
-                    String where = "_id" + " = '" + id + "'";
-                    context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
-
-                    ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
-                            context.sendBroadcast(new Intent("com.klinker.android.send_message.MMS_ERROR"));
-
-                        }
-
-                    });
                 }
 
+            };
+
+            context.registerReceiver(receiver, filter);
+        } catch (IOException e) {
+            if (!retrying) {
+                // sleep and try again in half second to see if that give wifi and mobile data a chance to toggle in time
+                try {
+                    Thread.sleep(500);
+                } catch (Exception f) {
+
+                }
+
+                trySending(apns, bytesToSend, true);
+            } else {
+                e.printStackTrace();
+
+                if (settings.getWifiMmsFix())
+                {
+                    try {
+                        context.unregisterReceiver(settings.discon);
+                    } catch (Exception f) {
+
+                    }
+
+                    WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+                    wifi.setWifiEnabled(false);
+                    wifi.setWifiEnabled(settings.currentWifiState);
+                    wifi.reconnect();
+                    setMobileDataEnabled(context, settings.currentDataState);
+                }
+
+                Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
+                query.moveToFirst();
+                String id = query.getString(query.getColumnIndex("_id"));
+                query.close();
+
+                ContentValues values = new ContentValues();
+                values.put("msg_box", 5);
+                String where = "_id" + " = '" + id + "'";
+                context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+
+                ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+                        context.sendBroadcast(new Intent("com.klinker.android.send_message.MMS_ERROR"));
+
+                    }
+
+                });
             }
-
-        }).start();
-
+        }
     }
 }
