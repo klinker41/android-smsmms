@@ -21,12 +21,17 @@ import android.net.wifi.WifiInfo;
 
 public class Settings {
 
+    // MMS options
     private String mmsc;
     private String proxy;
     private String port;
     private boolean group;
     private boolean wifiMmsFix;
+
+    // Google Voice options
     private boolean preferVoice;
+
+    // SMS options
     private boolean deliveryReports;
     private boolean split;
     private boolean splitCounter;
@@ -35,6 +40,7 @@ public class Settings {
     private boolean sendLongAsMms;
     private int sendLongAsMmsAfter;
 
+    // used for WiFi workaround when sending MMS to hold previous state data before disabling
     public WifiInfo currentWifi;
     public boolean currentWifiState;
     public DisconnectWifi discon;

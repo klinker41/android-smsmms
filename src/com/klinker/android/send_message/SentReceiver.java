@@ -39,6 +39,7 @@ public class SentReceiver extends BroadcastReceiver {
                case Activity.RESULT_OK:
                    Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
+                   // mark message as sent successfully
                    if (query.moveToFirst())
                    {
                     String id = query.getString(query.getColumnIndex("_id"));
@@ -53,24 +54,17 @@ public class SentReceiver extends BroadcastReceiver {
                    break;
                case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
 
-                    try
-                    {
-                        Thread.sleep(500);
-                    } catch (Exception e)
-                    {
-
-                    }
-
                     query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
-                       if (query.moveToFirst())
-                       {
+                    // mark message as failed and give notification to user to tell them
+                    if (query.moveToFirst())
+                    {
                         String id = query.getString(query.getColumnIndex("_id"));
                         ContentValues values = new ContentValues();
                         values.put("type", "5");
                         values.put("read", true);
                         context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
-                       }
+                    }
 
                     NotificationCompat.Builder mBuilder =
                         new NotificationCompat.Builder(context)
@@ -90,16 +84,10 @@ public class SentReceiver extends BroadcastReceiver {
                     mNotificationManager.notify(1, notification);
                     break;
            case SmsManager.RESULT_ERROR_NO_SERVICE:
-                try
-                {
-                    Thread.sleep(500);
-                } catch (Exception e)
-                {
-
-                }
 
                 query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
+                // mark message as failed
                 if (query.moveToFirst())
                 {
                     String id = query.getString(query.getColumnIndex("_id"));
@@ -111,16 +99,10 @@ public class SentReceiver extends BroadcastReceiver {
 
                 break;
            case SmsManager.RESULT_ERROR_NULL_PDU:
-                try
-                {
-                    Thread.sleep(500);
-                } catch (Exception e)
-                {
-
-                }
 
                 query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
-               
+
+                // mark message failed
                 if (query.moveToFirst())
                 {
                     String id = query.getString(query.getColumnIndex("_id"));
@@ -132,16 +114,10 @@ public class SentReceiver extends BroadcastReceiver {
                
                 break;
            case SmsManager.RESULT_ERROR_RADIO_OFF:
-                try
-                {
-                    Thread.sleep(500);
-                } catch (Exception e)
-                {
-
-                }
 
                 query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
+                // mark message failed
                 if (query.moveToFirst())
                 {
                     String id = query.getString(query.getColumnIndex("_id"));

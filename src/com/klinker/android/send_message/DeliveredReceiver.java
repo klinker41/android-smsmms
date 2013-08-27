@@ -33,10 +33,12 @@ public class DeliveredReceiver extends BroadcastReceiver {
        	   switch (getResultCode())
            {
                case Activity.RESULT_OK:
+                    // notify user that message was delivered
                     Toast.makeText(context, R.string.message_delivered, Toast.LENGTH_LONG).show();
 
                     Cursor query = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
 
+                   // mark message as delivered in database
                     if (query.moveToFirst())
                     {
                         String id = query.getString(query.getColumnIndex("_id"));
@@ -49,10 +51,12 @@ public class DeliveredReceiver extends BroadcastReceiver {
                     query.close();
                     break;
                case Activity.RESULT_CANCELED:
+                    // notify user that message failed to be delivered
                     Toast.makeText(context, R.string.message_not_delivered, Toast.LENGTH_LONG).show();
 
                     Cursor query2 = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
 
+                    // mark failed in database
                     if (query2.moveToFirst())
                     {
                         String id = query2.getString(query2.getColumnIndex("_id"));

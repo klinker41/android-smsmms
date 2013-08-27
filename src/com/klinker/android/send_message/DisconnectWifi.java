@@ -27,6 +27,7 @@ public class DisconnectWifi extends BroadcastReceiver  {
 
     @Override
     public void onReceive(Context c, Intent intent) {
+        // if wifi tries to connect while we are sending an MMS, disable it until that message is done sending
     	WifiManager wifi = (WifiManager) c.getSystemService(Context.WIFI_SERVICE);
         if(!intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE).toString().equals(SupplicantState.SCANNING)) 
         	wifi.disconnect();
