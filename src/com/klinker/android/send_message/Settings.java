@@ -41,19 +41,7 @@ public class Settings {
     public boolean currentDataState;
 
     public Settings() {
-        this("", "", "", true, true, false, false, false);
-    }
-
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix) {
-        this(mmsc, proxy, port, group, wifiMmsFix, false, false, false);
-    }
-
-    public Settings(boolean preferVoice, boolean deliveryReports, boolean split) {
-        this("", "", "", true, true, preferVoice, deliveryReports, split);
-    }
-
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split) {
-        this(mmsc, proxy, port, group, wifiMmsFix, preferVoice, deliveryReports, split, false, false, "", true, 3);
+        this("", "", "", true, true, false, false, false, false, false, "", true, 3);
     }
 
     public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, boolean sendLongAsMms, int sendLongAsMmsAfter) {

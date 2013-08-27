@@ -119,10 +119,6 @@ public class Message {
     }
 
     public String[] getAddresses() {
-        for (int i = 0; i < addresses.length; i++) {
-            Log.v("addresses", i + ": " + addresses[i]);
-        }
-
         return this.addresses;
     }
 

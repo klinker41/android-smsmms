@@ -58,26 +58,6 @@ public class Transaction {
         this.context = context;
     }
 
-    public Transaction(Context context, String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix) {
-        settings = new Settings(mmsc, proxy, port, group, wifiMmsFix);
-        this.context = context;
-    }
-
-    public Transaction(Context context, boolean preferVoice, boolean deliveryReports, boolean split) {
-        settings = new Settings(preferVoice, deliveryReports, split);
-        this.context = context;
-    }
-
-    public Transaction(Context context, String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split) {
-        settings = new Settings(mmsc, proxy, port, group, wifiMmsFix, preferVoice, deliveryReports, split);
-        this.context = context;
-    }
-
-    public Transaction(Context context, String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, boolean sendLongAsMms, int sendLongAsMmsAfter) {
-        settings = new Settings(mmsc, proxy, port, group, wifiMmsFix, preferVoice, deliveryReports, split, splitCounter, stripUnicode, signature, sendLongAsMms, sendLongAsMmsAfter);
-        this.context = context;
-    }
-
     public Transaction(Context context, Settings settings) {
         this.settings = settings;
         this.context = context;
