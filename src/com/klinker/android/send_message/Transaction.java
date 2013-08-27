@@ -146,11 +146,11 @@ public class Transaction {
                 for (int j = 0; j < parts.size(); j++)
                 {
                     sPI.add(sentPI);
-                    dPI.add(deliveredPI);
+                    dPI.add(settings.getDeliveryReports() ? deliveredPI : null);
                 }
 
                 for (int j = 0; j < addresses.length; j++) {
-                    smsManager.sendMultipartTextMessage(addresses[j], null, parts, sPI, settings.getDeliveryReports() ? dPI : null);
+                    smsManager.sendMultipartTextMessage(addresses[j], null, parts, sPI, dPI);
                 }
             }
         } else
@@ -160,12 +160,12 @@ public class Transaction {
             for (int i = 0; i < parts.size(); i++)
             {
                 sPI.add(sentPI);
-                dPI.add(deliveredPI);
+                dPI.add(settings.getDeliveryReports() ? deliveredPI : null);
             }
 
             try {
                 for (int i = 0; i < addresses.length; i++) {
-                    smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, settings.getDeliveryReports() ? dPI : null);
+                    smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
