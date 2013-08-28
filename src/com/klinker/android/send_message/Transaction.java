@@ -17,6 +17,10 @@
 
 package com.klinker.android.send_message;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.*;
 import android.content.*;
 import android.database.Cursor;
@@ -25,8 +29,11 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.provider.Telephony;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -35,6 +42,9 @@ import com.google.android.mms.APN;
 import com.google.android.mms.APNHelper;
 import com.google.android.mms.MMSPart;
 import com.google.android.mms.pdu_alt.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.koushikdutta.ion.Ion;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,6 +54,7 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -278,7 +289,10 @@ public class Transaction {
     }
 
     private void sendVoiceMessage(String text, String[] addresses) {
-        // TODO send voice message
+        // send a voice message to each recipient based off of koush's voice implementation in Voice+
+        for (int i = 0; i < addresses.length; i++) {
+            sendVoiceMessage(addresses[i], text);
+        }
     }
 
     // returns the number of pages in the SMS based on settings and the length of string
@@ -847,5 +861,111 @@ public class Transaction {
                 });
             }
         }
+    }
+
+    private void sendVoiceMessage(String destAddr, String text) {
+        String rnrse = settings.getRnrSe();
+        String account = settings.getAccount();
+        String authToken;
+
+        try {
+            authToken = getAuthToken(account);
+
+            if (rnrse == null) {
+                rnrse = fetchRnrSe(authToken, context);
+            }
+        } catch (Exception e) {
+            failVoice();
+            return;
+        }
+
+        try {
+            sendRnrSe(authToken, rnrse, destAddr, text);
+            successVoice();
+            return;
+        } catch (Exception e) {
+
+        }
+
+        try {
+            // try again...
+            rnrse = fetchRnrSe(authToken, context);
+            sendRnrSe(authToken, rnrse, destAddr, text);
+            successVoice();
+        } catch (Exception e) {
+            failVoice();
+        }
+    }
+
+    // hit the google voice api to send a text
+    private void sendRnrSe(String authToken, String rnrse, String number, String text) throws Exception {
+        JsonObject json = Ion.with(context)
+                .load("https://www.google.com/voice/sms/send/")
+                .setHeader("Authorization", "GoogleLogin auth=" + authToken)
+                .setBodyParameter("phoneNumber", number)
+                .setBodyParameter("sendErrorSms", "0")
+                .setBodyParameter("text", text)
+                .setBodyParameter("_rnr_se", rnrse)
+                .asJsonObject()
+                .get();
+
+        if (!json.get("ok").getAsBoolean())
+            throw new Exception(json.toString());
+    }
+
+    private String getAuthToken(String account) throws IOException, OperationCanceledException, AuthenticatorException {
+        Bundle bundle = AccountManager.get(context).getAuthToken(new Account(account, "com.google"), "grandcentral", true, null, null).getResult();
+        return bundle.getString(AccountManager.KEY_AUTHTOKEN);
+    }
+
+    private void failVoice() {
+        // TODO move message to failed box
+    }
+
+    private void successVoice() {
+        // TODO move message to sent box
+    }
+
+    public static String fetchRnrSe(String authToken, Context context) throws ExecutionException, InterruptedException {
+        JsonObject userInfo = Ion.with(context)
+                .load("https://www.google.com/voice/request/user")
+                .setHeader("Authorization", "GoogleLogin auth=" + authToken)
+                .asJsonObject()
+                .get();
+
+        String rnrse = userInfo.get("r").getAsString();
+
+        try {
+            TelephonyManager tm = (TelephonyManager)context.getSystemService(Activity.TELEPHONY_SERVICE);
+            String number = tm.getLine1Number();
+            if (number != null) {
+                JsonObject phones = userInfo.getAsJsonObject("phones");
+                for (Map.Entry<String, JsonElement> entry: phones.entrySet()) {
+                    JsonObject phone = entry.getValue().getAsJsonObject();
+                    if (!PhoneNumberUtils.compare(number, phone.get("phoneNumber").getAsString()))
+                        continue;
+                    if (!phone.get("smsEnabled").getAsBoolean())
+                        break;
+
+                    Ion.with(context)
+                            .load("https://www.google.com/voice/settings/editForwardingSms/")
+                            .setHeader("Authorization", "GoogleLogin auth=" + authToken)
+                            .setBodyParameter("phoneId", entry.getKey())
+                            .setBodyParameter("enabled", "0")
+                            .setBodyParameter("_rnr_se", rnrse)
+                            .asJsonObject();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+
+        }
+
+        // broadcast so you can save it to your shared prefs or something so that it doesn't need to be retrieved every time
+        Intent intent = new Intent("com.klinker.android.send_message.RNRSE");
+        intent.putExtra("_rnr_se", rnrse);
+        context.sendBroadcast(intent);
+
+        return rnrse;
     }
 }

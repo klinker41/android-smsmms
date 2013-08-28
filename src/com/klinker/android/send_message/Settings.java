@@ -40,6 +40,10 @@ public class Settings {
     private boolean sendLongAsMms;
     private int sendLongAsMmsAfter;
 
+    // Google Voice settings
+    private String account;
+    private String rnrSe;
+
     // used for WiFi workaround when sending MMS to hold previous state data before disabling
     public WifiInfo currentWifi;
     public boolean currentWifiState;
@@ -47,10 +51,10 @@ public class Settings {
     public boolean currentDataState;
 
     public Settings() {
-        this("", "", "", true, true, false, false, false, false, false, "", true, 3);
+        this("", "", "", true, true, false, false, false, false, false, "", true, 3, "", null);
     }
 
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, boolean sendLongAsMms, int sendLongAsMmsAfter) {
+    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
         this.mmsc = mmsc;
         this.proxy = proxy;
         this.port = port;
@@ -64,6 +68,8 @@ public class Settings {
         this.signature = signature;
         this.sendLongAsMms = sendLongAsMms;
         this.sendLongAsMmsAfter = sendLongAsMmsAfter;
+        this.account = account;
+        this.rnrSe = rnrSe;
     }
 
     public void setMmsc(String mmsc) {
@@ -118,6 +124,14 @@ public class Settings {
         this.sendLongAsMmsAfter = sendLongAsMmsAfter;
     }
 
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public void setRnrSe(String rnrSe) {
+        this.rnrSe = rnrSe;
+    }
+
     public String getMmsc() {
         return this.mmsc;
     }
@@ -168,5 +182,13 @@ public class Settings {
 
     public int getSendLongAsMmsAfter() {
         return this.sendLongAsMmsAfter;
+    }
+
+    public String getAccount() {
+        return this.account;
+    }
+
+    public String getRnrSe() {
+        return this.rnrSe;
     }
 }
