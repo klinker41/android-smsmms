@@ -30,6 +30,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -79,7 +80,7 @@ public class Transaction {
     public void sendNewMessage(final Message message, final String threadId) {
 
         // if message:
-        //      1) Has no images attached
+        //      1) Has images attached
         // or
         //      1) is enabled to send long messages as mms
         //      2) number of pages for that sms exceeds value stored in settings for when to send the mms by
@@ -93,7 +94,7 @@ public class Transaction {
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), threadId);
         } else {
             if (settings.getPreferVoice()) {
-                sendVoiceMessage(message.getText(), message.getAddresses());
+                sendVoiceMessage(message.getText(), message.getAddresses(), threadId);
             } else {
                 sendSmsMessage(message.getText(), message.getAddresses(), threadId);
             }
@@ -288,9 +289,24 @@ public class Transaction {
         }
     }
 
-    private void sendVoiceMessage(String text, String[] addresses) {
+    private void sendVoiceMessage(String text, String[] addresses, String threadId) {
         // send a voice message to each recipient based off of koush's voice implementation in Voice+
         for (int i = 0; i < addresses.length; i++) {
+            Calendar cal = Calendar.getInstance();
+            ContentValues values = new ContentValues();
+            values.put("address", addresses[i]);
+            values.put("body", text);
+            values.put("date", cal.getTimeInMillis() + "");
+            values.put("read", 1);
+
+            // attempt to create correct thread id if one is not supplied
+            if (threadId == null || addresses.length > 1) {
+                threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]) + "";
+            }
+
+            values.put("thread_id", threadId);
+            context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
+
             sendVoiceMessage(addresses[i], text);
         }
     }
@@ -919,11 +935,41 @@ public class Transaction {
     }
 
     private void failVoice() {
-        // TODO move message to failed box
+        Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
+
+        // mark message as failed
+        if (query.moveToFirst())
+        {
+            String id = query.getString(query.getColumnIndex("_id"));
+            ContentValues values = new ContentValues();
+            values.put("type", "5");
+            values.put("read", true);
+            context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+        }
+
+        query.close();
+
+        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+
+        // TODO send broadcast to notify user that voice message has failed to send and popup should be shown
     }
 
     private void successVoice() {
-        // TODO move message to sent box
+        Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
+
+        // mark message as sent successfully
+        if (query.moveToFirst())
+        {
+            String id = query.getString(query.getColumnIndex("_id"));
+            ContentValues values = new ContentValues();
+            values.put("type", "2");
+            values.put("read", true);
+            context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+        }
+
+        query.close();
+
+        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
     }
 
     public static String fetchRnrSe(String authToken, Context context) throws ExecutionException, InterruptedException {
