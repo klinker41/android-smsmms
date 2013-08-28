@@ -298,6 +298,7 @@ public class Transaction {
             values.put("body", text);
             values.put("date", cal.getTimeInMillis() + "");
             values.put("read", 1);
+            values.put("status", 2);   // if you want to be able to tell the difference between sms and voice, look for this value. SMS will be -1, 0, 64, 128 and voice will be 2
 
             // attempt to create correct thread id if one is not supplied
             if (threadId == null || addresses.length > 1) {
