@@ -767,7 +767,7 @@ public class Transaction {
 
                 try {
                     // attempts to send the message using given apns
-                    trySending(apns.get(0), bytesToSend, false);
+                    trySending(apns.get(0), bytesToSend, 0);
                 } catch (Exception e) {
                     // some type of apn error, so notify user of failure
                     context.sendBroadcast(new Intent("com.klinker.android.send_message.MMS_ERROR"));
@@ -779,7 +779,9 @@ public class Transaction {
 
     }
 
-    private void trySending(APN apns, byte[] bytesToSend, boolean retrying) {
+    public static final int NUM_RETRIES = 2;
+
+    private void trySending(APN apns, byte[] bytesToSend, int numRetries) {
         try {
             Log.v("apns_to_use", apns.MMSCenterUrl + " " + apns.MMSPort + " " + apns.MMSProxy);
             ensureRouteToHost(apns.MMSCenterUrl, apns.MMSProxy);
@@ -830,7 +832,7 @@ public class Transaction {
         } catch (IOException e) {
             e.printStackTrace();
 
-            if (!retrying) {
+            if (numRetries < NUM_RETRIES) {
                 // sleep and try again in three seconds to see if that give wifi and mobile data a chance to toggle in time
                 try {
                     Thread.sleep(3000);
@@ -838,7 +840,7 @@ public class Transaction {
 
                 }
 
-                trySending(apns, bytesToSend, true);
+                trySending(apns, bytesToSend, numRetries++);
             } else {
                 // if it still fails, then mark message as failed
 
