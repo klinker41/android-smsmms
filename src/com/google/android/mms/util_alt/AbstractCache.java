@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.util;
+package com.google.android.mms.util_alt;
 
 import android.util.Log;
 

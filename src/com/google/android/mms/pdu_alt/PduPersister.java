@@ -20,11 +20,11 @@ package com.google.android.mms.pdu_alt;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.InvalidHeaderValueException;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.util.DownloadDrmHelper;
-import com.google.android.mms.util.DrmConvertSession;
-import com.google.android.mms.util.PduCache;
-import com.google.android.mms.util.PduCacheEntry;
-import com.google.android.mms.util.SqliteWrapper;
+import com.google.android.mms.util_alt.DownloadDrmHelper;
+import com.google.android.mms.util_alt.DrmConvertSession;
+import com.google.android.mms.util_alt.PduCache;
+import com.google.android.mms.util_alt.PduCacheEntry;
+import com.google.android.mms.util_alt.SqliteWrapper;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;

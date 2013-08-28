@@ -765,8 +765,13 @@ public class Transaction {
                     apns.get(0).MMSCenterUrl = mmscUrl;
                 }
 
-                // attempts to send the message using given apns
-                trySending(apns.get(0), bytesToSend, false);
+                try {
+                    // attempts to send the message using given apns
+                    trySending(apns.get(0), bytesToSend, false);
+                } catch (Exception e) {
+                    // some type of apn error, so notify user of failure
+                    context.sendBroadcast(new Intent("com.klinker.android.send_message.MMS_ERROR"));
+                }
 
             }
 
