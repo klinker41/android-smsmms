@@ -950,8 +950,7 @@ public class Transaction {
         query.close();
 
         context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
-
-        // TODO send broadcast to notify user that voice message has failed to send and popup should be shown
+        context.sendBroadcast(new Intent("com.klinker.android.send_message.VOICE_FAILED"));
     }
 
     private void successVoice() {
