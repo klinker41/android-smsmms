@@ -938,8 +938,7 @@ public class Transaction {
         Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
         // mark message as failed
-        if (query.moveToFirst())
-        {
+        if (query.moveToFirst()) {
             String id = query.getString(query.getColumnIndex("_id"));
             ContentValues values = new ContentValues();
             values.put("type", "5");
@@ -957,8 +956,7 @@ public class Transaction {
         Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
         // mark message as sent successfully
-        if (query.moveToFirst())
-        {
+        if (query.moveToFirst()){
             String id = query.getString(query.getColumnIndex("_id"));
             ContentValues values = new ContentValues();
             values.put("type", "2");
@@ -971,7 +969,7 @@ public class Transaction {
         context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
     }
 
-    public static String fetchRnrSe(String authToken, Context context) throws ExecutionException, InterruptedException {
+    private String fetchRnrSe(String authToken, Context context) throws ExecutionException, InterruptedException {
         JsonObject userInfo = Ion.with(context)
                 .load("https://www.google.com/voice/request/user")
                 .setHeader("Authorization", "GoogleLogin auth=" + authToken)
