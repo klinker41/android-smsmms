@@ -308,6 +308,10 @@ public class Transaction {
             values.put("thread_id", threadId);
             context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
 
+            if (!settings.getSignature().equals("")) {
+                text += "\n" + settings.getSignature();
+            }
+
             sendVoiceMessage(addresses[i], text);
         }
     }
