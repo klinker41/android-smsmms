@@ -657,8 +657,8 @@ public class Transaction {
         // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
         if (settings.getWifiMmsFix()) {
             WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            settings.currentWifiState = wifi.isWifiEnabled();
             settings.currentWifi = wifi.getConnectionInfo();
+            settings.currentWifiState = wifi.isWifiEnabled();
             wifi.disconnect();
             settings.discon = new DisconnectWifi();
             context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
@@ -667,7 +667,7 @@ public class Transaction {
         }
 
         // enable mms connection to mobile data
-        ConnectivityManager mConnMgr =  (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager mConnMgr =  (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         final int result = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
 
         if (result != 0) {
@@ -771,6 +771,7 @@ public class Transaction {
                 }
 
                 try {
+                    ensureRouteToHost(apns.get(0).MMSCenterUrl, apns.get(0).MMSProxy);
                     // attempts to send the message using given apns
                     trySending(apns.get(0), bytesToSend, 0);
                 } catch (Exception e) {
@@ -788,10 +789,8 @@ public class Transaction {
 
     private void trySending(APN apns, byte[] bytesToSend, int numRetries) {
         try {
-            Log.v("apns_to_use", apns.MMSCenterUrl + " " + apns.MMSPort + " " + apns.MMSProxy);
-            ensureRouteToHost(apns.MMSCenterUrl, apns.MMSProxy);
-
             // This is where the actual post request is made to send the bytes we previously created through the given apns
+            Log.v("sending_mms_library", "attempt: " + numRetries);
             HttpUtils.httpConnection(context, -1L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
 
             // FIXME only way I have thought of to mark a message as sent is to listen for changes to connectivity status... this does not always work, for example Sprint messages will be marked as sent, but will fail to be delivered
