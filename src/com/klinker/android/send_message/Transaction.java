@@ -31,6 +31,7 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -602,9 +603,10 @@ public class Transaction {
     }
 
     // make sure that the host MMSC is reachable
-    private void ensureRouteToHost(String url, String proxy) throws IOException {
+    public static void ensureRouteToHost(Context context, String url, String proxy) throws IOException {
         ConnectivityManager connMgr =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        connMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
 
         int inetAddr;
         if (!proxy.equals("")) {
@@ -667,7 +669,7 @@ public class Transaction {
         }
 
         // enable mms connection to mobile data
-        ConnectivityManager mConnMgr =  (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         final int result = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
 
         if (result != 0) {
@@ -771,7 +773,6 @@ public class Transaction {
                 }
 
                 try {
-                    ensureRouteToHost(apns.get(0).MMSCenterUrl, apns.get(0).MMSProxy);
                     // attempts to send the message using given apns
                     trySending(apns.get(0), bytesToSend, 0);
                 } catch (Exception e) {
@@ -791,6 +792,7 @@ public class Transaction {
         try {
             // This is where the actual post request is made to send the bytes we previously created through the given apns
             Log.v("sending_mms_library", "attempt: " + numRetries);
+            ensureRouteToHost(context, apns.MMSCenterUrl, apns.MMSProxy);
             HttpUtils.httpConnection(context, -1L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
 
             // FIXME only way I have thought of to mark a message as sent is to listen for changes to connectivity status... this does not always work, for example Sprint messages will be marked as sent, but will fail to be delivered
@@ -844,7 +846,7 @@ public class Transaction {
 
                 }
 
-                trySending(apns, bytesToSend, numRetries++);
+                trySending(apns, bytesToSend, numRetries + 1);
             } else {
                 // if it still fails, then mark message as failed
 
