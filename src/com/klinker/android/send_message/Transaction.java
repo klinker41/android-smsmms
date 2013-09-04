@@ -230,7 +230,7 @@ public class Transaction {
 
         if (image.length <= 1) {
             // insert mms message with only text and one image or no images
-            insert(("insert-address-token " + address).split(" "), "", image.length != 0 ? Message.bitmapToByteArray(image[0]) : null, text, threadId);
+            //insert(("insert-address-token " + address).split(" "), "", image.length != 0 ? Message.bitmapToByteArray(image[0]) : null, text, threadId);
 
             MMSPart[] parts = new MMSPart[2];
 
@@ -256,7 +256,7 @@ public class Transaction {
             }
 
             // send part we just created
-            sendMMS(address.split(" "), parts);
+            sendMMS(getBytes(address.split(" "), parts));
         } else {
             // insert messages a little differently when there is more than one
             ArrayList<MMSPart> data = new ArrayList<MMSPart>();
@@ -277,7 +277,7 @@ public class Transaction {
             }
 
             // insert bytes to database
-            insert(("insert-address-token " + address).split(" "), "", bytes, mimes, text, threadId);
+            //insert(("insert-address-token " + address).split(" "), "", bytes, mimes, text, threadId);
 
             // add text to the end of the part and send
             MMSPart part = new MMSPart();
@@ -286,8 +286,63 @@ public class Transaction {
             part.Data = text.getBytes();
             data.add(part);
 
-            sendMMS(address.split(" "), data.toArray(new MMSPart[data.size()]));
+            sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()])));
         }
+    }
+
+    private byte[] getBytes(String[] recipients, MMSPart[] parts) {
+        final SendReq sendRequest = new SendReq();
+
+        // create send request addresses
+        for (int i = 0; i < recipients.length; i++) {
+            final EncodedStringValue[] phoneNumbers = EncodedStringValue.extract(recipients[i]);
+
+            if (phoneNumbers != null && phoneNumbers.length > 0) {
+                sendRequest.addTo(phoneNumbers[0]);
+            }
+        }
+
+        sendRequest.setDate(Calendar.getInstance().getTimeInMillis() / 1000L);
+
+        try {
+            sendRequest.setFrom(new EncodedStringValue(getMyPhoneNumber(context)));
+        } catch (Exception e) {
+            // my number is nothing
+        }
+
+        final PduBody pduBody = new PduBody();
+
+        // assign parts to the pdu body which contains sending data
+        if (parts != null) {
+            for (MMSPart part : parts) {
+                if (part != null) {
+                    try {
+                        final PduPart partPdu = new PduPart();
+                        partPdu.setName(part.Name.getBytes());
+                        partPdu.setContentType(part.MimeType.getBytes());
+                        partPdu.setData(part.Data);
+                        pduBody.addPart(partPdu);
+                    } catch (Exception e) {
+
+                    }
+                }
+            }
+        }
+
+        sendRequest.setBody(pduBody);
+
+        // create byte array which will actually be sent
+        final PduComposer composer = new PduComposer(context, sendRequest);
+        final byte[] bytesToSend = composer.make();
+
+        try {
+            PduPersister persister = PduPersister.getPduPersister(context);
+            persister.persist(sendRequest, Telephony.Mms.Outbox.CONTENT_URI, true, settings.getGroup(), null);
+        } catch (Exception e) {
+            // something went wrong saving... :(
+        }
+
+        return bytesToSend;
     }
 
     private void sendVoiceMessage(String text, String[] addresses, String threadId) {
@@ -655,7 +710,7 @@ public class Transaction {
         return addr;
     }
 
-    public void sendMMS(final String[] recipient, final MMSPart[] parts) {
+    public void sendMMS(final byte[] bytesToSend) {
         // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
         if (settings.getWifiMmsFix()) {
             WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -697,7 +752,7 @@ public class Transaction {
                         return;
                     } else {
                         // ready to send the message now
-                        sendData(recipient, parts);
+                        sendData(bytesToSend);
 
                         context.unregisterReceiver(this);
                     }
@@ -709,53 +764,16 @@ public class Transaction {
             context.registerReceiver(receiver, filter);
         } else {
             // mms connection already active, so send the message
-            sendData(recipient, parts);
+            sendData(bytesToSend);
         }
     }
 
-    public void sendData(final String[] recipients, final MMSPart[] parts) {
+    public void sendData(final byte[] bytesToSend) {
         // be sure this is running on new thread, not UI
         new Thread(new Runnable() {
 
             @Override
             public void run() {
-
-                final SendReq sendRequest = new SendReq();
-
-                // create send request addresses
-                for (int i = 0; i < recipients.length; i++) {
-                    final EncodedStringValue[] phoneNumbers = EncodedStringValue.extract(recipients[i]);
-
-                    if (phoneNumbers != null && phoneNumbers.length > 0) {
-                        sendRequest.addTo(phoneNumbers[0]);
-                    }
-                }
-
-                final PduBody pduBody = new PduBody();
-
-                // assign parts to the pdu body which contains sending data
-                if (parts != null) {
-                    for (MMSPart part : parts) {
-                        if (part != null) {
-                            try {
-                                final PduPart partPdu = new PduPart();
-                                partPdu.setName(part.Name.getBytes());
-                                partPdu.setContentType(part.MimeType.getBytes());
-                                partPdu.setData(part.Data);
-                                pduBody.addPart(partPdu);
-                            } catch (Exception e) {
-
-                            }
-                        }
-                    }
-                }
-
-                sendRequest.setBody(pduBody);
-
-                // create byte array which will actually be sent
-                final PduComposer composer = new PduComposer(context, sendRequest);
-                final byte[] bytesToSend = composer.make();
-
                 List<APN> apns = new ArrayList<APN>();
 
                 try {
@@ -1023,5 +1041,12 @@ public class Transaction {
         context.sendBroadcast(intent);
 
         return rnrse;
+    }
+
+    public static String getMyPhoneNumber(Context context){
+        TelephonyManager mTelephonyMgr;
+        mTelephonyMgr = (TelephonyManager)
+                context.getSystemService(Context.TELEPHONY_SERVICE);
+        return mTelephonyMgr.getLine1Number();
     }
 }
