@@ -40,6 +40,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 import com.android.mms.transaction.HttpUtils;
+import com.android.mms.transaction.ProgressCallbackEntity;
 import com.google.android.mms.APN;
 import com.google.android.mms.APNHelper;
 import com.google.android.mms.MMSPart;
@@ -254,6 +255,7 @@ public class Transaction {
     }
 
     private byte[] getBytes(String[] recipients, MMSPart[] parts) {
+        // TODO find stock app code for when it inserts mms into sending database and be sure sendReq is constructed identically
         final SendReq sendRequest = new SendReq();
 
         // create send request addresses
@@ -621,55 +623,60 @@ public class Transaction {
 
     public static final int NUM_RETRIES = 2;
 
-    private void trySending(APN apns, byte[] bytesToSend, int numRetries) {
+    private void trySending(final APN apns, final byte[] bytesToSend, final int numRetries) {
         try {
-            // This is where the actual post request is made to send the bytes we previously created through the given apns
-            Log.v("sending_mms_library", "attempt: " + numRetries);
-            ensureRouteToHost(context, apns.MMSCenterUrl, apns.MMSProxy);
-
-            // TODO change this token to use ContentUris.parseId() from the uri of pdupersister above when saving message
-            HttpUtils.httpConnection(context, -1L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
-
-            // FIXME only way I have thought of to mark a message as sent is to listen for changes to connectivity status... this does not always work, for example Sprint messages will be marked as sent, but will fail to be delivered
             IntentFilter filter = new IntentFilter();
-            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            filter.addAction(ProgressCallbackEntity.PROGRESS_STATUS_ACTION);
             BroadcastReceiver receiver = new BroadcastReceiver() {
 
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
-                    query.moveToFirst();
-                    String id = query.getString(query.getColumnIndex("_id"));
-                    query.close();
+                    int progress = intent.getIntExtra("progress", -3);
+                    Log.v("progress_status_action", progress + "");
+                    if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
+                        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
+                        query.moveToFirst();
+                        String id = query.getString(query.getColumnIndex("_id"));
+                        query.close();
 
-                    // move to the sent box
-                    ContentValues values = new ContentValues();
-                    values.put("msg_box", 2);
-                    String where = "_id" + " = '" + id + "'";
-                    context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+                        // move to the sent box
+                        ContentValues values = new ContentValues();
+                        values.put("msg_box", 2);
+                        String where = "_id" + " = '" + id + "'";
+                        context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
 
-                    context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
-                    context.unregisterReceiver(this);
+                        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+                        context.unregisterReceiver(this);
 
-                    // FIXME once again, should not have to mess with the WiFi connection if we could enable mobile data in the background...
-                    if (settings.getWifiMmsFix()) {
-                        try {
-                            context.unregisterReceiver(settings.discon);
-                        } catch (Exception e) {
+                        reinstateWifi();
+                    } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
+                        context.unregisterReceiver(this);
 
+                        if (numRetries < NUM_RETRIES) {
+                            // sleep and try again in three seconds to see if that give wifi and mobile data a chance to toggle in time
+                            try {
+                                Thread.sleep(3000);
+                            } catch (Exception f) {
+
+                            }
+
+                            trySending(apns, bytesToSend, numRetries + 1);
+                        } else {
+                            markMmsFailed();
                         }
-
-                        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                        wifi.setWifiEnabled(false);
-                        wifi.setWifiEnabled(settings.currentWifiState);
-                        wifi.reconnect();
-                        setMobileDataEnabled(context, settings.currentDataState);
+                    } else {
+                        // here we could update anything we want with a percentage of progress completed...
                     }
                 }
 
             };
 
             context.registerReceiver(receiver, filter);
+
+            // This is where the actual post request is made to send the bytes we previously created through the given apns
+            Log.v("sending_mms_library", "attempt: " + numRetries);
+            ensureRouteToHost(context, apns.MMSCenterUrl, apns.MMSProxy);
+            HttpUtils.httpConnection(context, 4444L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
         } catch (IOException e) {
             e.printStackTrace();
 
@@ -683,48 +690,55 @@ public class Transaction {
 
                 trySending(apns, bytesToSend, numRetries + 1);
             } else {
-                // if it still fails, then mark message as failed
-
-                // FIXME again with the wifi problems...
-                if (settings.getWifiMmsFix()) {
-                    try {
-                        context.unregisterReceiver(settings.discon);
-                    } catch (Exception f) {
-
-                    }
-
-                    WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                    wifi.setWifiEnabled(false);
-                    wifi.setWifiEnabled(settings.currentWifiState);
-                    wifi.reconnect();
-                    setMobileDataEnabled(context, settings.currentDataState);
-                }
-
-                Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
-                query.moveToFirst();
-                String id = query.getString(query.getColumnIndex("_id"));
-                query.close();
-
-                // mark message as failed
-                ContentValues values = new ContentValues();
-                values.put("msg_box", 5);
-                String where = "_id" + " = '" + id + "'";
-                context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
-
-                ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
-
-                        // broadcast that mms has failed and you can notify user from there if you would like
-                        context.sendBroadcast(new Intent("com.klinker.android.send_message.MMS_ERROR"));
-
-                    }
-
-                });
+                markMmsFailed();
             }
         }
+    }
+
+    // FIXME again with the wifi problems... should not have to do this at all
+    private void reinstateWifi() {
+        if (settings.getWifiMmsFix()) {
+            try {
+                context.unregisterReceiver(settings.discon);
+            } catch (Exception f) {
+
+            }
+
+            WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            wifi.setWifiEnabled(false);
+            wifi.setWifiEnabled(settings.currentWifiState);
+            wifi.reconnect();
+            setMobileDataEnabled(context, settings.currentDataState);
+        }
+    }
+
+    private void markMmsFailed() {
+        // if it still fails, then mark message as failed
+        reinstateWifi();
+
+        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
+        query.moveToFirst();
+        String id = query.getString(query.getColumnIndex("_id"));
+        query.close();
+
+        // mark message as failed
+        ContentValues values = new ContentValues();
+        values.put("msg_box", 5);
+        String where = "_id" + " = '" + id + "'";
+        context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+
+        ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
+
+            @Override
+            public void run() {
+                context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+
+                // broadcast that mms has failed and you can notify user from there if you would like
+                context.sendBroadcast(new Intent("com.klinker.android.send_message.MMS_ERROR"));
+
+            }
+
+        });
     }
 
     private void sendVoiceMessage(String destAddr, String text) {
