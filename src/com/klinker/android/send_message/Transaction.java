@@ -637,7 +637,12 @@ public class Transaction {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     int progress = intent.getIntExtra("progress", -3);
-                    Log.v("progress_status_action", progress + "");
+
+                    // send progress broadcast to update ui if desired...
+                    Intent progressIntent = new Intent(MMS_PROGRESS);
+                    progressIntent.putExtra("progress", progress);
+                    context.sendBroadcast(progressIntent);
+
                     if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
                         Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
                         query.moveToFirst();
@@ -669,10 +674,6 @@ public class Transaction {
                         } else {
                             markMmsFailed();
                         }
-                    } else {
-                        Intent progressIntent = new Intent(MMS_PROGRESS);
-                        progressIntent.putExtra("progress", progress);
-                        context.sendBroadcast(progressIntent);
                     }
                 }
 
