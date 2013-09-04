@@ -69,6 +69,14 @@ public class Transaction {
     // characters to compare against when checking for 160 character sending compatibility
     public static final String GSM_CHARACTERS_REGEX = "^[A-Za-z0-9 \\r\\n@Ł$ĽčéůěňÇŘřĹĺ\u0394_\u03A6\u0393\u039B\u03A9\u03A0\u03A8\u03A3\u0398\u039EĆćßÉ!\"#$%&'()*+,\\-./:;<=>?ĄÄÖŃÜ§żäöńüŕ^{}\\\\\\[~\\]|\u20AC]*$";
 
+    public static final String SMS_SENT = "com.klinker.android.send_message.SMS_SENT";
+    public static final String SMS_DELIVERED = "com.klinker.android.send_message.SMS_DELIVERED";
+    public static final String MMS_ERROR = "com.klinker.android.send_message.MMS_ERROR";
+    public static final String REFRESH = "com.klinker.android.send_message.REFRESH";
+    public static final String MMS_PROGRESS = "com.klinker.android.send_message.MMS_PROGRESS";
+    public static final String VOICE_FAILED = "com.klinker.android.send_message.VOICE_FAILED";
+    public static final String VOICE_TOKEN = "com.klinker.android.send_message.RNRSE";
+
     public Transaction(Context context) {
         settings = new Settings();
         this.context = context;
@@ -106,11 +114,8 @@ public class Transaction {
 
     private void sendSmsMessage(String text, String[] addresses, String threadId) {
         // set up sent and delivered pending intents to be used with message request
-        String SENT = "com.klinker.android.send_message.SMS_SENT";
-        String DELIVERED = "com.klinker.android.send_message.SMS_DELIVERED";
-
-        PendingIntent sentPI = PendingIntent.getBroadcast(context, 0, new Intent(SENT), 0);
-        PendingIntent deliveredPI = PendingIntent.getBroadcast(context, 0, new Intent(DELIVERED), 0);
+        PendingIntent sentPI = PendingIntent.getBroadcast(context, 0, new Intent(SMS_SENT), 0);
+        PendingIntent deliveredPI = PendingIntent.getBroadcast(context, 0, new Intent(SMS_DELIVERED), 0);
 
         ArrayList<PendingIntent> sPI = new ArrayList<PendingIntent>();
         ArrayList<PendingIntent> dPI = new ArrayList<PendingIntent>();
@@ -612,7 +617,7 @@ public class Transaction {
                     trySending(apns.get(0), bytesToSend, 0);
                 } catch (Exception e) {
                     // some type of apn error, so notify user of failure
-                    context.sendBroadcast(new Intent("com.klinker.android.send_message.MMS_ERROR"));
+                    context.sendBroadcast(new Intent(MMS_ERROR));
                 }
 
             }
@@ -645,7 +650,7 @@ public class Transaction {
                         String where = "_id" + " = '" + id + "'";
                         context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
 
-                        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+                        context.sendBroadcast(new Intent(REFRESH));
                         context.unregisterReceiver(this);
 
                         reinstateWifi();
@@ -665,7 +670,9 @@ public class Transaction {
                             markMmsFailed();
                         }
                     } else {
-                        // here we could update anything we want with a percentage of progress completed...
+                        Intent progressIntent = new Intent(MMS_PROGRESS);
+                        progressIntent.putExtra("progress", progress);
+                        context.sendBroadcast(progressIntent);
                     }
                 }
 
@@ -731,10 +738,10 @@ public class Transaction {
 
             @Override
             public void run() {
-                context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+                context.sendBroadcast(new Intent(REFRESH));
 
                 // broadcast that mms has failed and you can notify user from there if you would like
-                context.sendBroadcast(new Intent("com.klinker.android.send_message.MMS_ERROR"));
+                context.sendBroadcast(new Intent(MMS_ERROR));
 
             }
 
@@ -810,8 +817,8 @@ public class Transaction {
 
         query.close();
 
-        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
-        context.sendBroadcast(new Intent("com.klinker.android.send_message.VOICE_FAILED"));
+        context.sendBroadcast(new Intent(REFRESH));
+        context.sendBroadcast(new Intent(VOICE_FAILED));
     }
 
     private void successVoice() {
@@ -828,7 +835,7 @@ public class Transaction {
 
         query.close();
 
-        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+        context.sendBroadcast(new Intent(REFRESH));
     }
 
     private String fetchRnrSe(String authToken, Context context) throws ExecutionException, InterruptedException {
@@ -867,7 +874,7 @@ public class Transaction {
         }
 
         // broadcast so you can save it to your shared prefs or something so that it doesn't need to be retrieved every time
-        Intent intent = new Intent("com.klinker.android.send_message.RNRSE");
+        Intent intent = new Intent(VOICE_TOKEN);
         intent.putExtra("_rnr_se", rnrse);
         context.sendBroadcast(intent);
 
