@@ -228,66 +228,29 @@ public class Transaction {
 
         address = address.trim();
 
-        if (image.length <= 1) {
-            // insert mms message with only text and one image or no images
-            //insert(("insert-address-token " + address).split(" "), "", image.length != 0 ? Message.bitmapToByteArray(image[0]) : null, text, threadId);
+        // create the parts to send
+        ArrayList<MMSPart> data = new ArrayList<MMSPart>();
 
-            MMSPart[] parts = new MMSPart[2];
+        for (int i = 0; i < image.length; i++) {
+            // turn bitmap into byte array to be stored
+            byte[] imageBytes = Message.bitmapToByteArray(image[i]);
 
-            if (image.length != 0) {
-                // attach all of the data to the mms part which we will send
-                parts[0] = new MMSPart();
-                parts[0].Name = "Image";
-                parts[0].MimeType = "image/png";
-                parts[0].Data = Message.bitmapToByteArray(image[0]);
-
-                if (!text.equals("")) {
-                    parts[1] = new MMSPart();
-                    parts[1].Name = "Text";
-                    parts[1].MimeType = "text/plain";
-                    parts[1].Data = text.getBytes();
-                }
-            } else {
-                // only text and keep part[1] null
-                parts[0] = new MMSPart();
-                parts[0].Name = "Text";
-                parts[0].MimeType = "text/plain";
-                parts[0].Data = text.getBytes();
-            }
-
-            // send part we just created
-            sendMMS(getBytes(address.split(" "), parts));
-        } else {
-            // insert messages a little differently when there is more than one
-            ArrayList<MMSPart> data = new ArrayList<MMSPart>();
-            ArrayList<byte[]> bytes = new ArrayList<byte[]>();
-            ArrayList<String> mimes = new ArrayList<String>();
-
-            for (int i = 0; i < image.length; i++) {
-                // turn bitmap into byte array to be stored
-                byte[] imageBytes = Message.bitmapToByteArray(image[i]);
-                bytes.add(imageBytes);
-                mimes.add("image/png");
-
-                MMSPart part = new MMSPart();
-                part.MimeType = "image/png";
-                part.Name = "Image";
-                part.Data = imageBytes;
-                data.add(part);
-            }
-
-            // insert bytes to database
-            //insert(("insert-address-token " + address).split(" "), "", bytes, mimes, text, threadId);
-
-            // add text to the end of the part and send
             MMSPart part = new MMSPart();
-            part.Name = "Text";
-            part.MimeType = "text/plain";
-            part.Data = text.getBytes();
+            part.MimeType = "image/png";
+            part.Name = "Image";
+            part.Data = imageBytes;
             data.add(part);
-
-            sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()])));
         }
+
+        // add text to the end of the part and send
+        MMSPart part = new MMSPart();
+        part.Name = "Text";
+        part.MimeType = "text/plain";
+        part.Data = text.getBytes();
+        data.add(part);
+
+        // insert the pdu into the database and return the bytes to send
+        sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()])));
     }
 
     private byte[] getBytes(String[] recipients, MMSPart[] parts) {
@@ -339,6 +302,7 @@ public class Transaction {
             PduPersister persister = PduPersister.getPduPersister(context);
             persister.persist(sendRequest, Telephony.Mms.Outbox.CONTENT_URI, true, settings.getGroup(), null);
         } catch (Exception e) {
+            e.printStackTrace();
             // something went wrong saving... :(
         }
 
@@ -422,155 +386,6 @@ public class Transaction {
         }
 
         return returnArray;
-    }
-
-    // FIXME combine the two insert functions into one that is compatible with any type of message we send in
-    // FIXME messages saved through this function for some reason will not show in other SMS apps, I can't figure out why that is
-    public Uri insert(String[] to, String subject, byte[] imageBytes, String text, String threadId) {
-        try {
-            Uri destUri = Uri.parse("content://mms");
-
-            // Get thread id
-            String thread_id = threadId;
-
-            if (thread_id == null) {
-                Set<String> recipients = new HashSet<String>();
-                recipients.addAll(Arrays.asList(to));
-                thread_id = Telephony.Threads.getOrCreateThreadId(context, recipients) + "";
-            }
-
-            // Create a dummy sms
-            ContentValues dummyValues = new ContentValues();
-            dummyValues.put("thread_id", thread_id);
-            dummyValues.put("body", " ");
-            Uri dummySms = context.getContentResolver().insert(Uri.parse("content://sms/sent"), dummyValues);
-
-            // Create a new message entry
-            long now = System.currentTimeMillis();
-            ContentValues mmsValues = new ContentValues();
-            mmsValues.put("thread_id", thread_id);
-            mmsValues.put("date", now/1000L);
-            mmsValues.put("msg_box", 4);
-            //mmsValues.put("m_id", System.currentTimeMillis());
-            mmsValues.put("read", true);
-            mmsValues.put("sub", subject);
-            mmsValues.put("sub_cs", 106);
-            mmsValues.put("ct_t", "application/vnd.wap.multipart.related");
-
-            if (imageBytes != null)
-            {
-                mmsValues.put("exp", imageBytes.length);
-            } else {
-                mmsValues.put("exp", 0);
-            }
-
-            mmsValues.put("m_cls", "personal");
-            mmsValues.put("m_type", 128); // 132 (RETRIEVE CONF) 130 (NOTIF IND) 128 (SEND REQ)
-            mmsValues.put("v", 19);
-            mmsValues.put("pri", 129);
-            mmsValues.put("tr_id", "T"+ Long.toHexString(now));
-            mmsValues.put("resp_st", 128);
-
-            // Insert message
-            Uri res = context.getContentResolver().insert(destUri, mmsValues);
-            String messageId = res.getLastPathSegment().trim();
-
-            // Create part
-            if (imageBytes != null) {
-                createPartImage(messageId, imageBytes, "image/png");
-            }
-
-            createPartText(messageId, text);
-
-            // Create addresses
-            for (String addr : to) {
-                createAddr(messageId, addr);
-            }
-
-            //res = Uri.parse(destUri + "/" + messageId);
-
-            // Delete dummy sms
-            context.getContentResolver().delete(dummySms, null, null);
-
-            return res;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public Uri insert(String[] to, String subject, ArrayList<byte[]> imageBytes, ArrayList<String> mimeTypes, String text, String threadId) {
-        try {
-            Uri destUri = Uri.parse("content://mms");
-
-            // Get thread id
-            String thread_id = threadId;
-
-            if (thread_id == null) {
-                Set<String> recipients = new HashSet<String>();
-                recipients.addAll(Arrays.asList(to));
-                thread_id = Telephony.Threads.getOrCreateThreadId(context, recipients) + "";
-            }
-
-            // Create a dummy sms
-            ContentValues dummyValues = new ContentValues();
-            dummyValues.put("thread_id", thread_id);
-            dummyValues.put("body", " ");
-            Uri dummySms = context.getContentResolver().insert(Uri.parse("content://sms/sent"), dummyValues);
-
-            // Create a new message entry
-            long now = System.currentTimeMillis();
-            ContentValues mmsValues = new ContentValues();
-            mmsValues.put("thread_id", thread_id);
-            mmsValues.put("date", now/1000L);
-            mmsValues.put("msg_box", 4);
-            //mmsValues.put("m_id", System.currentTimeMillis());
-            mmsValues.put("read", true);
-            mmsValues.put("sub", subject);
-            mmsValues.put("sub_cs", 106);
-            mmsValues.put("ct_t", "application/vnd.wap.multipart.related");
-
-            if (imageBytes != null) {
-                mmsValues.put("exp", imageBytes.get(0).length);
-            } else {
-                mmsValues.put("exp", 0);
-            }
-
-            mmsValues.put("m_cls", "personal");
-            mmsValues.put("m_type", 128); // 132 (RETRIEVE CONF) 130 (NOTIF IND) 128 (SEND REQ)
-            mmsValues.put("v", 19);
-            mmsValues.put("pri", 129);
-            mmsValues.put("tr_id", "T"+ Long.toHexString(now));
-            mmsValues.put("resp_st", 128);
-
-            // Insert message
-            Uri res = context.getContentResolver().insert(destUri, mmsValues);
-            String messageId = res.getLastPathSegment().trim();
-
-            // Create part
-            for (int i = 0; i < imageBytes.size(); i++) {
-                createPartImage(messageId, imageBytes.get(i), mimeTypes.get(i));
-            }
-
-            createPartText(messageId, text);
-
-            // Create addresses
-            for (String addr : to) {
-                createAddr(messageId, addr);
-            }
-
-            //res = Uri.parse(destUri + "/" + messageId);
-
-            // Delete dummy sms
-            context.getContentResolver().delete(dummySms, null, null);
-
-            return res;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     // create the image part to be stored in database
@@ -811,6 +626,8 @@ public class Transaction {
             // This is where the actual post request is made to send the bytes we previously created through the given apns
             Log.v("sending_mms_library", "attempt: " + numRetries);
             ensureRouteToHost(context, apns.MMSCenterUrl, apns.MMSProxy);
+
+            // TODO change this token to use ContentUris.parseId() from the uri of pdupersister above when saving message
             HttpUtils.httpConnection(context, -1L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
 
             // FIXME only way I have thought of to mark a message as sent is to listen for changes to connectivity status... this does not always work, for example Sprint messages will be marked as sent, but will fail to be delivered
