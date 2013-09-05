@@ -30,8 +30,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -65,6 +63,7 @@ public class Transaction {
 
     public Settings settings;
     public Context context;
+    public ConnectivityManager mConnMgr;
 
     // characters to compare against when checking for 160 character sending compatibility
     public static final String GSM_CHARACTERS_REGEX = "^[A-Za-z0-9 \\r\\n@Ł$ĽčéůěňÇŘřĹĺ\u0394_\u03A6\u0393\u039B\u03A9\u03A0\u03A8\u03A3\u0398\u039EĆćßÉ!\"#$%&'()*+,\\-./:;<=>?ĄÄÖŃÜ§żäöńüŕ^{}\\\\\\[~\\]|\u20AC]*$";
@@ -447,13 +446,13 @@ public class Transaction {
     // enables mobile data to send the message
     public static void setMobileDataEnabled(Context context, boolean enabled) {
         try {
-            final ConnectivityManager conman = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            final Class conmanClass = Class.forName(conman.getClass().getName());
-            final Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
+            ConnectivityManager conman = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            Class conmanClass = Class.forName(conman.getClass().getName());
+            Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
             iConnectivityManagerField.setAccessible(true);
-            final Object iConnectivityManager = iConnectivityManagerField.get(conman);
-            final Class iConnectivityManagerClass = Class.forName(iConnectivityManager.getClass().getName());
-            final Method setMobileDataEnabledMethod = iConnectivityManagerClass.getDeclaredMethod("setMobileDataEnabled", Boolean.TYPE);
+            Object iConnectivityManager = iConnectivityManagerField.get(conman);
+            Class iConnectivityManagerClass = Class.forName(iConnectivityManager.getClass().getName());
+            Method setMobileDataEnabledMethod = iConnectivityManagerClass.getDeclaredMethod("setMobileDataEnabled", Boolean.TYPE);
             setMobileDataEnabledMethod.setAccessible(true);
 
             setMobileDataEnabledMethod.invoke(iConnectivityManager, enabled);
@@ -465,8 +464,7 @@ public class Transaction {
 
     // checks whether or not mobile data is already enabled
     public static Boolean isMobileDataEnabled(Context context) {
-        Object connectivityService = context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        ConnectivityManager cm = (ConnectivityManager) connectivityService;
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         try {
             Class<?> c = Class.forName(cm.getClass().getName());
@@ -546,8 +544,8 @@ public class Transaction {
         }
 
         // enable mms connection to mobile data
-        ConnectivityManager mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        final int result = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
+        mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        int result = beginMmsConnectivity();
 
         if (result != 0) {
             // if mms feature is not already running (most likely isn't...) then register a receiver and wait for it to be active
@@ -718,6 +716,18 @@ public class Transaction {
             wifi.reconnect();
             setMobileDataEnabled(context, settings.currentDataState);
         }
+
+        endMmsConnectivity();
+    }
+
+    private int beginMmsConnectivity() {
+        int result = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
+
+        return result;
+    }
+
+    private void endMmsConnectivity() {
+        mConnMgr.stopUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
     }
 
     private void markMmsFailed() {
