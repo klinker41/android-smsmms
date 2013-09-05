@@ -1,6 +1,5 @@
 /*
  * Copyright 2013 Jacob Klinker
- * This code has been modified. Portions copyright (C) 2012, ParanoidAndroid Project.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +58,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Class to process transaction requests for sending
+ * @author Jake Klinker
+ */
 public class Transaction {
 
     public Settings settings;
@@ -76,16 +79,30 @@ public class Transaction {
     public static final String VOICE_FAILED = "com.klinker.android.send_message.VOICE_FAILED";
     public static final String VOICE_TOKEN = "com.klinker.android.send_message.RNRSE";
 
+    /**
+     * Sets context and initializes settings to default values
+     * @param context is the context of the activity or service
+     */
     public Transaction(Context context) {
         settings = new Settings();
         this.context = context;
     }
 
+    /**
+     * Sets context and settings
+     * @param context is the context of the activity or service
+     * @param settings is the settings object to process send requests through
+     */
     public Transaction(Context context, Settings settings) {
         this.settings = settings;
         this.context = context;
     }
 
+    /**
+     * Called to send a new message depending on settings and provided Message object
+     * @param message is the message that you want to send
+     * @param threadId is the thread id of who to send the message to (can be nullified)
+     */
     public void sendNewMessage(final Message message, final String threadId) {
 
         // if message:
@@ -343,6 +360,13 @@ public class Transaction {
     }
 
     // returns the number of pages in the SMS based on settings and the length of string
+
+    /**
+     * Gets the number of pages in the SMS based on settings and the length of string
+     * @param settings is the settings object to check against
+     * @param text is the text from the message object to be sent
+     * @return the number of pages required to hold message
+     */
     public static int getNumPages(Settings settings, String text) {
         int length = text.length();
 
@@ -394,56 +418,11 @@ public class Transaction {
         return returnArray;
     }
 
-    // create the image part to be stored in database
-    private Uri createPartImage(String id, byte[] imageBytes, String mimeType) throws Exception {
-        ContentValues mmsPartValue = new ContentValues();
-        mmsPartValue.put("mid", id);
-        mmsPartValue.put("ct", mimeType);
-        mmsPartValue.put("cid", "<" + System.currentTimeMillis() + ">");
-        Uri partUri = Uri.parse("content://mms/" + id + "/part");
-        Uri res = context.getContentResolver().insert(partUri, mmsPartValue);
-
-        // Add data to part
-        OutputStream os = context.getContentResolver().openOutputStream(res);
-        ByteArrayInputStream is = new ByteArrayInputStream(imageBytes);
-        byte[] buffer = new byte[256];
-
-        for (int len=0; (len=is.read(buffer)) != -1;) {
-            os.write(buffer, 0, len);
-        }
-
-        os.close();
-        is.close();
-
-        return res;
-    }
-
-    // create the text part to be stored in database
-    private Uri createPartText(String id, String text) throws Exception {
-        ContentValues mmsPartValue = new ContentValues();
-        mmsPartValue.put("mid", id);
-        mmsPartValue.put("ct", "text/plain");
-        mmsPartValue.put("cid", "<" + System.currentTimeMillis() + ">");
-        mmsPartValue.put("text", text);
-        Uri partUri = Uri.parse("content://mms/" + id + "/part");
-        Uri res = context.getContentResolver().insert(partUri, mmsPartValue);
-
-        return res;
-    }
-
-    // add address to the request
-    private Uri createAddr(String id, String addr) throws Exception {
-        ContentValues addrValues = new ContentValues();
-        addrValues.put("address", addr);
-        addrValues.put("charset", "106");
-        addrValues.put("type", 151); // TO
-        Uri addrUri = Uri.parse("content://mms/"+ id +"/addr");
-        Uri res = context.getContentResolver().insert(addrUri, addrValues);
-
-        return res;
-    }
-
-    // enables mobile data to send the message
+    /**
+     * Toggles mobile data
+     * @param context is the context of the activity or service
+     * @param enabled is whether to enable or disable data
+     */
     public static void setMobileDataEnabled(Context context, boolean enabled) {
         try {
             ConnectivityManager conman = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -463,6 +442,12 @@ public class Transaction {
     }
 
     // checks whether or not mobile data is already enabled
+
+    /**
+     * Checks whether or not mobile data is enabled and returns the result
+     * @param context is the context of the activity or service
+     * @return true if data is enabled or false if disabled
+     */
     public static Boolean isMobileDataEnabled(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -477,7 +462,13 @@ public class Transaction {
         }
     }
 
-    // make sure that the host MMSC is reachable
+    /**
+     * Ensures that the host MMSC is reachable
+     * @param context is the context of the activity or service
+     * @param url is the MMSC to check
+     * @param proxy is the proxy of the APN to check
+     * @throws IOException when route cannot be established
+     */
     public static void ensureRouteToHost(Context context, String url, String proxy) throws IOException {
         ConnectivityManager connMgr =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -509,7 +500,11 @@ public class Transaction {
         }
     }
 
-    // ensures host is usable
+    /**
+     * Ensures that the host is reachable
+     * @param hostname the Proxy to check
+     * @return a proxy without leading zeros
+     */
     public static int lookupHost(String hostname) {
         InetAddress inetAddress;
 
@@ -530,7 +525,7 @@ public class Transaction {
         return addr;
     }
 
-    public void sendMMS(final byte[] bytesToSend) {
+    private void sendMMS(final byte[] bytesToSend) {
         // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
         if (settings.getWifiMmsFix()) {
             WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -588,7 +583,7 @@ public class Transaction {
         }
     }
 
-    public void sendData(final byte[] bytesToSend) {
+    private void sendData(final byte[] bytesToSend) {
         // be sure this is running on new thread, not UI
         new Thread(new Runnable() {
 
@@ -892,6 +887,11 @@ public class Transaction {
         return rnrse;
     }
 
+    /**
+     * Gets the current users phone number
+     * @param context is the context of the activity or service
+     * @return a string of the phone number on the device
+     */
     public static String getMyPhoneNumber(Context context){
         TelephonyManager mTelephonyMgr;
         mTelephonyMgr = (TelephonyManager)
