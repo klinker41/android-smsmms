@@ -651,6 +651,7 @@ public class Transaction {
                         }, 2000);
                     } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
                         // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
+                        Log.v("sending_mms_library", "sending aborted for some reason...");
                         context.unregisterReceiver(this);
                         revokeWifi(false);
 
