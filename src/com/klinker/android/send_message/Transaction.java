@@ -29,6 +29,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -526,17 +527,7 @@ public class Transaction {
     }
 
     private void sendMMS(final byte[] bytesToSend) {
-        // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
-        if (settings.getWifiMmsFix()) {
-            WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            settings.currentWifi = wifi.getConnectionInfo();
-            settings.currentWifiState = wifi.isWifiEnabled();
-            wifi.disconnect();
-            settings.discon = new DisconnectWifi();
-            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
-            settings.currentDataState = isMobileDataEnabled(context);
-            setMobileDataEnabled(context, true);
-        }
+        revokeWifi(true);
 
         // enable mms connection to mobile data
         mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -651,9 +642,17 @@ public class Transaction {
                         context.sendBroadcast(new Intent(REFRESH));
                         context.unregisterReceiver(this);
 
-                        reinstateWifi();
+                        // give everything time to finish up, may help the abort being shown after the progress is already 100
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                reinstateWifi();
+                            }
+                        }, 2000);
                     } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
+                        // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
                         context.unregisterReceiver(this);
+                        revokeWifi(false);
 
                         if (numRetries < NUM_RETRIES) {
                             // sleep and try again in three seconds to see if that give wifi and mobile data a chance to toggle in time
@@ -713,6 +712,25 @@ public class Transaction {
         }
 
         endMmsConnectivity();
+    }
+
+    // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
+    private void revokeWifi(boolean saveState) {
+        if (settings.getWifiMmsFix()) {
+            WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+
+            if (saveState) {
+                settings.currentWifi = wifi.getConnectionInfo();
+                settings.currentWifiState = wifi.isWifiEnabled();
+                wifi.disconnect();
+                settings.discon = new DisconnectWifi();
+                context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+                settings.currentDataState = isMobileDataEnabled(context);
+                setMobileDataEnabled(context, true);
+            } else {
+                wifi.disconnect();
+            }
+        }
     }
 
     private int beginMmsConnectivity() {
