@@ -277,7 +277,6 @@ public class Transaction {
     }
 
     private byte[] getBytes(String[] recipients, MMSPart[] parts) {
-        // TODO find stock app code for when it inserts mms into sending database and be sure sendReq is constructed identically
         final SendReq sendRequest = new SendReq();
 
         // create send request addresses
@@ -648,7 +647,7 @@ public class Transaction {
                             public void run() {
                                 reinstateWifi();
                             }
-                        }, 2000);
+                        }, 5000);
                     } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
                         // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
                         Log.v("sending_mms_library", "sending aborted for some reason...");
@@ -711,8 +710,6 @@ public class Transaction {
             wifi.reconnect();
             setMobileDataEnabled(context, settings.currentDataState);
         }
-
-        endMmsConnectivity();
     }
 
     // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
@@ -730,6 +727,10 @@ public class Transaction {
                 setMobileDataEnabled(context, true);
             } else {
                 wifi.disconnect();
+                wifi.disconnect();
+                settings.discon = new DisconnectWifi();
+                context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+                setMobileDataEnabled(context, true);
             }
         }
     }
@@ -738,10 +739,6 @@ public class Transaction {
         int result = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
 
         return result;
-    }
-
-    private void endMmsConnectivity() {
-        mConnMgr.stopUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
     }
 
     private void markMmsFailed() {
