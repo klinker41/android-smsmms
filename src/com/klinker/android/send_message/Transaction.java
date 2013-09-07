@@ -776,7 +776,7 @@ public class Transaction {
         String authToken;
 
         try {
-            authToken = getAuthToken(account);
+            authToken = getAuthToken(account, context);
 
             if (rnrse == null) {
                 rnrse = fetchRnrSe(authToken, context);
@@ -820,7 +820,16 @@ public class Transaction {
             throw new Exception(json.toString());
     }
 
-    private String getAuthToken(String account) throws IOException, OperationCanceledException, AuthenticatorException {
+    /**
+     * Function for getting the weird auth token used to send or receive google voice messages
+     * @param account is the string of the account name to get the auth token for
+     * @param context is the context of the activity or service
+     * @return a string of the auth token to be saved for later
+     * @throws IOException
+     * @throws OperationCanceledException
+     * @throws AuthenticatorException
+     */
+    public static String getAuthToken(String account, Context context) throws IOException, OperationCanceledException, AuthenticatorException {
         Bundle bundle = AccountManager.get(context).getAuthToken(new Account(account, "com.google"), "grandcentral", true, null, null).getResult();
         return bundle.getString(AccountManager.KEY_AUTHTOKEN);
     }
