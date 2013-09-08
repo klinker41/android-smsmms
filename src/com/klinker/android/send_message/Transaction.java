@@ -30,6 +30,7 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -525,6 +526,8 @@ public class Transaction {
         return addr;
     }
 
+    private boolean alreadySending = false;
+
     private void sendMMS(final byte[] bytesToSend) {
         revokeWifi(true);
 
@@ -536,7 +539,7 @@ public class Transaction {
             // if mms feature is not already running (most likely isn't...) then register a receiver and wait for it to be active
             IntentFilter filter = new IntentFilter();
             filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            BroadcastReceiver receiver = new BroadcastReceiver() {
+            final BroadcastReceiver receiver = new BroadcastReceiver() {
 
                 @Override
                 public void onReceive(Context context1, Intent intent) {
@@ -557,6 +560,7 @@ public class Transaction {
                         return;
                     } else {
                         // ready to send the message now
+                        alreadySending = true;
                         sendData(bytesToSend);
 
                         context.unregisterReceiver(this);
@@ -567,6 +571,23 @@ public class Transaction {
             };
 
             context.registerReceiver(receiver, filter);
+
+            // try sending after 3 seconds anyways if for some reason the receiver doesn't work
+            Looper.prepare();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!alreadySending) {
+                        try {
+                            context.unregisterReceiver(receiver);
+                        } catch (Exception e) {
+
+                        }
+
+                        sendData(bytesToSend);
+                    }
+                }
+            }, 2000);
         } else {
             // mms connection already active, so send the message
             sendData(bytesToSend);
@@ -620,6 +641,7 @@ public class Transaction {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     int progress = intent.getIntExtra("progress", -3);
+                    Log.v("sending_mms_library", "progress: " + progress);
 
                     // send progress broadcast to update ui if desired...
                     Intent progressIntent = new Intent(MMS_PROGRESS);
