@@ -119,6 +119,7 @@ public class Transaction {
         //
         // then, send as MMS, else send as Voice or SMS
         if (message.getImages().length != 0 || (settings.getSendLongAsMms() && getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) || (message.getAddresses().length > 1 && settings.getGroup())) {
+            Log.v("sending_mms_library", "starting sending mms");
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), threadId);
         } else {
             if (settings.getPreferVoice()) {
@@ -475,6 +476,8 @@ public class Transaction {
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         connMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
 
+        Log.v("sending_mms_library", "ensuring route to host");
+
         int inetAddr;
         if (!proxy.equals("")) {
             String proxyAddr = proxy;
@@ -535,6 +538,8 @@ public class Transaction {
         mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         int result = beginMmsConnectivity();
 
+        Log.v("sending_mms_library", "result of connectivity: " + result + " ");
+
         if (result != 0) {
             // if mms feature is not already running (most likely isn't...) then register a receiver and wait for it to be active
             IntentFilter filter = new IntentFilter();
@@ -560,6 +565,7 @@ public class Transaction {
                         return;
                     } else {
                         // ready to send the message now
+                        Log.v("sending_mms_library", "sending through broadcast receiver");
                         alreadySending = true;
                         sendData(bytesToSend);
 
@@ -579,6 +585,7 @@ public class Transaction {
                 public void run() {
                     if (!alreadySending) {
                         try {
+                            Log.v("sending_mms_library", "sending through handler");
                             context.unregisterReceiver(receiver);
                         } catch (Exception e) {
 
@@ -590,6 +597,7 @@ public class Transaction {
             }, 2000);
         } else {
             // mms connection already active, so send the message
+            Log.v("sending_mms_library", "sending right away, already ready");
             sendData(bytesToSend);
         }
     }
@@ -758,9 +766,8 @@ public class Transaction {
     }
 
     private int beginMmsConnectivity() {
-        int result = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
-
-        return result;
+        Log.v("sending_mms_library", "starting mms service");
+        return mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
     }
 
     private void markMmsFailed() {
