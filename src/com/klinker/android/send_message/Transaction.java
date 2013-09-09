@@ -603,38 +603,40 @@ public class Transaction {
 
     private void sendData(final byte[] bytesToSend) {
         // be sure this is running on new thread, not UI
+        Log.v("sending_mms_library", "starting new thread to send on");
         new Thread(new Runnable() {
 
             @Override
             public void run() {
                 List<APN> apns = new ArrayList<APN>();
 
-                try {
+                APN apn = new APN(settings.getMmsc(), settings.getPort(), settings.getProxy());
+                apns.add(apn);
+
+                String mmscUrl = apns.get(0).MMSCenterUrl != null ? apns.get(0).MMSCenterUrl.trim() : null;
+                apns.get(0).MMSCenterUrl = mmscUrl;
+
+                if (apns.get(0).MMSCenterUrl.equals("")) {
                     // attempt to get apns from internal databases, most likely will fail due to insignificant permissions
                     APNHelper helper = new APNHelper(context);
                     apns = helper.getMMSApns();
-                } catch (Exception e) {
-                    Log.v("apn_error", "could not retrieve system apns, using manual values instead");
-                    // sets up manual apns from our settings object which we will be using
-                    APN apn = new APN(settings.getMmsc(), settings.getPort(), settings.getProxy());
-                    apns.add(apn);
-
-                    String mmscUrl = apns.get(0).MMSCenterUrl != null ? apns.get(0).MMSCenterUrl.trim() : null;
-                    apns.get(0).MMSCenterUrl = mmscUrl;
                 }
+
+                Log.v("sending_mms_library", apns.get(0).MMSCenterUrl + " " + apns.get(0).MMSProxy + " " + apns.get(0).MMSPort);
 
                 try {
                     // attempts to send the message using given apns
+                    Log.v("sending_mms_libarry", "initial attempt at sending starting now");
                     trySending(apns.get(0), bytesToSend, 0);
                 } catch (Exception e) {
                     // some type of apn error, so notify user of failure
-                    context.sendBroadcast(new Intent(MMS_ERROR));
+                    Log.v("sending_mms_libary", "weird error, not sure how this could even be called other than apn stuff");
+                    markMmsFailed();
                 }
 
             }
 
         }).start();
-
     }
 
     public static final int NUM_RETRIES = 2;
@@ -707,6 +709,7 @@ public class Transaction {
             ensureRouteToHost(context, apns.MMSCenterUrl, apns.MMSProxy);
             HttpUtils.httpConnection(context, 4444L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
         } catch (IOException e) {
+            Log.v("sending_mms_library", "some type of error happened when actually sending maybe?");
             e.printStackTrace();
 
             if (numRetries < NUM_RETRIES) {

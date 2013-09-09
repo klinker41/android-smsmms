@@ -57,7 +57,7 @@ public class Settings {
      * Default constructor to set everything to default values
      */
     public Settings() {
-        this("", "", "", true, true, false, false, false, false, false, "", true, 3, "", null);
+        this("", "", "0", true, true, false, false, false, false, false, "", true, 3, "", null);
     }
 
     /**
