@@ -579,7 +579,6 @@ public class Transaction {
             context.registerReceiver(receiver, filter);
 
             // try sending after 3 seconds anyways if for some reason the receiver doesn't work
-            Looper.prepare();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -594,7 +593,7 @@ public class Transaction {
                         sendData(bytesToSend);
                     }
                 }
-            }, 2000);
+            }, 3500);
         } else {
             // mms connection already active, so send the message
             Log.v("sending_mms_library", "sending right away, already ready");
