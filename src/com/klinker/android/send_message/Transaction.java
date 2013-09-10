@@ -327,8 +327,11 @@ public class Transaction {
             PduPersister persister = PduPersister.getPduPersister(context);
             persister.persist(sendRequest, Telephony.Mms.Outbox.CONTENT_URI, true, settings.getGroup(), null);
         } catch (Exception e) {
+            Log.v("sending_mms_library", "error saving mms message");
             e.printStackTrace();
-            // something went wrong saving... :(
+
+            // use the old way if something goes wrong with the persister
+            insert(recipients, parts);
         }
 
         return bytesToSend;
@@ -941,6 +944,128 @@ public class Transaction {
         context.sendBroadcast(intent);
 
         return rnrse;
+    }
+
+    public Uri insert(String[] to, MMSPart[] parts) {
+        try {
+            Uri destUri = Uri.parse("content://mms");
+
+            Set<String> recipients = new HashSet<String>();
+            recipients.addAll(Arrays.asList(to));
+            long thread_id = Telephony.Threads.getOrCreateThreadId(context, recipients);
+
+            // Create a dummy sms
+            ContentValues dummyValues = new ContentValues();
+            dummyValues.put("thread_id", thread_id);
+            dummyValues.put("body", " ");
+            Uri dummySms = context.getContentResolver().insert(Uri.parse("content://sms/sent"), dummyValues);
+
+            // Create a new message entry
+            long now = System.currentTimeMillis();
+            ContentValues mmsValues = new ContentValues();
+            mmsValues.put("thread_id", thread_id);
+            mmsValues.put("date", now/1000L);
+            mmsValues.put("msg_box", 4);
+            //mmsValues.put("m_id", System.currentTimeMillis());
+            mmsValues.put("read", true);
+            mmsValues.put("sub", "");
+            mmsValues.put("sub_cs", 106);
+            mmsValues.put("ct_t", "application/vnd.wap.multipart.related");
+
+            long imageBytes = 0;
+
+            for (MMSPart part : parts) {
+                imageBytes += part.Data.length;
+            }
+
+            mmsValues.put("exp", imageBytes);
+
+            mmsValues.put("m_cls", "personal");
+            mmsValues.put("m_type", 128); // 132 (RETRIEVE CONF) 130 (NOTIF IND) 128 (SEND REQ)
+            mmsValues.put("v", 19);
+            mmsValues.put("pri", 129);
+            mmsValues.put("tr_id", "T"+ Long.toHexString(now));
+            mmsValues.put("resp_st", 128);
+
+            // Insert message
+            Uri res = context.getContentResolver().insert(destUri, mmsValues);
+            String messageId = res.getLastPathSegment().trim();
+
+            // Create part
+            for (MMSPart part : parts) {
+                if (part.MimeType.startsWith("image")) {
+                    createPartImage(messageId, part.Data, part.MimeType);
+                } else if (part.MimeType.startsWith("text")) {
+                    createPartText(messageId, new String(part.Data, "UTF-8"));
+                }
+            }
+
+            // Create addresses
+            for (String addr : to) {
+                createAddr(messageId, addr);
+            }
+
+            //res = Uri.parse(destUri + "/" + messageId);
+
+            // Delete dummy sms
+            context.getContentResolver().delete(dummySms, null, null);
+
+            return res;
+        } catch (Exception e) {
+            Log.v("sending_mms_library", "still an error saving... :(");
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // create the image part to be stored in database
+    private Uri createPartImage(String id, byte[] imageBytes, String mimeType) throws Exception {
+        ContentValues mmsPartValue = new ContentValues();
+        mmsPartValue.put("mid", id);
+        mmsPartValue.put("ct", mimeType);
+        mmsPartValue.put("cid", "<" + System.currentTimeMillis() + ">");
+        Uri partUri = Uri.parse("content://mms/" + id + "/part");
+        Uri res = context.getContentResolver().insert(partUri, mmsPartValue);
+
+        // Add data to part
+        OutputStream os = context.getContentResolver().openOutputStream(res);
+        ByteArrayInputStream is = new ByteArrayInputStream(imageBytes);
+        byte[] buffer = new byte[256];
+
+        for (int len=0; (len=is.read(buffer)) != -1;) {
+            os.write(buffer, 0, len);
+        }
+
+        os.close();
+        is.close();
+
+        return res;
+    }
+
+    // create the text part to be stored in database
+    private Uri createPartText(String id, String text) throws Exception {
+        ContentValues mmsPartValue = new ContentValues();
+        mmsPartValue.put("mid", id);
+        mmsPartValue.put("ct", "text/plain");
+        mmsPartValue.put("cid", "<" + System.currentTimeMillis() + ">");
+        mmsPartValue.put("text", text);
+        Uri partUri = Uri.parse("content://mms/" + id + "/part");
+        Uri res = context.getContentResolver().insert(partUri, mmsPartValue);
+
+        return res;
+    }
+
+    // add address to the request
+    private Uri createAddr(String id, String addr) throws Exception {
+        ContentValues addrValues = new ContentValues();
+        addrValues.put("address", addr);
+        addrValues.put("charset", "106");
+        addrValues.put("type", 151); // TO
+        Uri addrUri = Uri.parse("content://mms/"+ id +"/addr");
+        Uri res = context.getContentResolver().insert(addrUri, addrValues);
+
+        return res;
     }
 
     /**
