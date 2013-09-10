@@ -118,7 +118,7 @@ public class Transaction {
         //      2) group messaging is enabled
         //
         // then, send as MMS, else send as Voice or SMS
-        if (message.getImages().length != 0 || (settings.getSendLongAsMms() && getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) || (message.getAddresses().length > 1 && settings.getGroup())) {
+        if (checkMMS(message)) {
             Log.v("sending_mms_library", "starting sending mms");
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), threadId);
         } else {
@@ -941,6 +941,15 @@ public class Transaction {
         context.sendBroadcast(intent);
 
         return rnrse;
+    }
+
+    /**
+     * A method for checking whether or not a certain message will be sent as mms depending on its contents and the settings
+     * @param message is the message that you are checking against
+     * @return true if the message will be mms, otherwise false
+     */
+    public boolean checkMMS(Message message) {
+        return message.getImages().length != 0 || (settings.getSendLongAsMms() && getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) || (message.getAddresses().length > 1 && settings.getGroup());
     }
 
     /**
