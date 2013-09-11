@@ -65,22 +65,7 @@ public class SentReceiver extends BroadcastReceiver {
                         context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
                     }
 
-                    NotificationCompat.Builder mBuilder =
-                        new NotificationCompat.Builder(context)
-                       .setSmallIcon(R.drawable.ic_alert)
-                       .setContentTitle("Error")
-                       .setContentText("Could not send message");
-
-                    mBuilder.setAutoCancel(true);
-                    long[] pattern = {0L, 400L, 100L, 400L};
-                    mBuilder.setVibrate(pattern);
-                    mBuilder.setLights(0xFFffffff, 1000, 2000);
-
-                    NotificationManager mNotificationManager =
-                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-                    Notification notification = mBuilder.build();
-                    mNotificationManager.notify(1, notification);
+                    context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
                     break;
            case SmsManager.RESULT_ERROR_NO_SERVICE:
 
@@ -96,6 +81,8 @@ public class SentReceiver extends BroadcastReceiver {
                     context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
                 }
 
+               context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
+
                 break;
            case SmsManager.RESULT_ERROR_NULL_PDU:
 
@@ -110,6 +97,8 @@ public class SentReceiver extends BroadcastReceiver {
                     values.put("read", true);
                     context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
                 }
+
+               context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
                
                 break;
            case SmsManager.RESULT_ERROR_RADIO_OFF:
@@ -125,6 +114,8 @@ public class SentReceiver extends BroadcastReceiver {
                     values.put("read", true);
                     context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
                 }
+
+               context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
                
                 break;
            }
