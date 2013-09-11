@@ -746,6 +746,8 @@ public class Transaction {
             wifi.setWifiEnabled(settings.currentWifiState);
             wifi.reconnect();
             setMobileDataEnabled(context, settings.currentDataState);
+        } else {
+            mConnMgr.setNetworkPreference(ConnectivityManager.TYPE_WIFI);
         }
     }
 
@@ -769,6 +771,8 @@ public class Transaction {
                 context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
                 setMobileDataEnabled(context, true);
             }
+        } else {
+            mConnMgr.setNetworkPreference(ConnectivityManager.TYPE_MOBILE);
         }
     }
 
