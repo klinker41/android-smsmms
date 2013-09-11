@@ -277,7 +277,11 @@ public class Transaction {
         data.add(part);
 
         // insert the pdu into the database and return the bytes to send
-        sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()])));
+        if (settings.getWifiMmsFix()) {
+            sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()])));
+        } else {
+            sendMMSWiFi(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()])));
+        }
     }
 
     private byte[] getBytes(String[] recipients, MMSPart[] parts) {
@@ -510,9 +514,51 @@ public class Transaction {
     }
 
     /**
-     * Ensures that the host is reachable
-     * @param hostname the Proxy to check
-     * @return a proxy without leading zeros
+     * This method extracts from address the hostname
+     * @param url eg. http://some.where.com:8080/sync
+     * @return some.where.com
+     */
+    public static String extractAddressFromUrl(String url) {
+        String urlToProcess = null;
+
+        //find protocol
+        int protocolEndIndex = url.indexOf("://");
+        if(protocolEndIndex>0) {
+            urlToProcess = url.substring(protocolEndIndex + 3);
+        } else {
+            urlToProcess = url;
+        }
+
+        // If we have port number in the address we strip everything
+        // after the port number
+        int pos = urlToProcess.indexOf(':');
+        if (pos >= 0) {
+            urlToProcess = urlToProcess.substring(0, pos);
+        }
+
+        // If we have resource location in the address then we strip
+        // everything after the '/'
+        pos = urlToProcess.indexOf('/');
+        if (pos >= 0) {
+            urlToProcess = urlToProcess.substring(0, pos);
+        }
+
+        // If we have ? in the address then we strip
+        // everything after the '?'
+        pos = urlToProcess.indexOf('?');
+        if (pos >= 0) {
+            urlToProcess = urlToProcess.substring(0, pos);
+        }
+        return urlToProcess;
+    }
+
+    /**
+     * Transform host name in int value used by ConnectivityManager.requestRouteToHost
+     * method
+     *
+     * @param hostname
+     * @return -1 if the host doesn't exists, elsewhere its translation
+     * to an integer
      */
     public static int lookupHost(String hostname) {
         InetAddress inetAddress;
@@ -606,6 +652,73 @@ public class Transaction {
         }
     }
 
+    private void sendMMSWiFi(final byte[] bytesToSend) {
+        // enable mms connection to mobile data
+        mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo.State state = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE_HIPRI).getState();
+
+        if ((0 == state.compareTo(NetworkInfo.State.CONNECTED) || 0 == state.compareTo(NetworkInfo.State.CONNECTING))) {
+            sendData(bytesToSend);
+        } else {
+            // TODO test whether this should be mms or hipri
+            int resultInt = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableHIPRI");
+
+            if (resultInt == 0) {
+                sendData(bytesToSend);
+            } else {
+                // if mms feature is not already running (most likely isn't...) then register a receiver and wait for it to be active
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+                final BroadcastReceiver receiver = new BroadcastReceiver() {
+
+                    @Override
+                    public void onReceive(Context context1, Intent intent) {
+                        String action = intent.getAction();
+
+                        if (!action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                            return;
+                        }
+
+                        NetworkInfo mNetworkInfo = mConnMgr.getActiveNetworkInfo();
+                        if ((mNetworkInfo == null) || (mNetworkInfo.getType() != ConnectivityManager.TYPE_MOBILE_HIPRI)) {
+                            return;
+                        }
+
+                        if (!mNetworkInfo.isConnected()) {
+                            return;
+                        } else {
+                            alreadySending = true;
+                            forceMobileConnectionForAddress(settings.getMmsc());
+                            sendData(bytesToSend);
+
+                            context.unregisterReceiver(this);
+                        }
+
+                    }
+
+                };
+
+                context.registerReceiver(receiver, filter);
+
+                // try sending after 3 seconds anyways if for some reason the receiver doesn't work
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!alreadySending) {
+                            try {
+                                context.unregisterReceiver(receiver);
+                            } catch (Exception e) {
+
+                            }
+
+                            sendData(bytesToSend);
+                        }
+                    }
+                }, 3500);
+            }
+        }
+    }
+
     private void sendData(final byte[] bytesToSend) {
         // be sure this is running on new thread, not UI
         Log.v("sending_mms_library", "starting new thread to send on");
@@ -681,14 +794,15 @@ public class Transaction {
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                reinstateWifi();
+                                if (settings.getWifiMmsFix()) {
+                                    reinstateWifi();
+                                }
                             }
                         }, 5000);
                     } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
                         // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
                         Log.v("sending_mms_library", "sending aborted for some reason...");
                         context.unregisterReceiver(this);
-                        revokeWifi(false);
 
                         if (numRetries < NUM_RETRIES) {
                             // sleep and try again in three seconds to see if that give wifi and mobile data a chance to toggle in time
@@ -698,7 +812,11 @@ public class Transaction {
 
                             }
 
-                            trySending(apns, bytesToSend, numRetries + 1);
+                            if (settings.getWifiMmsFix()) {
+                                sendMMS(bytesToSend);
+                            } else {
+                                sendMMSWiFi(bytesToSend);
+                            }
                         } else {
                             markMmsFailed();
                         }
@@ -734,45 +852,37 @@ public class Transaction {
 
     // FIXME again with the wifi problems... should not have to do this at all
     private void reinstateWifi() {
-        if (settings.getWifiMmsFix()) {
-            try {
-                context.unregisterReceiver(settings.discon);
-            } catch (Exception f) {
+        try {
+            context.unregisterReceiver(settings.discon);
+        } catch (Exception f) {
 
-            }
-
-            WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            wifi.setWifiEnabled(false);
-            wifi.setWifiEnabled(settings.currentWifiState);
-            wifi.reconnect();
-            setMobileDataEnabled(context, settings.currentDataState);
-        } else {
-            mConnMgr.setNetworkPreference(ConnectivityManager.TYPE_WIFI);
         }
+
+        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        wifi.setWifiEnabled(false);
+        wifi.setWifiEnabled(settings.currentWifiState);
+        wifi.reconnect();
+        setMobileDataEnabled(context, settings.currentDataState);
     }
 
     // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
     private void revokeWifi(boolean saveState) {
-        if (settings.getWifiMmsFix()) {
-            WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
-            if (saveState) {
-                settings.currentWifi = wifi.getConnectionInfo();
-                settings.currentWifiState = wifi.isWifiEnabled();
-                wifi.disconnect();
-                settings.discon = new DisconnectWifi();
-                context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
-                settings.currentDataState = isMobileDataEnabled(context);
-                setMobileDataEnabled(context, true);
-            } else {
-                wifi.disconnect();
-                wifi.disconnect();
-                settings.discon = new DisconnectWifi();
-                context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
-                setMobileDataEnabled(context, true);
-            }
+        if (saveState) {
+            settings.currentWifi = wifi.getConnectionInfo();
+            settings.currentWifiState = wifi.isWifiEnabled();
+            wifi.disconnect();
+            settings.discon = new DisconnectWifi();
+            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+            settings.currentDataState = isMobileDataEnabled(context);
+            setMobileDataEnabled(context, true);
         } else {
-            mConnMgr.setNetworkPreference(ConnectivityManager.TYPE_MOBILE);
+            wifi.disconnect();
+            wifi.disconnect();
+            settings.discon = new DisconnectWifi();
+            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+            setMobileDataEnabled(context, true);
         }
     }
 
@@ -783,7 +893,9 @@ public class Transaction {
 
     private void markMmsFailed() {
         // if it still fails, then mark message as failed
-        reinstateWifi();
+        if (settings.getWifiMmsFix()) {
+            reinstateWifi();
+        }
 
         Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
         query.moveToFirst();
@@ -952,7 +1064,22 @@ public class Transaction {
         return rnrse;
     }
 
-    public Uri insert(String[] to, MMSPart[] parts) {
+    /**
+     * Enable mobile connection for a specific address
+     * @param address the address to enable
+     * @return true for success, else false
+     */
+    private void forceMobileConnectionForAddress(String address) {
+        //find the host name to route
+        String hostName = extractAddressFromUrl(address);
+        if (TextUtils.isEmpty(hostName)) hostName = address;
+
+        //create a route for the specified address
+        int hostAddress = lookupHost(hostName);
+        mConnMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_HIPRI, hostAddress);
+    }
+
+    private Uri insert(String[] to, MMSPart[] parts) {
         try {
             Uri destUri = Uri.parse("content://mms");
 
