@@ -1343,10 +1343,11 @@ public class PduPersister {
                     // message with the thread composed of all the recipients -- all but our own
                     // number, that is. This includes the person who sent the
                     // message or the FROM field (above) in addition to the other people the message
-                    // was addressed to or the TO field. Our own number is in that TO field and
-                    // we have to ignore it in loadRecipients.
+                    // was addressed to or the TO & CC fields. Our own number is in that TO field
+                    // and we have to ignore it in loadRecipients.
                     if (groupMmsEnabled) {
                         loadRecipients(PduHeaders.TO, recipients, addressMap, true);
+                        loadRecipients(PduHeaders.CC, recipients, addressMap, true);
                     }
                     break;
                 case PduHeaders.MESSAGE_TYPE_SEND_REQ:
