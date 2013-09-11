@@ -33,7 +33,9 @@ public class DeliveredReceiver extends BroadcastReceiver {
            {
                case Activity.RESULT_OK:
                     // notify user that message was delivered
-                    Toast.makeText(context, R.string.message_delivered, Toast.LENGTH_LONG).show();
+                    Intent delivered = new Intent(Transaction.NOTIFY_OF_DELIVERY);
+                    delivered.putExtra("result", true);
+                    context.sendBroadcast(delivered);
 
                     Cursor query = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
 
@@ -51,7 +53,9 @@ public class DeliveredReceiver extends BroadcastReceiver {
                     break;
                case Activity.RESULT_CANCELED:
                     // notify user that message failed to be delivered
-                    Toast.makeText(context, R.string.message_not_delivered, Toast.LENGTH_LONG).show();
+                   Intent notDelivered = new Intent(Transaction.NOTIFY_OF_DELIVERY);
+                   notDelivered.putExtra("result", false);
+                   context.sendBroadcast(notDelivered);
 
                     Cursor query2 = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
 

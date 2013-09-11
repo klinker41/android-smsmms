@@ -80,6 +80,7 @@ public class Transaction {
     public static final String MMS_PROGRESS = "com.klinker.android.send_message.MMS_PROGRESS";
     public static final String VOICE_FAILED = "com.klinker.android.send_message.VOICE_FAILED";
     public static final String VOICE_TOKEN = "com.klinker.android.send_message.RNRSE";
+    public static final String NOTIFY_OF_DELIVERY = "com.klinker.android.send_message.NOTIFY_DELIVERY";
 
     /**
      * Sets context and initializes settings to default values
