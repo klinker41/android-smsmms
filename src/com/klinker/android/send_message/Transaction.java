@@ -650,47 +650,6 @@ public class Transaction {
         }
     }
 
-    // FIXME again with the wifi problems... should not have to do this at all
-    private void reinstateWifi() {
-        try {
-            context.unregisterReceiver(settings.discon);
-        } catch (Exception f) {
-
-        }
-
-        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        wifi.setWifiEnabled(false);
-        wifi.setWifiEnabled(settings.currentWifiState);
-        wifi.reconnect();
-        Utils.setMobileDataEnabled(context, settings.currentDataState);
-    }
-
-    // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
-    private void revokeWifi(boolean saveState) {
-        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-
-        if (saveState) {
-            settings.currentWifi = wifi.getConnectionInfo();
-            settings.currentWifiState = wifi.isWifiEnabled();
-            wifi.disconnect();
-            settings.discon = new DisconnectWifi();
-            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
-            settings.currentDataState = Utils.isMobileDataEnabled(context);
-            Utils.setMobileDataEnabled(context, true);
-        } else {
-            wifi.disconnect();
-            wifi.disconnect();
-            settings.discon = new DisconnectWifi();
-            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
-            Utils.setMobileDataEnabled(context, true);
-        }
-    }
-
-    private int beginMmsConnectivity() {
-        Log.v("sending_mms_library", "starting mms service");
-        return mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
-    }
-
     private void markMmsFailed() {
         // if it still fails, then mark message as failed
         if (settings.getWifiMmsFix()) {
@@ -979,5 +938,55 @@ public class Transaction {
      */
     public boolean checkMMS(Message message) {
         return message.getImages().length != 0 || (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) || (message.getAddresses().length > 1 && settings.getGroup());
+    }
+
+    // FIXME again with the wifi problems... should not have to do this at all
+    /**
+     * @deprecated
+     */
+    private void reinstateWifi() {
+        try {
+            context.unregisterReceiver(settings.discon);
+        } catch (Exception f) {
+
+        }
+
+        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        wifi.setWifiEnabled(false);
+        wifi.setWifiEnabled(settings.currentWifiState);
+        wifi.reconnect();
+        Utils.setMobileDataEnabled(context, settings.currentDataState);
+    }
+
+    // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
+    /**
+     * @deprecated
+     */
+    private void revokeWifi(boolean saveState) {
+        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+
+        if (saveState) {
+            settings.currentWifi = wifi.getConnectionInfo();
+            settings.currentWifiState = wifi.isWifiEnabled();
+            wifi.disconnect();
+            settings.discon = new DisconnectWifi();
+            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+            settings.currentDataState = Utils.isMobileDataEnabled(context);
+            Utils.setMobileDataEnabled(context, true);
+        } else {
+            wifi.disconnect();
+            wifi.disconnect();
+            settings.discon = new DisconnectWifi();
+            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+            Utils.setMobileDataEnabled(context, true);
+        }
+    }
+
+    /**
+     * @deprecated
+     */
+    private int beginMmsConnectivity() {
+        Log.v("sending_mms_library", "starting mms service");
+        return mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
     }
 }

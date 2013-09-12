@@ -29,7 +29,6 @@ public class Settings {
     private String proxy;
     private String port;
     private boolean group;
-    private boolean wifiMmsFix;
 
     // Google Voice options
     private boolean preferVoice;
@@ -46,12 +45,6 @@ public class Settings {
     // Google Voice settings
     private String account;
     private String rnrSe;
-
-    // used for WiFi workaround when sending MMS to hold previous state data before disabling
-    public WifiInfo currentWifi;
-    public boolean currentWifiState;
-    public DisconnectWifi discon;
-    public boolean currentDataState;
 
     /**
      * Default constructor to set everything to default values
@@ -320,4 +313,29 @@ public class Settings {
     public String getRnrSe() {
         return this.rnrSe;
     }
+
+    /**
+     * @deprecated
+     */
+    private boolean wifiMmsFix;
+
+    /**
+     * @deprecated
+     */
+    public WifiInfo currentWifi;
+
+    /**
+     * @deprecated
+     */
+    public boolean currentWifiState;
+
+    /**
+     * @deprecated
+     */
+    public DisconnectWifi discon;
+
+    /**
+     * @deprecated
+     */
+    public boolean currentDataState;
 }
