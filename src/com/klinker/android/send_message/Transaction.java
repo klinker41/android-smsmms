@@ -25,6 +25,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -430,6 +431,12 @@ public class Transaction {
 
             context.registerReceiver(receiver, filter);
 
+            try {
+                Looper.prepare();
+            } catch (Exception e) {
+                // Already on UI thread probably
+            }
+
             // try sending after 3 seconds anyways if for some reason the receiver doesn't work
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -499,6 +506,12 @@ public class Transaction {
                 };
 
                 context.registerReceiver(receiver, filter);
+
+                try {
+                    Looper.prepare();
+                } catch (Exception e) {
+                    // Already on UI thread probably
+                }
 
                 // try sending after 3 seconds anyways if for some reason the receiver doesn't work
                 new Handler().postDelayed(new Runnable() {
