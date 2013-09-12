@@ -461,7 +461,6 @@ public class Transaction {
         if ((0 == state.compareTo(NetworkInfo.State.CONNECTED) || 0 == state.compareTo(NetworkInfo.State.CONNECTING))) {
             sendData(bytesToSend);
         } else {
-            // TODO test whether this should be mms or hipri
             int resultInt = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
 
             if (resultInt == 0) {
