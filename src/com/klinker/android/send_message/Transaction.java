@@ -445,7 +445,7 @@ public class Transaction {
                         sendData(bytesToSend);
                     }
                 }
-            }, 3500);
+            }, 7000);
         } else {
             // mms connection already active, so send the message
             Log.v("sending_mms_library", "sending right away, already ready");
@@ -514,7 +514,7 @@ public class Transaction {
                             sendData(bytesToSend);
                         }
                     }
-                }, 3500);
+                }, 7000);
             }
         }
     }
