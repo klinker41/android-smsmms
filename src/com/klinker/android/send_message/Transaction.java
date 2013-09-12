@@ -940,7 +940,6 @@ public class Transaction {
         return message.getImages().length != 0 || (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) || (message.getAddresses().length > 1 && settings.getGroup());
     }
 
-    // FIXME again with the wifi problems... should not have to do this at all
     /**
      * @deprecated
      */
@@ -958,7 +957,6 @@ public class Transaction {
         Utils.setMobileDataEnabled(context, settings.currentDataState);
     }
 
-    // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
     /**
      * @deprecated
      */
