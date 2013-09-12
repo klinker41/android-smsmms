@@ -54,6 +54,7 @@ public class Settings {
     }
 
     /**
+     * @deprecated
      * Construtor to create object of all values
      * @param mmsc is the address contained by the apn to send MMS to
      * @param proxy is the proxy address in the apn to send MMS through
@@ -90,6 +91,42 @@ public class Settings {
     }
 
     /**
+     * @deprecated
+     * Construtor to create object of all values
+     * @param mmsc is the address contained by the apn to send MMS to
+     * @param proxy is the proxy address in the apn to send MMS through
+     * @param port is the port from the apn to send MMS through
+     * @param group is a boolean specifying whether or not to send messages with multiple recipients as a group MMS message
+     * @param preferVoice is a boolean to say whether you want to send through Google Voice or SMS
+     * @param deliveryReports is a boolean to retrieve delivery reports from SMS messages
+     * @param split is a boolean to manually split messages (shouldn't be necessary, but some carriers do not split on their own)
+     * @param splitCounter adds a split counter to the front of all split messages
+     * @param stripUnicode replaces many unicode characters with their gsm compatible equivalent to allow for sending 160 characters instead of 70
+     * @param signature a signature to attach at the end of each message
+     * @param sendLongAsMms if a message is too long to be multiple SMS, convert it to a single MMS
+     * @param sendLongAsMmsAfter is an int of how many pages long an SMS must be before it is split
+     * @param account is the google account to send Google Voice messages through
+     * @param rnrSe is the token to use to send Google Voice messages (nullify if you don't know what this is)
+     */
+    public Settings(String mmsc, String proxy, String port, boolean group, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
+        this.mmsc = mmsc;
+        this.proxy = proxy;
+        this.port = port;
+        this.group = group;
+        this.preferVoice = preferVoice;
+        this.deliveryReports = deliveryReports;
+        this.split = split;
+        this.splitCounter = splitCounter;
+        this.stripUnicode = stripUnicode;
+        this.signature = signature;
+        this.sendLongAsMms = sendLongAsMms;
+        this.sendLongAsMmsAfter = sendLongAsMmsAfter;
+        this.account = account;
+        this.rnrSe = rnrSe;
+        this.wifiMmsFix = false;
+    }
+
+    /**
      * Sets MMSC
      * @param mmsc is the mmsc from the apns
      */
@@ -119,14 +156,6 @@ public class Settings {
      */
     public void setGroup(boolean group) {
         this.group = group;
-    }
-
-    /**
-     * Sets wifi mms fix
-     * @param wifiMmsFix is a boolean to toggle on and off wifi when sending MMS
-     */
-    public void setWifiMmsFix(boolean wifiMmsFix) {
-        this.wifiMmsFix = wifiMmsFix;
     }
 
     /**
@@ -238,13 +267,6 @@ public class Settings {
     }
 
     /**
-     * @return whether or not to toggle wifi when sending MMS
-     */
-    public boolean getWifiMmsFix() {
-        return this.wifiMmsFix;
-    }
-
-    /**
      * @return whether or not to send SMS or Voice messages
      */
     public boolean getPreferVoice() {
@@ -338,4 +360,21 @@ public class Settings {
      * @deprecated
      */
     public boolean currentDataState;
+
+    /**
+     * @deprecated
+     * Sets wifi mms fix
+     * @param wifiMmsFix is a boolean to toggle on and off wifi when sending MMS
+     */
+    public void setWifiMmsFix(boolean wifiMmsFix) {
+        this.wifiMmsFix = wifiMmsFix;
+    }
+
+    /**
+     * @deprecated
+     * @return whether or not to toggle wifi when sending MMS
+     */
+    public boolean getWifiMmsFix() {
+        return this.wifiMmsFix;
+    }
 }
