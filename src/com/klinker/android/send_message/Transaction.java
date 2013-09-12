@@ -16,10 +16,6 @@
 
 package com.klinker.android.send_message;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.app.*;
 import android.content.*;
 import android.database.Cursor;
@@ -28,9 +24,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -51,10 +45,6 @@ import com.koushikdutta.ion.Ion;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -69,9 +59,6 @@ public class Transaction {
     public Settings settings;
     public Context context;
     public ConnectivityManager mConnMgr;
-
-    // characters to compare against when checking for 160 character sending compatibility
-    public static final String GSM_CHARACTERS_REGEX = "^[A-Za-z0-9 \\r\\n@Ł$ĽčéůěňÇŘřĹĺ\u0394_\u03A6\u0393\u039B\u03A9\u03A0\u03A8\u03A3\u0398\u039EĆćßÉ!\"#$%&'()*+,\\-./:;<=>?ĄÄÖŃÜ§żäöńüŕ^{}\\\\\\[~\\]|\u20AC]*$";
 
     public static final String SMS_SENT = "com.klinker.android.send_message.SMS_SENT";
     public static final String SMS_DELIVERED = "com.klinker.android.send_message.SMS_DELIVERED";
@@ -158,7 +145,7 @@ public class Transaction {
             // figure out the length of supported message
             int length = 160;
 
-            String patternStr = "[^" + GSM_CHARACTERS_REGEX + "]";
+            String patternStr = "[^" + Utils.GSM_CHARACTERS_REGEX + "]";
             Pattern pattern = Pattern.compile(patternStr);
             Matcher matcher = pattern.matcher(body);
 
@@ -299,7 +286,7 @@ public class Transaction {
         sendRequest.setDate(Calendar.getInstance().getTimeInMillis() / 1000L);
 
         try {
-            sendRequest.setFrom(new EncodedStringValue(getMyPhoneNumber(context)));
+            sendRequest.setFrom(new EncodedStringValue(Utils.getMyPhoneNumber(context)));
         } catch (Exception e) {
             // my number is nothing
         }
@@ -370,41 +357,6 @@ public class Transaction {
         }
     }
 
-    // returns the number of pages in the SMS based on settings and the length of string
-
-    /**
-     * Gets the number of pages in the SMS based on settings and the length of string
-     * @param settings is the settings object to check against
-     * @param text is the text from the message object to be sent
-     * @return the number of pages required to hold message
-     */
-    public static int getNumPages(Settings settings, String text) {
-        int length = text.length();
-
-        if (!settings.getSignature().equals("")) {
-            length += ("\n" + settings.getSignature()).length();
-        }
-
-        String patternStr = "[^" + GSM_CHARACTERS_REGEX + "]";
-        Pattern pattern = Pattern.compile(patternStr);
-        Matcher matcher = pattern.matcher(text);
-
-        int size = 160;
-
-        if (matcher.find() && !settings.getStripUnicode()) {
-            size = 70;
-        }
-
-        int pages = 1;
-
-        while (length > size) {
-            length-=size;
-            pages++;
-        }
-
-        return pages;
-    }
-
     // splits text and adds split counter when applicable
     private String[] splitByLength(String s, int chunkSize, boolean counter) {
         int arraySize = (int) Math.ceil((double) s.length() / chunkSize);
@@ -427,157 +379,6 @@ public class Transaction {
         }
 
         return returnArray;
-    }
-
-    /**
-     * Toggles mobile data
-     * @param context is the context of the activity or service
-     * @param enabled is whether to enable or disable data
-     */
-    public static void setMobileDataEnabled(Context context, boolean enabled) {
-        try {
-            ConnectivityManager conman = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            Class conmanClass = Class.forName(conman.getClass().getName());
-            Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
-            iConnectivityManagerField.setAccessible(true);
-            Object iConnectivityManager = iConnectivityManagerField.get(conman);
-            Class iConnectivityManagerClass = Class.forName(iConnectivityManager.getClass().getName());
-            Method setMobileDataEnabledMethod = iConnectivityManagerClass.getDeclaredMethod("setMobileDataEnabled", Boolean.TYPE);
-            setMobileDataEnabledMethod.setAccessible(true);
-
-            setMobileDataEnabledMethod.invoke(iConnectivityManager, enabled);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    // checks whether or not mobile data is already enabled
-
-    /**
-     * Checks whether or not mobile data is enabled and returns the result
-     * @param context is the context of the activity or service
-     * @return true if data is enabled or false if disabled
-     */
-    public static Boolean isMobileDataEnabled(Context context) {
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        try {
-            Class<?> c = Class.forName(cm.getClass().getName());
-            Method m = c.getDeclaredMethod("getMobileDataEnabled");
-            m.setAccessible(true);
-            return (Boolean)m.invoke(cm);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * Ensures that the host MMSC is reachable
-     * @param context is the context of the activity or service
-     * @param url is the MMSC to check
-     * @param proxy is the proxy of the APN to check
-     * @throws IOException when route cannot be established
-     */
-    public static void ensureRouteToHost(Context context, String url, String proxy) throws IOException {
-        ConnectivityManager connMgr =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        connMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
-
-        Log.v("sending_mms_library", "ensuring route to host");
-
-        int inetAddr;
-        if (!proxy.equals("")) {
-            String proxyAddr = proxy;
-            inetAddr = lookupHost(proxyAddr);
-            if (inetAddr == -1) {
-                throw new IOException("Cannot establish route for " + url + ": Unknown host");
-            } else {
-                if (!connMgr.requestRouteToHost(
-                        ConnectivityManager.TYPE_MOBILE_MMS, inetAddr)) {
-                    throw new IOException("Cannot establish route to proxy " + inetAddr);
-                }
-            }
-        } else {
-            Uri uri = Uri.parse(url);
-            inetAddr = lookupHost(uri.getHost());
-            if (inetAddr == -1) {
-                throw new IOException("Cannot establish route for " + url + ": Unknown host");
-            } else {
-                if (!connMgr.requestRouteToHost(
-                        ConnectivityManager.TYPE_MOBILE_MMS, inetAddr)) {
-                    throw new IOException("Cannot establish route to " + inetAddr + " for " + url);
-                }
-            }
-        }
-    }
-
-    /**
-     * This method extracts from address the hostname
-     * @param url eg. http://some.where.com:8080/sync
-     * @return some.where.com
-     */
-    public static String extractAddressFromUrl(String url) {
-        String urlToProcess = null;
-
-        //find protocol
-        int protocolEndIndex = url.indexOf("://");
-        if(protocolEndIndex>0) {
-            urlToProcess = url.substring(protocolEndIndex + 3);
-        } else {
-            urlToProcess = url;
-        }
-
-        // If we have port number in the address we strip everything
-        // after the port number
-        int pos = urlToProcess.indexOf(':');
-        if (pos >= 0) {
-            urlToProcess = urlToProcess.substring(0, pos);
-        }
-
-        // If we have resource location in the address then we strip
-        // everything after the '/'
-        pos = urlToProcess.indexOf('/');
-        if (pos >= 0) {
-            urlToProcess = urlToProcess.substring(0, pos);
-        }
-
-        // If we have ? in the address then we strip
-        // everything after the '?'
-        pos = urlToProcess.indexOf('?');
-        if (pos >= 0) {
-            urlToProcess = urlToProcess.substring(0, pos);
-        }
-        return urlToProcess;
-    }
-
-    /**
-     * Transform host name in int value used by ConnectivityManager.requestRouteToHost
-     * method
-     *
-     * @param hostname
-     * @return -1 if the host doesn't exists, elsewhere its translation
-     * to an integer
-     */
-    public static int lookupHost(String hostname) {
-        InetAddress inetAddress;
-
-        try {
-            inetAddress = InetAddress.getByName(hostname);
-        } catch (UnknownHostException e) {
-            return -1;
-        }
-
-        byte[] addrBytes;
-        int addr;
-        addrBytes = inetAddress.getAddress();
-        addr = ((addrBytes[3] & 0xff) << 24)
-                | ((addrBytes[2] & 0xff) << 16)
-                | ((addrBytes[1] & 0xff) << 8)
-                |  (addrBytes[0] & 0xff);
-
-        return addr;
     }
 
     private boolean alreadySending = false;
@@ -655,13 +456,13 @@ public class Transaction {
     private void sendMMSWiFi(final byte[] bytesToSend) {
         // enable mms connection to mobile data
         mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo.State state = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE_HIPRI).getState();
+        NetworkInfo.State state = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE_MMS).getState();
 
         if ((0 == state.compareTo(NetworkInfo.State.CONNECTED) || 0 == state.compareTo(NetworkInfo.State.CONNECTING))) {
             sendData(bytesToSend);
         } else {
             // TODO test whether this should be mms or hipri
-            int resultInt = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableHIPRI");
+            int resultInt = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
 
             if (resultInt == 0) {
                 sendData(bytesToSend);
@@ -680,7 +481,7 @@ public class Transaction {
                         }
 
                         NetworkInfo mNetworkInfo = mConnMgr.getActiveNetworkInfo();
-                        if ((mNetworkInfo == null) || (mNetworkInfo.getType() != ConnectivityManager.TYPE_MOBILE_HIPRI)) {
+                        if ((mNetworkInfo == null) || (mNetworkInfo.getType() != ConnectivityManager.TYPE_MOBILE_MMS)) {
                             return;
                         }
 
@@ -688,7 +489,7 @@ public class Transaction {
                             return;
                         } else {
                             alreadySending = true;
-                            forceMobileConnectionForAddress(settings.getMmsc());
+                            Utils.forceMobileConnectionForAddress(mConnMgr, settings.getMmsc());
                             sendData(bytesToSend);
 
                             context.unregisterReceiver(this);
@@ -829,7 +630,7 @@ public class Transaction {
 
             // This is where the actual post request is made to send the bytes we previously created through the given apns
             Log.v("sending_mms_library", "attempt: " + numRetries);
-            ensureRouteToHost(context, apns.MMSCenterUrl, apns.MMSProxy);
+            Utils.ensureRouteToHost(context, apns.MMSCenterUrl, apns.MMSProxy);
             HttpUtils.httpConnection(context, 4444L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
         } catch (IOException e) {
             Log.v("sending_mms_library", "some type of error happened when actually sending maybe?");
@@ -862,7 +663,7 @@ public class Transaction {
         wifi.setWifiEnabled(false);
         wifi.setWifiEnabled(settings.currentWifiState);
         wifi.reconnect();
-        setMobileDataEnabled(context, settings.currentDataState);
+        Utils.setMobileDataEnabled(context, settings.currentDataState);
     }
 
     // FIXME it should not be required to disable wifi and enable mobile data manually, but I have found no way to use the two at the same time
@@ -875,14 +676,14 @@ public class Transaction {
             wifi.disconnect();
             settings.discon = new DisconnectWifi();
             context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
-            settings.currentDataState = isMobileDataEnabled(context);
-            setMobileDataEnabled(context, true);
+            settings.currentDataState = Utils.isMobileDataEnabled(context);
+            Utils.setMobileDataEnabled(context, true);
         } else {
             wifi.disconnect();
             wifi.disconnect();
             settings.discon = new DisconnectWifi();
             context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
-            setMobileDataEnabled(context, true);
+            Utils.setMobileDataEnabled(context, true);
         }
     }
 
@@ -928,7 +729,7 @@ public class Transaction {
         String authToken;
 
         try {
-            authToken = getAuthToken(account, context);
+            authToken = Utils.getAuthToken(account, context);
 
             if (rnrse == null) {
                 rnrse = fetchRnrSe(authToken, context);
@@ -970,20 +771,6 @@ public class Transaction {
 
         if (!json.get("ok").getAsBoolean())
             throw new Exception(json.toString());
-    }
-
-    /**
-     * Function for getting the weird auth token used to send or receive google voice messages
-     * @param account is the string of the account name to get the auth token for
-     * @param context is the context of the activity or service
-     * @return a string of the auth token to be saved for later
-     * @throws IOException
-     * @throws OperationCanceledException
-     * @throws AuthenticatorException
-     */
-    public static String getAuthToken(String account, Context context) throws IOException, OperationCanceledException, AuthenticatorException {
-        Bundle bundle = AccountManager.get(context).getAuthToken(new Account(account, "com.google"), "grandcentral", true, null, null).getResult();
-        return bundle.getString(AccountManager.KEY_AUTHTOKEN);
     }
 
     private void failVoice() {
@@ -1062,21 +849,6 @@ public class Transaction {
         context.sendBroadcast(intent);
 
         return rnrse;
-    }
-
-    /**
-     * Enable mobile connection for a specific address
-     * @param address the address to enable
-     * @return true for success, else false
-     */
-    private void forceMobileConnectionForAddress(String address) {
-        //find the host name to route
-        String hostName = extractAddressFromUrl(address);
-        if (TextUtils.isEmpty(hostName)) hostName = address;
-
-        //create a route for the specified address
-        int hostAddress = lookupHost(hostName);
-        mConnMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_HIPRI, hostAddress);
     }
 
     private Uri insert(String[] to, MMSPart[] parts) {
@@ -1207,18 +979,6 @@ public class Transaction {
      * @return true if the message will be mms, otherwise false
      */
     public boolean checkMMS(Message message) {
-        return message.getImages().length != 0 || (settings.getSendLongAsMms() && getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) || (message.getAddresses().length > 1 && settings.getGroup());
-    }
-
-    /**
-     * Gets the current users phone number
-     * @param context is the context of the activity or service
-     * @return a string of the phone number on the device
-     */
-    public static String getMyPhoneNumber(Context context){
-        TelephonyManager mTelephonyMgr;
-        mTelephonyMgr = (TelephonyManager)
-                context.getSystemService(Context.TELEPHONY_SERVICE);
-        return mTelephonyMgr.getLine1Number();
+        return message.getImages().length != 0 || (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) || (message.getAddresses().length > 1 && settings.getGroup());
     }
 }
