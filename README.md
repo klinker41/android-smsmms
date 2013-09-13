@@ -21,7 +21,6 @@ sendSettings.setMmsc("http://mmsc.cingular.com");
 sendSettings.setProxy("66.209.11.33");
 sendSettings.setPort("80");
 sendSettings.setGroup(true);
-sendSettings.setWifiMmsFix(true);
 sendSettings.setPreferVoice(false);
 sendSettings.setDeliveryReports(false);
 sendSettings.setSplit(false);
@@ -38,7 +37,6 @@ sendSettings.setRnrSe(null);
 * Proxy - more mms information that needs to be set for more providers to send
 * Port - again, more mms stuff
 * Group - whether you want to send message to multiple senders as an MMS group message or separate SMS/Voice messages
-* WiFi MMS Fix - will disable wifi to send the message, only way I've found to do it, so if you can find the problem, submit a pull request :)
 * Prefer Voice - send through Google Voice instead of SMS
 * Delivery Reports - request reports for when SMS has been delivered
 * Split - splits SMS messages when sent if they are longer than 160 characters
