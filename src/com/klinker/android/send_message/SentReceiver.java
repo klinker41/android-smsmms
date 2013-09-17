@@ -39,7 +39,7 @@ public class SentReceiver extends BroadcastReceiver {
                    Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
                    // mark message as sent successfully
-                   if (query.moveToFirst())
+                   if (query != null && query.moveToFirst())
                    {
                     String id = query.getString(query.getColumnIndex("_id"));
                     ContentValues values = new ContentValues();
@@ -56,7 +56,7 @@ public class SentReceiver extends BroadcastReceiver {
                     query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
                     // mark message as failed and give notification to user to tell them
-                    if (query.moveToFirst())
+                    if (query != null && query.moveToFirst())
                     {
                         String id = query.getString(query.getColumnIndex("_id"));
                         ContentValues values = new ContentValues();
@@ -72,7 +72,7 @@ public class SentReceiver extends BroadcastReceiver {
                 query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
                 // mark message as failed
-                if (query.moveToFirst())
+                if (query != null && query.moveToFirst())
                 {
                     String id = query.getString(query.getColumnIndex("_id"));
                     ContentValues values = new ContentValues();
@@ -89,7 +89,7 @@ public class SentReceiver extends BroadcastReceiver {
                 query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
                 // mark message failed
-                if (query.moveToFirst())
+                if (query != null && query.moveToFirst())
                 {
                     String id = query.getString(query.getColumnIndex("_id"));
                     ContentValues values = new ContentValues();
@@ -106,7 +106,7 @@ public class SentReceiver extends BroadcastReceiver {
                 query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
                 // mark message failed
-                if (query.moveToFirst())
+                if (query != null && query.moveToFirst())
                 {
                     String id = query.getString(query.getColumnIndex("_id"));
                     ContentValues values = new ContentValues();
