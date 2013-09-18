@@ -109,7 +109,6 @@ public class Transaction {
         //
         // then, send as MMS, else send as Voice or SMS
         if (checkMMS(message)) {
-            Log.v("sending_mms_library", "starting sending mms");
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), threadId);
         } else {
             if (settings.getPreferVoice()) {
@@ -694,38 +693,43 @@ public class Transaction {
         });
     }
 
-    private void sendVoiceMessage(String destAddr, String text) {
-        String rnrse = settings.getRnrSe();
-        String account = settings.getAccount();
-        String authToken;
+    private void sendVoiceMessage(final String destAddr, final String text) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String rnrse = settings.getRnrSe();
+                String account = settings.getAccount();
+                String authToken;
 
-        try {
-            authToken = Utils.getAuthToken(account, context);
+                try {
+                    authToken = Utils.getAuthToken(account, context);
 
-            if (rnrse == null) {
-                rnrse = fetchRnrSe(authToken, context);
+                    if (rnrse == null) {
+                        rnrse = fetchRnrSe(authToken, context);
+                    }
+                } catch (Exception e) {
+                    failVoice();
+                    return;
+                }
+
+                try {
+                    sendRnrSe(authToken, rnrse, destAddr, text);
+                    successVoice();
+                    return;
+                } catch (Exception e) {
+
+                }
+
+                try {
+                    // try again...
+                    rnrse = fetchRnrSe(authToken, context);
+                    sendRnrSe(authToken, rnrse, destAddr, text);
+                    successVoice();
+                } catch (Exception e) {
+                    failVoice();
+                }
             }
-        } catch (Exception e) {
-            failVoice();
-            return;
-        }
-
-        try {
-            sendRnrSe(authToken, rnrse, destAddr, text);
-            successVoice();
-            return;
-        } catch (Exception e) {
-
-        }
-
-        try {
-            // try again...
-            rnrse = fetchRnrSe(authToken, context);
-            sendRnrSe(authToken, rnrse, destAddr, text);
-            successVoice();
-        } catch (Exception e) {
-            failVoice();
-        }
+        }).start();
     }
 
     // hit the google voice api to send a text
