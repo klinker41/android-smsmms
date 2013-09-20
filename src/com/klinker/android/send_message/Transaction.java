@@ -109,7 +109,7 @@ public class Transaction {
         //
         // then, send as MMS, else send as Voice or SMS
         if (checkMMS(message)) {
-            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), threadId);
+            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getSubject());
         } else {
             if (settings.getPreferVoice()) {
                 sendVoiceMessage(message.getText(), message.getAddresses(), threadId);
@@ -232,7 +232,7 @@ public class Transaction {
         }
     }
 
-    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, String threadId) {
+    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, String subject) {
         // merge the string[] of addresses into a single string so they can be inserted into the database easier
         String address = "";
 
@@ -265,13 +265,13 @@ public class Transaction {
 
         // insert the pdu into the database and return the bytes to send
         if (settings.getWifiMmsFix()) {
-            sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()])));
+            sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject));
         } else {
-            sendMMSWiFi(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()])));
+            sendMMSWiFi(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject));
         }
     }
 
-    private byte[] getBytes(String[] recipients, MMSPart[] parts) {
+    private byte[] getBytes(String[] recipients, MMSPart[] parts, String subject) {
         final SendReq sendRequest = new SendReq();
 
         // create send request addresses
@@ -281,6 +281,10 @@ public class Transaction {
             if (phoneNumbers != null && phoneNumbers.length > 0) {
                 sendRequest.addTo(phoneNumbers[0]);
             }
+        }
+
+        if (subject != null) {
+            sendRequest.setSubject(new EncodedStringValue(subject));
         }
 
         sendRequest.setDate(Calendar.getInstance().getTimeInMillis() / 1000L);
@@ -324,7 +328,7 @@ public class Transaction {
             e.printStackTrace();
 
             // use the old way if something goes wrong with the persister
-            insert(recipients, parts);
+            insert(recipients, parts, subject);
         }
 
         return bytesToSend;
@@ -826,7 +830,7 @@ public class Transaction {
         return rnrse;
     }
 
-    private Uri insert(String[] to, MMSPart[] parts) {
+    private Uri insert(String[] to, MMSPart[] parts, String subject) {
         try {
             Uri destUri = Uri.parse("content://mms");
 
@@ -848,7 +852,7 @@ public class Transaction {
             mmsValues.put("msg_box", 4);
             //mmsValues.put("m_id", System.currentTimeMillis());
             mmsValues.put("read", true);
-            mmsValues.put("sub", "");
+            mmsValues.put("sub", subject != null ? subject : "");
             mmsValues.put("sub_cs", 106);
             mmsValues.put("ct_t", "application/vnd.wap.multipart.related");
 
@@ -954,7 +958,10 @@ public class Transaction {
      * @return true if the message will be mms, otherwise false
      */
     public boolean checkMMS(Message message) {
-        return message.getImages().length != 0 || (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) || (message.getAddresses().length > 1 && settings.getGroup());
+        return message.getImages().length != 0 ||
+                (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) ||
+                (message.getAddresses().length > 1 && settings.getGroup()) ||
+                message.getSubject() != null;
     }
 
     /**
