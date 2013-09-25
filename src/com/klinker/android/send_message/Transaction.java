@@ -610,6 +610,7 @@ public class Transaction {
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
+                                mConnMgr.stopUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE_MMS, "enableMMS");
                                 if (settings.getWifiMmsFix()) {
                                     reinstateWifi();
                                 }
