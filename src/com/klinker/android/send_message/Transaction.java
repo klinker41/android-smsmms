@@ -71,6 +71,8 @@ public class Transaction {
     public static final String NOTIFY_OF_DELIVERY = "com.klinker.android.send_message.NOTIFY_DELIVERY";
     public static final String NOTIFY_SMS_FAILURE = "com.klinker.android.send_message.NOTIFY_SMS_FAILURE";
 
+    public static final long NO_THREAD_ID = 0;
+
     /**
      * Sets context and initializes settings to default values
      * @param context is the context of the activity or service
@@ -93,9 +95,9 @@ public class Transaction {
     /**
      * Called to send a new message depending on settings and provided Message object
      * @param message is the message that you want to send
-     * @param threadId is the thread id of who to send the message to (can be nullified)
+     * @param threadId is the thread id of who to send the message to (can also be set to Transaction.NO_THREAD_ID)
      */
-    public void sendNewMessage(final Message message, final String threadId) {
+    public void sendNewMessage(Message message, long threadId) {
 
         // if message:
         //      1) Has images attached
@@ -120,7 +122,7 @@ public class Transaction {
 
     }
 
-    private void sendSmsMessage(String text, String[] addresses, String threadId) {
+    private void sendSmsMessage(String text, String[] addresses, long threadId) {
         // set up sent and delivered pending intents to be used with message request
         PendingIntent sentPI = PendingIntent.getBroadcast(context, 0, new Intent(SMS_SENT), 0);
         PendingIntent deliveredPI = PendingIntent.getBroadcast(context, 0, new Intent(SMS_DELIVERED), 0);
@@ -223,8 +225,8 @@ public class Transaction {
             values.put("read", 1);
 
             // attempt to create correct thread id if one is not supplied
-            if (threadId == null || addresses.length > 1) {
-                threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]) + "";
+            if (threadId == NO_THREAD_ID || addresses.length > 1) {
+                threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
             }
 
             values.put("thread_id", threadId);
@@ -334,7 +336,7 @@ public class Transaction {
         return bytesToSend;
     }
 
-    private void sendVoiceMessage(String text, String[] addresses, String threadId) {
+    private void sendVoiceMessage(String text, String[] addresses, long threadId) {
         // send a voice message to each recipient based off of koush's voice implementation in Voice+
         for (int i = 0; i < addresses.length; i++) {
             Calendar cal = Calendar.getInstance();
@@ -346,8 +348,8 @@ public class Transaction {
             values.put("status", 2);   // if you want to be able to tell the difference between sms and voice, look for this value. SMS will be -1, 0, 64, 128 and voice will be 2
 
             // attempt to create correct thread id if one is not supplied
-            if (threadId == null || addresses.length > 1) {
-                threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]) + "";
+            if (threadId ==  NO_THREAD_ID || addresses.length > 1) {
+                threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
             }
 
             values.put("thread_id", threadId);
