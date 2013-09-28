@@ -723,9 +723,7 @@ public class Transaction {
                     sendRnrSe(authToken, rnrse, destAddr, text);
                     successVoice();
                     return;
-                } catch (Exception e) {
-
-                }
+                } catch (Exception e) { }
 
                 try {
                     // try again...
