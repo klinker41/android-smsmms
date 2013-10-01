@@ -29,6 +29,7 @@ import android.os.Looper;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -145,21 +146,17 @@ public class Transaction {
 
         if (settings.getSplit()) {
             // figure out the length of supported message
-            int length = 160;
+            int[] splitData = SmsMessage.calculateLength(body, false);
 
-            String patternStr = "[^" + Utils.GSM_CHARACTERS_REGEX + "]";
-            Pattern pattern = Pattern.compile(patternStr);
-            Matcher matcher = pattern.matcher(body);
-
-            if (matcher.find()) {
-                length = 70;
-            }
+            // we take the current length + the remaining length to get the total number of characters
+            // that message set can support, and then divide by the number of message that will require
+            // to get the length supported by a single message
+            int length = (body.length() + splitData[2])/splitData[0];
 
             boolean counter = false;
-
-            if (settings.getSplitCounter()) {
+            if (settings.getSplitCounter() && body.length() > length) {
                 counter = true;
-                length -= 7;
+                length -= 6;
             }
 
             // get the split messages
