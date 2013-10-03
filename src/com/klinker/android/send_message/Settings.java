@@ -55,6 +55,28 @@ public class Settings {
     }
 
     /**
+     * Copy constuctor
+     * @param s is the Settings object to copy from
+     */
+    public Settings(Settings s) {
+        this.mmsc = s.getMmsc();
+        this.proxy = s.getProxy();
+        this.port = s.getPort();
+        this.group = s.getGroup();
+        this.wifiMmsFix = s.getWifiMmsFix();
+        this.preferVoice = s.getPreferVoice();
+        this.deliveryReports = s.getDeliveryReports();
+        this.split = s.getSplit();
+        this.splitCounter = s.getSplitCounter();
+        this.stripUnicode = s.getStripUnicode();
+        this.signature = s.getSignature();
+        this.sendLongAsMms = s.getSendLongAsMms();
+        this.sendLongAsMmsAfter = s.getSendLongAsMmsAfter();
+        this.account = s.getAccount();
+        this.rnrSe = s.getRnrSe();
+    }
+
+    /**
      * @param mmsc               is the address contained by the apn to send MMS to
      * @param proxy              is the proxy address in the apn to send MMS through
      * @param port               is the port from the apn to send MMS through
