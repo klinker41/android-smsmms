@@ -16,18 +16,15 @@
 
 package android.net;
 
-import static android.net.ConnectivityManager.TYPE_ETHERNET;
-import static android.net.ConnectivityManager.TYPE_WIFI;
-import static android.net.ConnectivityManager.TYPE_WIMAX;
+import android.os.Parcel;
+import android.os.Parcelable;
+import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.util.Objects;
+
+import static android.net.ConnectivityManager.*;
 import static android.net.NetworkIdentity.COMBINE_SUBTYPE_ENABLED;
 import static android.net.NetworkIdentity.scrubSubscriberId;
 import static com.android.internal.util.ArrayUtils.contains;
-
-import android.os.Parcel;
-import android.os.Parcelable;
-
-import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.Objects;
 
 /**
  * Template definition used to generically match {@link NetworkIdentity},
@@ -44,49 +41,89 @@ public class NetworkTemplate implements Parcelable {
     public static final int MATCH_ETHERNET = 5;
     public static final int MATCH_MOBILE_WILDCARD = 6;
     public static final int MATCH_WIFI_WILDCARD = 7;
-    
-    /** Network type is unknown */
+
+    /**
+     * Network type is unknown
+     */
     public static final int NETWORK_TYPE_UNKNOWN = 0;
-    /** Current network is GPRS */
+    /**
+     * Current network is GPRS
+     */
     public static final int NETWORK_TYPE_GPRS = 1;
-    /** Current network is EDGE */
+    /**
+     * Current network is EDGE
+     */
     public static final int NETWORK_TYPE_EDGE = 2;
-    /** Current network is UMTS */
+    /**
+     * Current network is UMTS
+     */
     public static final int NETWORK_TYPE_UMTS = 3;
-    /** Current network is CDMA: Either IS95A or IS95B*/
+    /**
+     * Current network is CDMA: Either IS95A or IS95B
+     */
     public static final int NETWORK_TYPE_CDMA = 4;
-    /** Current network is EVDO revision 0*/
+    /**
+     * Current network is EVDO revision 0
+     */
     public static final int NETWORK_TYPE_EVDO_0 = 5;
-    /** Current network is EVDO revision A*/
+    /**
+     * Current network is EVDO revision A
+     */
     public static final int NETWORK_TYPE_EVDO_A = 6;
-    /** Current network is 1xRTT*/
+    /**
+     * Current network is 1xRTT
+     */
     public static final int NETWORK_TYPE_1xRTT = 7;
-    /** Current network is HSDPA */
+    /**
+     * Current network is HSDPA
+     */
     public static final int NETWORK_TYPE_HSDPA = 8;
-    /** Current network is HSUPA */
+    /**
+     * Current network is HSUPA
+     */
     public static final int NETWORK_TYPE_HSUPA = 9;
-    /** Current network is HSPA */
+    /**
+     * Current network is HSPA
+     */
     public static final int NETWORK_TYPE_HSPA = 10;
-    /** Current network is iDen */
+    /**
+     * Current network is iDen
+     */
     public static final int NETWORK_TYPE_IDEN = 11;
-    /** Current network is EVDO revision B*/
+    /**
+     * Current network is EVDO revision B
+     */
     public static final int NETWORK_TYPE_EVDO_B = 12;
-    /** Current network is LTE */
+    /**
+     * Current network is LTE
+     */
     public static final int NETWORK_TYPE_LTE = 13;
-    /** Current network is eHRPD */
+    /**
+     * Current network is eHRPD
+     */
     public static final int NETWORK_TYPE_EHRPD = 14;
-    /** Current network is HSPA+ */
+    /**
+     * Current network is HSPA+
+     */
     public static final int NETWORK_TYPE_HSPAP = 15;
-    
-    /** Unknown network class. {@hide} */
+
+    /**
+     * Unknown network class. {@hide}
+     */
     public static final int NETWORK_CLASS_UNKNOWN = 0;
-    /** Class of broadly defined "2G" networks. {@hide} */
+    /**
+     * Class of broadly defined "2G" networks. {@hide}
+     */
     public static final int NETWORK_CLASS_2_G = 1;
-    /** Class of broadly defined "3G" networks. {@hide} */
+    /**
+     * Class of broadly defined "3G" networks. {@hide}
+     */
     public static final int NETWORK_CLASS_3_G = 2;
-    /** Class of broadly defined "4G" networks. {@hide} */
+    /**
+     * Class of broadly defined "4G" networks. {@hide}
+     */
     public static final int NETWORK_CLASS_4_G = 3;
-    
+
     /**
      * Return general class of network type, such as "3G" or "4G". In cases
      * where classification is contentious, this method is conservative.

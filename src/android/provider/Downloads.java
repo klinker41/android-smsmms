@@ -27,11 +27,12 @@ import android.net.Uri;
  * @pending
  */
 public final class Downloads {
-    private Downloads() {}
+    private Downloads() {
+    }
 
     /**
      * Implementation details
-     *
+     * <p/>
      * Exposes constants used to interact with the download manager's
      * content provider.
      * The constants URI ... STATUS are the names of columns in the downloads table.
@@ -39,7 +40,8 @@ public final class Downloads {
      * @hide
      */
     public static final class Impl implements BaseColumns {
-        private Impl() {}
+        private Impl() {
+        }
 
         /**
          * The permission to access the download manager
@@ -96,7 +98,9 @@ public final class Downloads {
         public static final Uri ALL_DOWNLOADS_CONTENT_URI =
                 Uri.parse("content://downloads/all_downloads");
 
-        /** URI segment to access a publicly accessible downloaded file */
+        /**
+         * URI segment to access a publicly accessible downloaded file
+         */
         public static final String PUBLICLY_ACCESSIBLE_DOWNLOADS_URI_SEGMENT = "public_downloads";
 
         /**
@@ -366,7 +370,7 @@ public final class Downloads {
          * <P>Type: BOOLEAN</P>
          */
         public static final String COLUMN_BYPASS_RECOMMENDED_SIZE_LIMIT =
-            "bypass_recommended_size_limit";
+                "bypass_recommended_size_limit";
 
         /**
          * Set to true if this download is deleted. It is completely removed from the database
@@ -400,9 +404,9 @@ public final class Downloads {
         public static final String COLUMN_ERROR_MSG = "errorMsg";
 
         /**
-         *  This column stores the source of the last update to this row.
-         *  This column is only for internal use.
-         *  Valid values are indicated by LAST_UPDATESRC_* constants.
+         * This column stores the source of the last update to this row.
+         * This column is only for internal use.
+         * Valid values are indicated by LAST_UPDATESRC_* constants.
          * <P>Type: INT</P>
          */
         public static final String COLUMN_LAST_UPDATESRC = "lastUpdateSrc";
@@ -540,6 +544,7 @@ public final class Downloads {
         /**
          * this method determines if a notification should be displayed for a
          * given {@link #COLUMN_VISIBILITY} value
+         *
          * @param visibility the value of {@link #COLUMN_VISIBILITY}.
          * @return true if the notification should be displayed. false otherwise.
          */
@@ -710,39 +715,66 @@ public final class Downloads {
          *
          * @hide
          * @deprecated since behavior now uses
-         *             {@link #STATUS_WAITING_FOR_NETWORK}
+         * {@link #STATUS_WAITING_FOR_NETWORK}
          */
         @Deprecated
         public static final int STATUS_BLOCKED = 498;
 
-        /** {@hide} */
+        /**
+         * {@hide}
+         */
         public static String statusToString(int status) {
             switch (status) {
-                case STATUS_PENDING: return "PENDING";
-                case STATUS_RUNNING: return "RUNNING";
-                case STATUS_PAUSED_BY_APP: return "PAUSED_BY_APP";
-                case STATUS_WAITING_TO_RETRY: return "WAITING_TO_RETRY";
-                case STATUS_WAITING_FOR_NETWORK: return "WAITING_FOR_NETWORK";
-                case STATUS_QUEUED_FOR_WIFI: return "QUEUED_FOR_WIFI";
-                case STATUS_INSUFFICIENT_SPACE_ERROR: return "INSUFFICIENT_SPACE_ERROR";
-                case STATUS_DEVICE_NOT_FOUND_ERROR: return "DEVICE_NOT_FOUND_ERROR";
-                case STATUS_SUCCESS: return "SUCCESS";
-                case STATUS_BAD_REQUEST: return "BAD_REQUEST";
-                case STATUS_NOT_ACCEPTABLE: return "NOT_ACCEPTABLE";
-                case STATUS_LENGTH_REQUIRED: return "LENGTH_REQUIRED";
-                case STATUS_PRECONDITION_FAILED: return "PRECONDITION_FAILED";
-                case STATUS_FILE_ALREADY_EXISTS_ERROR: return "FILE_ALREADY_EXISTS_ERROR";
-                case STATUS_CANNOT_RESUME: return "CANNOT_RESUME";
-                case STATUS_CANCELED: return "CANCELED";
-                case STATUS_UNKNOWN_ERROR: return "UNKNOWN_ERROR";
-                case STATUS_FILE_ERROR: return "FILE_ERROR";
-                case STATUS_UNHANDLED_REDIRECT: return "UNHANDLED_REDIRECT";
-                case STATUS_UNHANDLED_HTTP_CODE: return "UNHANDLED_HTTP_CODE";
-                case STATUS_HTTP_DATA_ERROR: return "HTTP_DATA_ERROR";
-                case STATUS_HTTP_EXCEPTION: return "HTTP_EXCEPTION";
-                case STATUS_TOO_MANY_REDIRECTS: return "TOO_MANY_REDIRECTS";
-                case STATUS_BLOCKED: return "BLOCKED";
-                default: return Integer.toString(status);
+                case STATUS_PENDING:
+                    return "PENDING";
+                case STATUS_RUNNING:
+                    return "RUNNING";
+                case STATUS_PAUSED_BY_APP:
+                    return "PAUSED_BY_APP";
+                case STATUS_WAITING_TO_RETRY:
+                    return "WAITING_TO_RETRY";
+                case STATUS_WAITING_FOR_NETWORK:
+                    return "WAITING_FOR_NETWORK";
+                case STATUS_QUEUED_FOR_WIFI:
+                    return "QUEUED_FOR_WIFI";
+                case STATUS_INSUFFICIENT_SPACE_ERROR:
+                    return "INSUFFICIENT_SPACE_ERROR";
+                case STATUS_DEVICE_NOT_FOUND_ERROR:
+                    return "DEVICE_NOT_FOUND_ERROR";
+                case STATUS_SUCCESS:
+                    return "SUCCESS";
+                case STATUS_BAD_REQUEST:
+                    return "BAD_REQUEST";
+                case STATUS_NOT_ACCEPTABLE:
+                    return "NOT_ACCEPTABLE";
+                case STATUS_LENGTH_REQUIRED:
+                    return "LENGTH_REQUIRED";
+                case STATUS_PRECONDITION_FAILED:
+                    return "PRECONDITION_FAILED";
+                case STATUS_FILE_ALREADY_EXISTS_ERROR:
+                    return "FILE_ALREADY_EXISTS_ERROR";
+                case STATUS_CANNOT_RESUME:
+                    return "CANNOT_RESUME";
+                case STATUS_CANCELED:
+                    return "CANCELED";
+                case STATUS_UNKNOWN_ERROR:
+                    return "UNKNOWN_ERROR";
+                case STATUS_FILE_ERROR:
+                    return "FILE_ERROR";
+                case STATUS_UNHANDLED_REDIRECT:
+                    return "UNHANDLED_REDIRECT";
+                case STATUS_UNHANDLED_HTTP_CODE:
+                    return "UNHANDLED_HTTP_CODE";
+                case STATUS_HTTP_DATA_ERROR:
+                    return "HTTP_DATA_ERROR";
+                case STATUS_HTTP_EXCEPTION:
+                    return "HTTP_EXCEPTION";
+                case STATUS_TOO_MANY_REDIRECTS:
+                    return "TOO_MANY_REDIRECTS";
+                case STATUS_BLOCKED:
+                    return "BLOCKED";
+                default:
+                    return Integer.toString(status);
             }
         }
 
@@ -798,6 +830,6 @@ public final class Downloads {
     public static final void removeAllDownloadsByPackage(
             Context context, String notification_package, String notification_class) {
         context.getContentResolver().delete(Impl.CONTENT_URI, QUERY_WHERE_CLAUSE,
-                new String[] { notification_package, notification_class });
+                new String[]{notification_package, notification_class});
     }
 }

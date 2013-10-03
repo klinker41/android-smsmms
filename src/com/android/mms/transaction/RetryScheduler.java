@@ -19,11 +19,7 @@ package com.android.mms.transaction;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
@@ -33,7 +29,6 @@ import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.MmsSms.PendingMessages;
 import android.util.Log;
-
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduPersister;
@@ -52,6 +47,7 @@ public class RetryScheduler implements Observer {
     }
 
     private static RetryScheduler sInstance;
+
     public static RetryScheduler getInstance(Context context) {
         if (sInstance == null) {
             sInstance = new RetryScheduler(context);
@@ -176,7 +172,7 @@ public class RetryScheduler implements Observer {
                         errorType = MmsSms.ERR_TYPE_GENERIC_PERMANENT;
                         if (isRetryDownloading) {
                             Cursor c = SqliteWrapper.query(mContext, mContext.getContentResolver(), uri,
-                                    new String[] { Mms.THREAD_ID }, null, null, null);
+                                    new String[]{Mms.THREAD_ID}, null, null, null);
 
                             long threadId = -1;
                             if (c != null) {
@@ -204,9 +200,9 @@ public class RetryScheduler implements Observer {
                         }
                     }
 
-                    values.put(PendingMessages.ERROR_TYPE,  errorType);
+                    values.put(PendingMessages.ERROR_TYPE, errorType);
                     values.put(PendingMessages.RETRY_INDEX, retryIndex);
-                    values.put(PendingMessages.LAST_TRY,    current);
+                    values.put(PendingMessages.LAST_TRY, current);
 
                     int columnIndex = cursor.getColumnIndexOrThrow(
                             PendingMessages._ID);
@@ -248,7 +244,7 @@ public class RetryScheduler implements Observer {
         try {
             if (cursor.moveToFirst()) {
                 retrieveStatus = cursor.getInt(cursor.getColumnIndexOrThrow(
-                            Mms.RESPONSE_STATUS));
+                        Mms.RESPONSE_STATUS));
             }
         } finally {
             cursor.close();
@@ -269,7 +265,7 @@ public class RetryScheduler implements Observer {
                             PendingMessages.DUE_TIME));
 
                     Intent service = new Intent(TransactionService.ACTION_ONALARM,
-                                        null, context, TransactionService.class);
+                            null, context, TransactionService.class);
                     PendingIntent operation = PendingIntent.getService(
                             context, 0, service, PendingIntent.FLAG_ONE_SHOT);
                     AlarmManager am = (AlarmManager) context.getSystemService(

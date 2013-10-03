@@ -17,12 +17,12 @@
 package com.klinker.android.send_message;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 
 /**
  * Class to hold all relevant message information to send
+ *
  * @author Jake Klinker
  */
 public class Message {
@@ -36,12 +36,13 @@ public class Message {
      * Default constructor
      */
     public Message() {
-        this("", new String[] {""});
+        this("", new String[]{""});
     }
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text    is the message to send
      * @param address is the phone number to send to
      */
     public Message(String text, String address) {
@@ -50,7 +51,8 @@ public class Message {
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text    is the message to send
      * @param address is the phone number to send to
      * @param subject is the subject of the mms message
      */
@@ -60,7 +62,8 @@ public class Message {
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text      is the message to send
      * @param addresses is an array of phone numbers to send to
      */
     public Message(String text, String[] addresses) {
@@ -72,9 +75,10 @@ public class Message {
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text      is the message to send
      * @param addresses is an array of phone numbers to send to
-     * @param subject is the subject of the mms message
+     * @param subject   is the subject of the mms message
      */
     public Message(String text, String[] addresses, String subject) {
         this.text = text;
@@ -85,51 +89,56 @@ public class Message {
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text    is the message to send
      * @param address is the phone number to send to
-     * @param image is the image that you want to send
+     * @param image   is the image that you want to send
      */
     public Message(String text, String address, Bitmap image) {
-        this(text, address.trim().split(" "), new Bitmap[] {image});
+        this(text, address.trim().split(" "), new Bitmap[]{image});
     }
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text    is the message to send
      * @param address is the phone number to send to
-     * @param image is the image that you want to send
+     * @param image   is the image that you want to send
      * @param subject is the subject of the mms message
      */
     public Message(String text, String address, Bitmap image, String subject) {
-        this(text, address.trim().split(" "), new Bitmap[] {image}, subject);
+        this(text, address.trim().split(" "), new Bitmap[]{image}, subject);
     }
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text      is the message to send
      * @param addresses is an array of phone numbers to send to
-     * @param image is the image that you want to send
+     * @param image     is the image that you want to send
      */
     public Message(String text, String[] addresses, Bitmap image) {
-        this(text, addresses, new Bitmap[] {image});
+        this(text, addresses, new Bitmap[]{image});
     }
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text      is the message to send
      * @param addresses is an array of phone numbers to send to
-     * @param image is the image that you want to send
-     * @param subject is the subject of the mms message
+     * @param image     is the image that you want to send
+     * @param subject   is the subject of the mms message
      */
     public Message(String text, String[] addresses, Bitmap image, String subject) {
-        this(text, addresses, new Bitmap[] {image}, subject);
+        this(text, addresses, new Bitmap[]{image}, subject);
     }
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text    is the message to send
      * @param address is the phone number to send to
-     * @param images is an array of images that you want to send
+     * @param images  is an array of images that you want to send
      */
     public Message(String text, String address, Bitmap[] images) {
         this(text, address.trim().split(" "), images);
@@ -137,9 +146,10 @@ public class Message {
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text    is the message to send
      * @param address is the phone number to send to
-     * @param images is an array of images that you want to send
+     * @param images  is an array of images that you want to send
      * @param subject is the subject of the mms message
      */
     public Message(String text, String address, Bitmap[] images, String subject) {
@@ -148,9 +158,10 @@ public class Message {
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text      is the message to send
      * @param addresses is an array of phone numbers to send to
-     * @param images is an array of images that you want to send
+     * @param images    is an array of images that you want to send
      */
     public Message(String text, String[] addresses, Bitmap[] images) {
         this.text = text;
@@ -161,10 +172,11 @@ public class Message {
 
     /**
      * Constructor
-     * @param text is the message to send
+     *
+     * @param text      is the message to send
      * @param addresses is an array of phone numbers to send to
-     * @param images is an array of images that you want to send
-     * @param subject is the subject of the mms message
+     * @param images    is an array of images that you want to send
+     * @param subject   is the subject of the mms message
      */
     public Message(String text, String[] addresses, Bitmap[] images, String subject) {
         this.text = text;
@@ -175,6 +187,7 @@ public class Message {
 
     /**
      * Sets the message
+     *
      * @param text is the string to set message to
      */
     public void setText(String text) {
@@ -183,6 +196,7 @@ public class Message {
 
     /**
      * Sets recipients
+     *
      * @param addresses is the array of recipients to send to
      */
     public void setAddresses(String[] addresses) {
@@ -191,6 +205,7 @@ public class Message {
 
     /**
      * Sets single recipient
+     *
      * @param address is the phone number of the recipient
      */
     public void setAddress(String address) {
@@ -200,6 +215,7 @@ public class Message {
 
     /**
      * Sets images
+     *
      * @param images is the array of images to send to recipient
      */
     public void setImages(Bitmap[] images) {
@@ -208,6 +224,7 @@ public class Message {
 
     /**
      * Sets image
+     *
      * @param image is the single image to send to recipient
      */
     public void setImage(Bitmap image) {
@@ -217,6 +234,7 @@ public class Message {
 
     /**
      * Sets the subject
+     *
      * @param subject is the subject of the mms message
      */
     public void setSubject(String subject) {
@@ -225,6 +243,7 @@ public class Message {
 
     /**
      * Method to add another recipient to the object
+     *
      * @param address is the string of the recipients phone number to add to end of recipients array
      */
     public void addAddress(String address) {
@@ -245,6 +264,7 @@ public class Message {
 
     /**
      * Add another image to the object
+     *
      * @param image is the image that you want to add to the end of the bitmaps array
      */
     public void addImage(Bitmap image) {
@@ -265,6 +285,7 @@ public class Message {
 
     /**
      * Gets the text of the message to send
+     *
      * @return the string of the message to send
      */
     public String getText() {
@@ -273,6 +294,7 @@ public class Message {
 
     /**
      * Gets the addresses of the message
+     *
      * @return an array of strings with all of the addresses
      */
     public String[] getAddresses() {
@@ -281,6 +303,7 @@ public class Message {
 
     /**
      * Gets the images in the message
+     *
      * @return an array of bitmaps with all of the images
      */
     public Bitmap[] getImages() {
@@ -289,6 +312,7 @@ public class Message {
 
     /**
      * Gets the subject of the mms message
+     *
      * @return a string with the subject of the message
      */
     public String getSubject() {
@@ -297,6 +321,7 @@ public class Message {
 
     /**
      * Static method to convert a bitmap into a byte array to easily send it over http
+     *
      * @param image is the image to convert
      * @return a byte array of the image data
      */

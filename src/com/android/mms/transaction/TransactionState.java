@@ -36,7 +36,7 @@ public class TransactionState {
     /**
      * Result code indicates the Transaction failed.
      */
-    public static final int FAILED  = 2;
+    public static final int FAILED = 2;
 
     private Uri mContentUri;
     private int mState;

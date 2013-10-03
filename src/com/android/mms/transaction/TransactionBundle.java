@@ -18,7 +18,6 @@
 package com.android.mms.transaction;
 
 import android.os.Bundle;
-
 import com.android.internal.telephony.IccUtils;
 
 /**
@@ -84,10 +83,10 @@ public class TransactionBundle {
      * TYPE_RETRIEVE_TRANSACTION, TYPE_SEND_TRANSACTION, and TYPE_READREC_TRANSACTION.
      *
      * @param transactionType
-     * @param uri The relevant URI for this transaction. Indicates the URL of the
-     * M-Retrieve.conf in TYPE_RETRIEVE_TRANSACTION, or the Uri of the
-     * M-Send.req/M-Read-Rec.ind in TYPE_SEND_TRANSACTION and
-     * TYPE_READREC_TRANSACTION, respectively.
+     * @param uri             The relevant URI for this transaction. Indicates the URL of the
+     *                        M-Retrieve.conf in TYPE_RETRIEVE_TRANSACTION, or the Uri of the
+     *                        M-Send.req/M-Read-Rec.ind in TYPE_SEND_TRANSACTION and
+     *                        TYPE_READREC_TRANSACTION, respectively.
      */
     public TransactionBundle(int transactionType, String uri) {
         this(transactionType);
@@ -104,8 +103,8 @@ public class TransactionBundle {
     }
 
     public void setConnectionSettings(String mmscUrl,
-            String proxyAddress,
-            int proxyPort) {
+                                      String proxyAddress,
+                                      int proxyPort) {
         mBundle.putString(MMSC_URL, mmscUrl);
         mBundle.putString(PROXY_ADDRESS, proxyAddress);
         mBundle.putInt(PROXY_PORT, proxyPort);
@@ -149,10 +148,10 @@ public class TransactionBundle {
     @Override
     public String toString() {
         return "transactionType: " + getTransactionType() +
-            " uri: " + getUri() +
-            " pushData: " + IccUtils.bytesToHexString(getPushData()) +
-            " mmscUrl: " + getMmscUrl() +
-            " proxyAddress: " + getProxyAddress() +
-            " proxyPort: " + getProxyPort();
+                " uri: " + getUri() +
+                " pushData: " + IccUtils.bytesToHexString(getPushData()) +
+                " mmscUrl: " + getMmscUrl() +
+                " proxyAddress: " + getProxyAddress() +
+                " proxyPort: " + getProxyPort();
     }
 }

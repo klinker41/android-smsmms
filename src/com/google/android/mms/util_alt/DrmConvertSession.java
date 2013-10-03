@@ -19,8 +19,8 @@ package com.google.android.mms.util_alt;
 import android.content.Context;
 import android.drm.DrmConvertedStatus;
 import android.drm.DrmManagerClient;
-import android.util.Log;
 import android.provider.Downloads;
+import android.util.Log;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class DrmConvertSession {
     /**
      * Start of converting a file.
      *
-     * @param context The context of the application running the convert session.
+     * @param context  The context of the application running the convert session.
      * @param mimeType Mimetype of content that shall be converted.
      * @return A convert session or null in case an error occurs.
      */
@@ -72,15 +72,16 @@ public class DrmConvertSession {
             return new DrmConvertSession(drmClient, convertSessionId);
         }
     }
+
     /**
      * Convert a buffer of data to protected format.
      *
      * @param buffer Buffer filled with data to convert.
-     * @param size The number of bytes that shall be converted.
+     * @param size   The number of bytes that shall be converted.
      * @return A Buffer filled with converted data, if execution is ok, in all
-     *         other case null.
+     * other case null.
      */
-    public byte [] convert(byte[] inBuffer, int size) {
+    public byte[] convert(byte[] inBuffer, int size) {
         byte[] result = null;
         if (inBuffer != null) {
             DrmConvertedStatus convertedStatus = null;
@@ -116,10 +117,10 @@ public class DrmConvertSession {
      *
      * @param fileName The filename of the converted file.
      * @return Downloads.Impl.STATUS_SUCCESS if execution is ok.
-     *         Downloads.Impl.STATUS_FILE_ERROR in case converted file can not
-     *         be accessed. Downloads.Impl.STATUS_NOT_ACCEPTABLE if a problem
-     *         occurs when accessing drm framework.
-     *         Downloads.Impl.STATUS_UNKNOWN_ERROR if a general error occurred.
+     * Downloads.Impl.STATUS_FILE_ERROR in case converted file can not
+     * be accessed. Downloads.Impl.STATUS_NOT_ACCEPTABLE if a problem
+     * occurs when accessing drm framework.
+     * Downloads.Impl.STATUS_UNKNOWN_ERROR if a general error occurred.
      */
     public int close(String filename) {
         DrmConvertedStatus convertedStatus = null;

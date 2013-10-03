@@ -19,11 +19,10 @@ package android.net;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.net.UnknownHostException;
-import java.net.InetAddress;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
-
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Collection;
 
 /**
@@ -50,18 +49,18 @@ public class RouteInfo implements Parcelable {
             if (gateway != null) {
                 if (gateway instanceof Inet4Address) {
                     try {
-						destination = new LinkAddress(Inet4Address.getLocalHost(), 0);
-					} catch (UnknownHostException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+                        destination = new LinkAddress(Inet4Address.getLocalHost(), 0);
+                    } catch (UnknownHostException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 } else {
                     try {
-						destination = new LinkAddress(Inet6Address.getLocalHost(), 0);
-					} catch (UnknownHostException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+                        destination = new LinkAddress(Inet6Address.getLocalHost(), 0);
+                    } catch (UnknownHostException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
             } else {
                 // no destination, no gateway. invalid.
@@ -71,18 +70,18 @@ public class RouteInfo implements Parcelable {
         if (gateway == null) {
             if (destination.getAddress() instanceof Inet4Address) {
                 try {
-					gateway = Inet4Address.getLocalHost();
-				} catch (UnknownHostException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                    gateway = Inet4Address.getLocalHost();
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             } else {
                 try {
-					gateway = Inet6Address.getLocalHost();
-				} catch (UnknownHostException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                    gateway = Inet6Address.getLocalHost();
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         }
         mDestination = new LinkAddress(NetworkUtils.getNetworkPart(destination.getAddress(),
@@ -112,11 +111,11 @@ public class RouteInfo implements Parcelable {
 
     private boolean isHost() {
         try {
-			return (mGateway.equals(Inet4Address.getLocalHost()) || mGateway.equals(Inet6Address.getLocalHost()));
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			return false;
-		}
+            return (mGateway.equals(Inet4Address.getLocalHost()) || mGateway.equals(Inet6Address.getLocalHost()));
+        } catch (UnknownHostException e) {
+            // TODO Auto-generated catch block
+            return false;
+        }
     }
 
     private boolean isDefault() {
@@ -184,7 +183,7 @@ public class RouteInfo implements Parcelable {
 
         RouteInfo target = (RouteInfo) obj;
 
-        boolean sameDestination = ( mDestination == null) ?
+        boolean sameDestination = (mDestination == null) ?
                 target.getDestination() == null
                 : mDestination.equals(target.getDestination());
 
@@ -193,53 +192,55 @@ public class RouteInfo implements Parcelable {
                 : mGateway.equals(target.getGateway());
 
         return sameDestination && sameAddress
-            && mIsDefault == target.mIsDefault;
+                && mIsDefault == target.mIsDefault;
     }
 
     @Override
     public int hashCode() {
         return (mDestination == null ? 0 : mDestination.hashCode())
-            + (mGateway == null ? 0 :mGateway.hashCode())
-            + (mIsDefault ? 3 : 7);
+                + (mGateway == null ? 0 : mGateway.hashCode())
+                + (mIsDefault ? 3 : 7);
     }
 
     public static final Creator<RouteInfo> CREATOR =
-        new Creator<RouteInfo>() {
-        public RouteInfo createFromParcel(Parcel in) {
-            InetAddress destAddr = null;
-            int prefix = 0;
-            InetAddress gateway = null;
+            new Creator<RouteInfo>() {
+                public RouteInfo createFromParcel(Parcel in) {
+                    InetAddress destAddr = null;
+                    int prefix = 0;
+                    InetAddress gateway = null;
 
-            if (in.readByte() == 1) {
-                byte[] addr = in.createByteArray();
-                prefix = in.readInt();
+                    if (in.readByte() == 1) {
+                        byte[] addr = in.createByteArray();
+                        prefix = in.readInt();
 
-                try {
-                    destAddr = InetAddress.getByAddress(addr);
-                } catch (UnknownHostException e) {}
-            }
+                        try {
+                            destAddr = InetAddress.getByAddress(addr);
+                        } catch (UnknownHostException e) {
+                        }
+                    }
 
-            if (in.readByte() == 1) {
-                byte[] addr = in.createByteArray();
+                    if (in.readByte() == 1) {
+                        byte[] addr = in.createByteArray();
 
-                try {
-                    gateway = InetAddress.getByAddress(addr);
-                } catch (UnknownHostException e) {}
-            }
+                        try {
+                            gateway = InetAddress.getByAddress(addr);
+                        } catch (UnknownHostException e) {
+                        }
+                    }
 
-            LinkAddress dest = null;
+                    LinkAddress dest = null;
 
-            if (destAddr != null) {
-                dest = new LinkAddress(destAddr, prefix);
-            }
+                    if (destAddr != null) {
+                        dest = new LinkAddress(destAddr, prefix);
+                    }
 
-            return new RouteInfo(dest, gateway);
-        }
+                    return new RouteInfo(dest, gateway);
+                }
 
-        public RouteInfo[] newArray(int size) {
-            return new RouteInfo[size];
-        }
-    };
+                public RouteInfo[] newArray(int size) {
+                    return new RouteInfo[size];
+                }
+            };
 
     private boolean matches(InetAddress destination) {
         if (destination == null) return false;
@@ -258,8 +259,9 @@ public class RouteInfo implements Parcelable {
     /**
      * Find the route from a Collection of routes that best matches a given address.
      * May return null if no routes are applicable.
+     *
      * @param routes a Collection of RouteInfos to chose from
-     * @param dest the InetAddress your trying to get to
+     * @param dest   the InetAddress your trying to get to
      * @return the RouteInfo from the Collection that best fits the given address
      */
     public static RouteInfo selectBestRoute(Collection<RouteInfo> routes, InetAddress dest) {
@@ -271,7 +273,7 @@ public class RouteInfo implements Parcelable {
             if (NetworkUtils.addressTypeMatches(route.mDestination.getAddress(), dest)) {
                 if ((bestRoute != null) &&
                         (bestRoute.mDestination.getNetworkPrefixLength() >=
-                        route.mDestination.getNetworkPrefixLength())) {
+                                route.mDestination.getNetworkPrefixLength())) {
                     continue;
                 }
                 if (route.matches(dest)) bestRoute = route;

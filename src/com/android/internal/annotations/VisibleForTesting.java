@@ -34,11 +34,17 @@ public @interface VisibleForTesting {
      * testing.
      */
     enum Visibility {
-        /** The element should be considered protected. */
+        /**
+         * The element should be considered protected.
+         */
         PROTECTED,
-        /** The element should be considered package-private. */
+        /**
+         * The element should be considered package-private.
+         */
         PACKAGE,
-        /** The element should be considered private. */
+        /**
+         * The element should be considered private.
+         */
         PRIVATE
     }
 

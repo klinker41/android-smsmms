@@ -23,13 +23,13 @@ public class ReadRecInd extends GenericPdu {
     /**
      * Constructor, used when composing a M-ReadRec.ind pdu_alt.
      *
-     * @param from the from value
-     * @param messageId the message ID value
+     * @param from       the from value
+     * @param messageId  the message ID value
      * @param mmsVersion current viersion of mms
      * @param readStatus the read status value
-     * @param to the to value
+     * @param to         the to value
      * @throws InvalidHeaderValueException if parameters are invalid.
-     *         NullPointerException if messageId or to is null.
+     *                                     NullPointerException if messageId or to is null.
      */
     public ReadRecInd(EncodedStringValue from,
                       byte[] messageId,

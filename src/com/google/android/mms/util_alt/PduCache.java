@@ -30,17 +30,17 @@ public final class PduCache extends AbstractCache<Uri, PduCacheEntry> {
     private static final String TAG = "PduCache";
     private static final boolean LOCAL_LOGV = false;
 
-    private static final int MMS_ALL             = 0;
-    private static final int MMS_ALL_ID          = 1;
-    private static final int MMS_INBOX           = 2;
-    private static final int MMS_INBOX_ID        = 3;
-    private static final int MMS_SENT            = 4;
-    private static final int MMS_SENT_ID         = 5;
-    private static final int MMS_DRAFTS          = 6;
-    private static final int MMS_DRAFTS_ID       = 7;
-    private static final int MMS_OUTBOX          = 8;
-    private static final int MMS_OUTBOX_ID       = 9;
-    private static final int MMS_CONVERSATION    = 10;
+    private static final int MMS_ALL = 0;
+    private static final int MMS_ALL_ID = 1;
+    private static final int MMS_INBOX = 2;
+    private static final int MMS_INBOX_ID = 3;
+    private static final int MMS_SENT = 4;
+    private static final int MMS_SENT_ID = 5;
+    private static final int MMS_DRAFTS = 6;
+    private static final int MMS_DRAFTS_ID = 7;
+    private static final int MMS_OUTBOX = 8;
+    private static final int MMS_OUTBOX_ID = 9;
+    private static final int MMS_CONVERSATION = 10;
     private static final int MMS_CONVERSATION_ID = 11;
 
     private static final UriMatcher URI_MATCHER;
@@ -50,22 +50,22 @@ public final class PduCache extends AbstractCache<Uri, PduCacheEntry> {
 
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
-        URI_MATCHER.addURI("mms", null,         MMS_ALL);
-        URI_MATCHER.addURI("mms", "#",          MMS_ALL_ID);
-        URI_MATCHER.addURI("mms", "inbox",      MMS_INBOX);
-        URI_MATCHER.addURI("mms", "inbox/#",    MMS_INBOX_ID);
-        URI_MATCHER.addURI("mms", "sent",       MMS_SENT);
-        URI_MATCHER.addURI("mms", "sent/#",     MMS_SENT_ID);
-        URI_MATCHER.addURI("mms", "drafts",     MMS_DRAFTS);
-        URI_MATCHER.addURI("mms", "drafts/#",   MMS_DRAFTS_ID);
-        URI_MATCHER.addURI("mms", "outbox",     MMS_OUTBOX);
-        URI_MATCHER.addURI("mms", "outbox/#",   MMS_OUTBOX_ID);
-        URI_MATCHER.addURI("mms-sms", "conversations",   MMS_CONVERSATION);
+        URI_MATCHER.addURI("mms", null, MMS_ALL);
+        URI_MATCHER.addURI("mms", "#", MMS_ALL_ID);
+        URI_MATCHER.addURI("mms", "inbox", MMS_INBOX);
+        URI_MATCHER.addURI("mms", "inbox/#", MMS_INBOX_ID);
+        URI_MATCHER.addURI("mms", "sent", MMS_SENT);
+        URI_MATCHER.addURI("mms", "sent/#", MMS_SENT_ID);
+        URI_MATCHER.addURI("mms", "drafts", MMS_DRAFTS);
+        URI_MATCHER.addURI("mms", "drafts/#", MMS_DRAFTS_ID);
+        URI_MATCHER.addURI("mms", "outbox", MMS_OUTBOX);
+        URI_MATCHER.addURI("mms", "outbox/#", MMS_OUTBOX_ID);
+        URI_MATCHER.addURI("mms-sms", "conversations", MMS_CONVERSATION);
         URI_MATCHER.addURI("mms-sms", "conversations/#", MMS_CONVERSATION_ID);
 
         MATCH_TO_MSGBOX_ID_MAP = new HashMap<Integer, Integer>();
-        MATCH_TO_MSGBOX_ID_MAP.put(MMS_INBOX,  Mms.MESSAGE_BOX_INBOX);
-        MATCH_TO_MSGBOX_ID_MAP.put(MMS_SENT,   Mms.MESSAGE_BOX_SENT);
+        MATCH_TO_MSGBOX_ID_MAP.put(MMS_INBOX, Mms.MESSAGE_BOX_INBOX);
+        MATCH_TO_MSGBOX_ID_MAP.put(MMS_SENT, Mms.MESSAGE_BOX_SENT);
         MATCH_TO_MSGBOX_ID_MAP.put(MMS_DRAFTS, Mms.MESSAGE_BOX_DRAFTS);
         MATCH_TO_MSGBOX_ID_MAP.put(MMS_OUTBOX, Mms.MESSAGE_BOX_OUTBOX);
     }

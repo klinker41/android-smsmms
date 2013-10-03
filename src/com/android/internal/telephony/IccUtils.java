@@ -17,7 +17,6 @@
 package com.android.internal.telephony;
 
 import android.content.res.Resources;
-import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
@@ -28,32 +27,32 @@ import java.io.UnsupportedEncodingException;
  * Various methods, useful for dealing with SIM data.
  */
 public class IccUtils {
-    static final String LOG_TAG="IccUtils";
+    static final String LOG_TAG = "IccUtils";
 
     /**
      * Many fields in GSM SIM's are stored as nibble-swizzled BCD
-     *
+     * <p/>
      * Assumes left-justified field that may be padded right with 0xf
      * values.
-     *
+     * <p/>
      * Stops on invalid BCD value, returning string so far
      */
     public static String
     bcdToString(byte[] data, int offset, int length) {
-        StringBuilder ret = new StringBuilder(length*2);
+        StringBuilder ret = new StringBuilder(length * 2);
 
-        for (int i = offset ; i < offset + length ; i++) {
+        for (int i = offset; i < offset + length; i++) {
             int v;
 
             v = data[i] & 0xf;
-            if (v > 9)  break;
-            ret.append((char)('0' + v));
+            if (v > 9) break;
+            ret.append((char) ('0' + v));
 
             v = (data[i] >> 4) & 0xf;
             // Some PLMNs have 'f' as high nibble, ignore it
             if (v == 0xf) continue;
-            if (v > 9)  break;
-            ret.append((char)('0' + v));
+            if (v > 9) break;
+            ret.append((char) ('0' + v));
         }
 
         return ret.toString();
@@ -70,14 +69,14 @@ public class IccUtils {
         for (int i = offset; count < length; i++) {
             int v;
             v = data[i] & 0xf;
-            if (v > 9)  v = 0;
-            ret.append((char)('0' + v));
+            if (v > 9) v = 0;
+            ret.append((char) ('0' + v));
 
             if (++count == length) break;
 
             v = (data[i] >> 4) & 0xf;
-            if (v > 9)  v = 0;
-            ret.append((char)('0' + v));
+            if (v > 9) v = 0;
+            ret.append((char) ('0' + v));
             ++count;
         }
         return ret.toString();
@@ -85,13 +84,13 @@ public class IccUtils {
 
     /**
      * Decodes a GSM-style BCD byte, returning an int ranging from 0-99.
-     *
+     * <p/>
      * In GSM land, the least significant BCD digit is stored in the most
      * significant nibble.
-     *
+     * <p/>
      * Out-of-range digits are treated as 0 for the sake of the time stamp,
      * because of this:
-     *
+     * <p/>
      * TS 23.040 section 9.2.3.11
      * "if the MS receives a non-integer value in the SCTS, it shall
      * assume the digit is set to 0 but shall store the entire field
@@ -107,7 +106,7 @@ public class IccUtils {
         }
 
         if ((b & 0x0f) <= 0x09) {
-            ret +=  (b & 0xf) * 10;
+            ret += (b & 0xf) * 10;
         }
 
         return ret;
@@ -129,7 +128,7 @@ public class IccUtils {
         }
 
         if ((b & 0x0f) <= 0x09) {
-            ret +=  (b & 0xf);
+            ret += (b & 0xf);
         }
 
         return ret;
@@ -138,37 +137,37 @@ public class IccUtils {
     /**
      * Decodes a string field that's formatted like the EF[ADN] alpha
      * identifier
-     *
+     * <p/>
      * From TS 51.011 10.5.1:
-     *   Coding:
-     *       this alpha tagging shall use either
-     *      -    the SMS default 7 bit coded alphabet as defined in
-     *          TS 23.038 [12] with bit 8 set to 0. The alpha identifier
-     *          shall be left justified. Unused bytes shall be set to 'FF'; or
-     *      -    one of the UCS2 coded options as defined in annex B.
-     *
+     * Coding:
+     * this alpha tagging shall use either
+     * -    the SMS default 7 bit coded alphabet as defined in
+     * TS 23.038 [12] with bit 8 set to 0. The alpha identifier
+     * shall be left justified. Unused bytes shall be set to 'FF'; or
+     * -    one of the UCS2 coded options as defined in annex B.
+     * <p/>
      * Annex B from TS 11.11 V8.13.0:
-     *      1)  If the first octet in the alpha string is '80', then the
-     *          remaining octets are 16 bit UCS2 characters ...
-     *      2)  if the first octet in the alpha string is '81', then the
-     *          second octet contains a value indicating the number of
-     *          characters in the string, and the third octet contains an
-     *          8 bit number which defines bits 15 to 8 of a 16 bit
-     *          base pointer, where bit 16 is set to zero and bits 7 to 1
-     *          are also set to zero.  These sixteen bits constitute a
-     *          base pointer to a "half page" in the UCS2 code space, to be
-     *          used with some or all of the remaining octets in the string.
-     *          The fourth and subsequent octets contain codings as follows:
-     *          If bit 8 of the octet is set to zero, the remaining 7 bits
-     *          of the octet contain a GSM Default Alphabet character,
-     *          whereas if bit 8 of the octet is set to one, then the
-     *          remaining seven bits are an offset value added to the
-     *          16 bit base pointer defined earlier...
-     *      3)  If the first octet of the alpha string is set to '82', then
-     *          the second octet contains a value indicating the number of
-     *          characters in the string, and the third and fourth octets
-     *          contain a 16 bit number which defines the complete 16 bit
-     *          base pointer to a "half page" in the UCS2 code space...
+     * 1)  If the first octet in the alpha string is '80', then the
+     * remaining octets are 16 bit UCS2 characters ...
+     * 2)  if the first octet in the alpha string is '81', then the
+     * second octet contains a value indicating the number of
+     * characters in the string, and the third octet contains an
+     * 8 bit number which defines bits 15 to 8 of a 16 bit
+     * base pointer, where bit 16 is set to zero and bits 7 to 1
+     * are also set to zero.  These sixteen bits constitute a
+     * base pointer to a "half page" in the UCS2 code space, to be
+     * used with some or all of the remaining octets in the string.
+     * The fourth and subsequent octets contain codings as follows:
+     * If bit 8 of the octet is set to zero, the remaining 7 bits
+     * of the octet contain a GSM Default Alphabet character,
+     * whereas if bit 8 of the octet is set to one, then the
+     * remaining seven bits are an offset value added to the
+     * 16 bit base pointer defined earlier...
+     * 3)  If the first octet of the alpha string is set to '82', then
+     * the second octet contains a value indicating the number of
+     * characters in the string, and the third and fourth octets
+     * contain a 16 bit number which defines the complete 16 bit
+     * base pointer to a "half page" in the UCS2 code space...
      */
     public static String
     adnStringFieldToString(byte[] data, int offset, int length) {
@@ -184,7 +183,7 @@ public class IccUtils {
                     ret = new String(data, offset + 1, ucslen * 2, "utf-16be");
                 } catch (UnsupportedEncodingException ex) {
                     Log.e(LOG_TAG, "implausible UnsupportedEncodingException",
-                          ex);
+                            ex);
                 }
 
                 if (ret != null) {
@@ -217,7 +216,7 @@ public class IccUtils {
                 len = length - 4;
 
             base = (char) (((data[offset + 2] & 0xFF) << 8) |
-                            (data[offset + 3] & 0xFF));
+                    (data[offset + 3] & 0xFF));
             offset += 4;
             isucs2 = true;
         }
@@ -241,7 +240,7 @@ public class IccUtils {
                     count++;
 
                 ret.append(GsmAlphabet.gsm8BitUnpackedToString(data,
-                           offset, count));
+                        offset, count));
 
                 offset += count;
                 len -= count;
@@ -261,7 +260,7 @@ public class IccUtils {
         if (c >= 'A' && c <= 'F') return (c - 'A' + 10);
         if (c >= 'a' && c <= 'f') return (c - 'a' + 10);
 
-        throw new RuntimeException ("invalid hex char '" + c + "'");
+        throw new RuntimeException("invalid hex char '" + c + "'");
     }
 
     /**
@@ -269,9 +268,7 @@ public class IccUtils {
      *
      * @param s A string of hexadecimal characters, must be an even number of
      *          chars long
-     *
      * @return byte array representation
-     *
      * @throws RuntimeException on invalid format
      */
     public static byte[]
@@ -282,11 +279,11 @@ public class IccUtils {
 
         int sz = s.length();
 
-        ret = new byte[sz/2];
+        ret = new byte[sz / 2];
 
-        for (int i=0 ; i <sz ; i+=2) {
-            ret[i/2] = (byte) ((hexCharToInt(s.charAt(i)) << 4)
-                                | hexCharToInt(s.charAt(i+1)));
+        for (int i = 0; i < sz; i += 2) {
+            ret[i / 2] = (byte) ((hexCharToInt(s.charAt(i)) << 4)
+                    | hexCharToInt(s.charAt(i + 1)));
         }
 
         return ret;
@@ -297,16 +294,15 @@ public class IccUtils {
      * Converts a byte array into a String of hexadecimal characters.
      *
      * @param bytes an array of bytes
-     *
      * @return hex string representation of bytes array
      */
     public static String
     bytesToHexString(byte[] bytes) {
         if (bytes == null) return null;
 
-        StringBuilder ret = new StringBuilder(2*bytes.length);
+        StringBuilder ret = new StringBuilder(2 * bytes.length);
 
-        for (int i = 0 ; i < bytes.length ; i++) {
+        for (int i = 0; i < bytes.length; i++) {
             int b;
 
             b = 0x0f & (bytes[i] >> 4);
@@ -340,9 +336,9 @@ public class IccUtils {
                 // SMS character set
                 int countSeptets;
                 int unusedBits = data[offset] & 7;
-                countSeptets = (((length - 1) * 8) - unusedBits) / 7 ;
-                ret =  GsmAlphabet.gsm7BitPackedToString(data, offset + 1, countSeptets);
-            break;
+                countSeptets = (((length - 1) * 8) - unusedBits) / 7;
+                ret = GsmAlphabet.gsm7BitPackedToString(data, offset + 1, countSeptets);
+                break;
             case 1:
                 // UCS2
                 try {
@@ -350,14 +346,14 @@ public class IccUtils {
                             offset + 1, length - 1, "utf-16");
                 } catch (UnsupportedEncodingException ex) {
                     ret = "";
-                    Log.e(LOG_TAG,"implausible UnsupportedEncodingException", ex);
+                    Log.e(LOG_TAG, "implausible UnsupportedEncodingException", ex);
                 }
-            break;
+                break;
 
             // unsupported encoding
             default:
                 ret = "";
-            break;
+                break;
         }
 
         // "Add CI"
@@ -374,15 +370,16 @@ public class IccUtils {
 
     /**
      * Convert a TS 131.102 image instance of code scheme '11' into Bitmap
-     * @param data The raw data
+     *
+     * @param data   The raw data
      * @param length The length of image body
      * @return The bitmap
      */
-    public static Bitmap parseToBnW(byte[] data, int length){
+    public static Bitmap parseToBnW(byte[] data, int length) {
         int valueIndex = 0;
         int width = data[valueIndex++] & 0xFF;
         int height = data[valueIndex++] & 0xFF;
-        int numOfPixels = width*height;
+        int numOfPixels = width * height;
 
         int[] pixels = new int[numOfPixels];
 
@@ -395,8 +392,9 @@ public class IccUtils {
                 currentByte = data[valueIndex++];
                 bitIndex = 7;
             }
-            pixels[pixelIndex++] = bitToRGB((currentByte >> bitIndex-- ) & 0x01);
-        };
+            pixels[pixelIndex++] = bitToRGB((currentByte >> bitIndex--) & 0x01);
+        }
+        ;
 
         if (pixelIndex != numOfPixels) {
             Log.e(LOG_TAG, "parse end and size error");
@@ -404,8 +402,8 @@ public class IccUtils {
         return Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
     }
 
-    private static int bitToRGB(int bit){
-        if(bit == 1){
+    private static int bitToRGB(int bit) {
+        if (bit == 1) {
             return Color.WHITE;
         } else {
             return Color.BLACK;
@@ -415,13 +413,13 @@ public class IccUtils {
     /**
      * a TS 131.102 image instance of code scheme '11' into color Bitmap
      *
-     * @param data The raw data
-     * @param length the length of image body
+     * @param data         The raw data
+     * @param length       the length of image body
      * @param transparency with or without transparency
      * @return The color bitmap
      */
     public static Bitmap parseToRGB(byte[] data, int length,
-            boolean transparency) {
+                                    boolean transparency) {
         int valueIndex = 0;
         int width = data[valueIndex++] & 0xFF;
         int height = data[valueIndex++] & 0xFF;
@@ -449,7 +447,7 @@ public class IccUtils {
     }
 
     private static int[] mapTo2OrderBitColor(byte[] data, int valueIndex,
-            int length, int[] colorArray, int bits) {
+                                             int length, int[] colorArray, int bits) {
         if (0 != (8 % bits)) {
             Log.e(LOG_TAG, "not event number of color");
             return mapToNon2OrderBitColor(data, valueIndex, length, colorArray,
@@ -458,18 +456,18 @@ public class IccUtils {
 
         int mask = 0x01;
         switch (bits) {
-        case 1:
-            mask = 0x01;
-            break;
-        case 2:
-            mask = 0x03;
-            break;
-        case 4:
-            mask = 0x0F;
-            break;
-        case 8:
-            mask = 0xFF;
-            break;
+            case 1:
+                mask = 0x01;
+                break;
+            case 2:
+                mask = 0x03;
+                break;
+            case 4:
+                mask = 0x0F;
+                break;
+            case 8:
+                mask = 0xFF;
+                break;
         }
 
         int[] resultArray = new int[length];
@@ -487,7 +485,7 @@ public class IccUtils {
     }
 
     private static int[] mapToNon2OrderBitColor(byte[] data, int valueIndex,
-            int length, int[] colorArray, int bits) {
+                                                int length, int[] colorArray, int bits) {
         if (0 == (8 % bits)) {
             Log.e(LOG_TAG, "not odd number of color");
             return mapTo2OrderBitColor(data, valueIndex, length, colorArray,

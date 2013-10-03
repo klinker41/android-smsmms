@@ -25,7 +25,7 @@ public abstract class AbstractCache<K, V> {
     private static final String TAG = "AbstractCache";
     private static final boolean LOCAL_LOGV = false;
 
-    private static final int MAX_CACHED_ITEMS  = 500;
+    private static final int MAX_CACHED_ITEMS = 500;
 
     private final HashMap<K, CacheEntry<V>> mCacheMap;
 

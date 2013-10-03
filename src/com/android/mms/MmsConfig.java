@@ -16,15 +16,14 @@
 
 package com.android.mms;
 
-import java.io.IOException;
-
+import android.content.Context;
+import android.content.res.XmlResourceParser;
+import android.util.Log;
 import com.klinker.android.send_message.R;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import android.content.Context;
-import android.content.res.XmlResourceParser;
-import android.util.Log;
+import java.io.IOException;
 
 public class MmsConfig {
     private static final String TAG = "MmsConfig";
@@ -57,7 +56,7 @@ public class MmsConfig {
     private static int mDefaultMMSMessagesPerThread = 50;       // default value
     private static int mMinMessageCountPerThread = 2;           // default value
     private static int mMaxMessageCountPerThread = 5000;        // default value
-    private static int mHttpSocketTimeout = 60*1000;            // default to 1 min
+    private static int mHttpSocketTimeout = 60 * 1000;            // default to 1 min
     private static int mMinimumSlideElementDuration = 7;        // default to 7 sec
     private static boolean mNotifyWapMMSC = false;
     private static boolean mAllowAttachAudio = true;
@@ -68,7 +67,7 @@ public class MmsConfig {
     // than a single segment (i.e. 140 chars), then the message will turn into and be sent
     // as an mms message. This feature exists for carriers that don't support multi-part sms's.
     private static boolean mEnableMultipartSMS = true;
-    
+
     // By default, the radio splits multipart sms, not the application. If the carrier or radio
     // does not support this, and the recipient gets garbled text, set this to true. If this is
     // true and mEnableMultipartSMS is false, the mSmsToMmsTextThreshold will be observed,
@@ -101,7 +100,7 @@ public class MmsConfig {
     private static int mAliasRuleMaxChars = 48;
 
     private static int mMaxSubjectLength = 40;  // maximum number of characters allowed for mms
-                                                // subject
+    // subject
 
     // If mEnableGroupMms is true, a message with multiple recipients, regardless of contents,
     // will be sent as a single MMS message with multiple "TO" fields set for each recipient.
@@ -129,7 +128,7 @@ public class MmsConfig {
         if (LOCAL_LOGV) {
             Log.v(TAG, "MmsConfig.getMaxMessageSize(): " + mMaxMessageSize);
         }
-       return mMaxMessageSize;
+        return mMaxMessageSize;
     }
 
     /**
@@ -265,11 +264,10 @@ public class MmsConfig {
         return mEnableSprintVVM && address.contentEquals("9016");
     }
 
-    public static final void beginDocument(XmlPullParser parser, String firstElementName) throws XmlPullParserException, IOException
-    {
+    public static final void beginDocument(XmlPullParser parser, String firstElementName) throws XmlPullParserException, IOException {
         int type;
-        while ((type=parser.next()) != XmlPullParser.START_TAG
-                   && type != XmlPullParser.END_DOCUMENT) {
+        while ((type = parser.next()) != XmlPullParser.START_TAG
+                && type != XmlPullParser.END_DOCUMENT) {
             ;
         }
 
@@ -283,11 +281,10 @@ public class MmsConfig {
         }
     }
 
-    public static final void nextElement(XmlPullParser parser) throws XmlPullParserException, IOException
-    {
+    public static final void nextElement(XmlPullParser parser) throws XmlPullParserException, IOException {
         int type;
-        while ((type=parser.next()) != XmlPullParser.START_TAG
-                   && type != XmlPullParser.END_DOCUMENT) {
+        while ((type = parser.next()) != XmlPullParser.START_TAG
+                && type != XmlPullParser.END_DOCUMENT) {
             ;
         }
     }
@@ -419,8 +416,8 @@ public class MmsConfig {
 
         if (errorStr != null) {
             String err =
-                String.format("MmsConfig.loadMmsSettings mms_config.xml missing %s setting",
-                        errorStr);
+                    String.format("MmsConfig.loadMmsSettings mms_config.xml missing %s setting",
+                            errorStr);
             Log.e(TAG, err);
         }
     }

@@ -16,8 +16,6 @@
 
 package android.net;
 
-import static com.android.internal.util.Preconditions.checkNotNull;
-
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.content.Context;
@@ -28,12 +26,14 @@ import android.provider.Settings;
 
 import java.net.InetAddress;
 
+import static com.android.internal.util.Preconditions.checkNotNull;
+
 /**
  * Class that answers queries about the state of network connectivity. It also
  * notifies applications when network connectivity changes. Get an instance
  * of this class by calling
  * {@link android.content.Context#getSystemService(String) Context.getSystemService(Context.CONNECTIVITY_SERVICE)}.
- * <p>
+ * <p/>
  * The primary responsibilities of this class are to:
  * <ol>
  * <li>Monitor network connections (Wi-Fi, GPRS, UMTS, etc.)</li>
@@ -83,11 +83,11 @@ public class ConnectivityManager {
      * The lookup key for a {@link NetworkInfo} object. Retrieve with
      * {@link android.content.Intent#getParcelableExtra(String)}.
      *
-     * @deprecated Since {@link NetworkInfo} can vary based on UID, applications
-     *             should always obtain network information through
-     *             {@link #getActiveNetworkInfo()} or
-     *             {@link #getAllNetworkInfo()}.
      * @see #EXTRA_NETWORK_TYPE
+     * @deprecated Since {@link NetworkInfo} can vary based on UID, applications
+     * should always obtain network information through
+     * {@link #getActiveNetworkInfo()} or
+     * {@link #getAllNetworkInfo()}.
      */
     @Deprecated
     public static final String EXTRA_NETWORK_INFO = "networkInfo";
@@ -105,7 +105,7 @@ public class ConnectivityManager {
      * The lookup key for a boolean that indicates whether a connect event
      * is for a network to which the connectivity manager was failing over
      * following a disconnect on another network.
-     * Retrieve it with {@link android.content.Intent#getBooleanExtra(String,boolean)}.
+     * Retrieve it with {@link android.content.Intent#getBooleanExtra(String, boolean)}.
      */
     public static final String EXTRA_IS_FAILOVER = "isFailover";
     /**
@@ -117,7 +117,7 @@ public class ConnectivityManager {
     /**
      * The lookup key for a boolean that indicates whether there is a
      * complete lack of connectivity, i.e., no network is available.
-     * Retrieve it with {@link android.content.Intent#getBooleanExtra(String,boolean)}.
+     * Retrieve it with {@link android.content.Intent#getBooleanExtra(String, boolean)}.
      */
     public static final String EXTRA_NO_CONNECTIVITY = "noConnectivity";
     /**
@@ -169,20 +169,20 @@ public class ConnectivityManager {
     /**
      * Broadcast Action: The setting for background data usage has changed
      * values. Use {@link #getBackgroundDataSetting()} to get the current value.
-     * <p>
+     * <p/>
      * If an application uses the network in the background, it should listen
      * for this broadcast and stop using the background data if the value is
      * {@code false}.
-     * <p>
+     * <p/>
      *
      * @deprecated As of {@link VERSION_CODES#ICE_CREAM_SANDWICH}, availability
-     *             of background data depends on several combined factors, and
-     *             this broadcast is no longer sent. Instead, when background
-     *             data is unavailable, {@link #getActiveNetworkInfo()} will now
-     *             appear disconnected. During first boot after a platform
-     *             upgrade, this broadcast will be sent once if
-     *             {@link #getBackgroundDataSetting()} was {@code false} before
-     *             the upgrade.
+     * of background data depends on several combined factors, and
+     * this broadcast is no longer sent. Instead, when background
+     * data is unavailable, {@link #getActiveNetworkInfo()} will now
+     * appear disconnected. During first boot after a platform
+     * upgrade, this broadcast will be sent once if
+     * {@link #getBackgroundDataSetting()} was {@code false} before
+     * the upgrade.
      */
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     @Deprecated
@@ -194,6 +194,7 @@ public class ConnectivityManager {
      * uses {@code ConnectivityManager.EXTRA_INET_CONDITION} and
      * {@code ConnectivityManager.EXTRA_NETWORK_INFO} to specify
      * the network and it's condition.
+     *
      * @hide
      */
     public static final String INET_CONDITION_ACTION =
@@ -202,52 +203,51 @@ public class ConnectivityManager {
     /**
      * Broadcast Action: A tetherable connection has come or gone
      * TODO - finish the doc
+     *
      * @hide
      */
     public static final String ACTION_TETHER_STATE_CHANGED =
             "android.net.conn.TETHER_STATE_CHANGED";
 
     /**
-     * @hide
-     * gives a String[]
+     * @hide gives a String[]
      */
     public static final String EXTRA_AVAILABLE_TETHER = "availableArray";
 
     /**
-     * @hide
-     * gives a String[]
+     * @hide gives a String[]
      */
     public static final String EXTRA_ACTIVE_TETHER = "activeArray";
 
     /**
-     * @hide
-     * gives a String[]
+     * @hide gives a String[]
      */
     public static final String EXTRA_ERRORED_TETHER = "erroredArray";
 
     /**
      * The absence of APN..
+     *
      * @hide
      */
-    public static final int TYPE_NONE        = -1;
+    public static final int TYPE_NONE = -1;
 
     /**
      * The Default Mobile data connection.  When active, all data traffic
      * will use this connection by default.
      */
-    public static final int TYPE_MOBILE      = 0;
+    public static final int TYPE_MOBILE = 0;
     /**
      * The Default WIFI data connection.  When active, all data traffic
      * will use this connection by default.
      */
-    public static final int TYPE_WIFI        = 1;
+    public static final int TYPE_WIFI = 1;
     /**
      * An MMS-specific Mobile data connection.  This connection may be the
      * same as {@link #TYPE_MOBILE} but it may be different.  This is used
      * by applications needing to talk to the carrier's Multimedia Messaging
      * Service servers.  It may coexist with default data connections.
      */
-    public static final int TYPE_MOBILE_MMS  = 2;
+    public static final int TYPE_MOBILE_MMS = 2;
     /**
      * A SUPL-specific Mobile data connection.  This connection may be the
      * same as {@link #TYPE_MOBILE} but it may be different.  This is used
@@ -263,7 +263,7 @@ public class ConnectivityManager {
      * the carrier is aware of DUN traffic.  It may coexist with default data
      * connections.
      */
-    public static final int TYPE_MOBILE_DUN  = 4;
+    public static final int TYPE_MOBILE_DUN = 4;
     /**
      * A High Priority Mobile data connection.  This connection is typically
      * the same as {@link #TYPE_MOBILE} but the routing setup is different.
@@ -276,24 +276,24 @@ public class ConnectivityManager {
      * The Default WiMAX data connection.  When active, all data traffic
      * will use this connection by default.
      */
-    public static final int TYPE_WIMAX       = 6;
+    public static final int TYPE_WIMAX = 6;
 
     /**
      * The Default Bluetooth data connection. When active, all data traffic
      * will use this connection by default.
      */
-    public static final int TYPE_BLUETOOTH   = 7;
+    public static final int TYPE_BLUETOOTH = 7;
 
     /**
      * Dummy data connection.  This should not be used on shipping devices.
      */
-    public static final int TYPE_DUMMY       = 8;
+    public static final int TYPE_DUMMY = 8;
 
     /**
      * The Default Ethernet data connection.  When active, all data traffic
      * will use this connection by default.
      */
-    public static final int TYPE_ETHERNET    = 9;
+    public static final int TYPE_ETHERNET = 9;
 
     /**
      * Over the air Adminstration.
@@ -305,25 +305,29 @@ public class ConnectivityManager {
      * IP Multimedia Subsystem
      * {@hide}
      */
-    public static final int TYPE_MOBILE_IMS  = 11;
+    public static final int TYPE_MOBILE_IMS = 11;
 
     /**
      * Carrier Branded Services
      * {@hide}
      */
-    public static final int TYPE_MOBILE_CBS  = 12;
+    public static final int TYPE_MOBILE_CBS = 12;
 
     /**
      * A Wi-Fi p2p connection. Only requesting processes will have access to
      * the peers connected.
      * {@hide}
      */
-    public static final int TYPE_WIFI_P2P    = 13;
+    public static final int TYPE_WIFI_P2P = 13;
 
-    /** {@hide} */
-    public static final int MAX_RADIO_TYPE   = TYPE_WIFI_P2P;
+    /**
+     * {@hide}
+     */
+    public static final int MAX_RADIO_TYPE = TYPE_WIFI_P2P;
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public static final int MAX_NETWORK_TYPE = TYPE_WIFI_P2P;
 
     public static final int DEFAULT_NETWORK_PREFERENCE = TYPE_WIFI;
@@ -341,10 +345,11 @@ public class ConnectivityManager {
     public static boolean isNetworkTypeValid(int networkType) {
         return networkType >= 0 && networkType <= MAX_NETWORK_TYPE;
     }
-    
-    
 
-    /** {@hide} */
+
+    /**
+     * {@hide}
+     */
     public static String getNetworkTypeName(int type) {
         switch (type) {
             case TYPE_MOBILE:
@@ -380,7 +385,9 @@ public class ConnectivityManager {
         }
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public static boolean isNetworkTypeMobile(int networkType) {
         switch (networkType) {
             case TYPE_MOBILE:
@@ -428,7 +435,9 @@ public class ConnectivityManager {
         }
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public NetworkInfo getActiveNetworkInfoForUid(int uid) {
         try {
             return mService.getActiveNetworkInfoForUid(uid);
@@ -453,7 +462,9 @@ public class ConnectivityManager {
         }
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public LinkProperties getActiveLinkProperties() {
         try {
             return mService.getActiveLinkProperties();
@@ -462,7 +473,9 @@ public class ConnectivityManager {
         }
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public LinkProperties getLinkProperties(int networkType) {
         try {
             return mService.getLinkProperties(networkType);
@@ -471,7 +484,9 @@ public class ConnectivityManager {
         }
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public boolean setRadios(boolean turnOn) {
         try {
             return mService.setRadios(turnOn);
@@ -480,7 +495,9 @@ public class ConnectivityManager {
         }
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public boolean setRadio(int networkType, boolean turnOn) {
         try {
             return mService.setRadio(networkType, turnOn);
@@ -495,8 +512,9 @@ public class ConnectivityManager {
      * is completely up to each networking implementation.
      * <p>This method requires the caller to hold the permission
      * {@link android.Manifest.permission#CHANGE_NETWORK_STATE}.
+     *
      * @param networkType specifies which network the request pertains to
-     * @param feature the name of the feature to be used
+     * @param feature     the name of the feature to be used
      * @return an integer value representing the outcome of the request.
      * The interpretation of this value is specific to each networking
      * implementation+feature combination, except that the value {@code -1}
@@ -517,8 +535,9 @@ public class ConnectivityManager {
      * is completely up to each networking implementation.
      * <p>This method requires the caller to hold the permission
      * {@link android.Manifest.permission#CHANGE_NETWORK_STATE}.
+     *
      * @param networkType specifies which network the request pertains to
-     * @param feature the name of the feature that is no longer needed
+     * @param feature     the name of the feature that is no longer needed
      * @return an integer value representing the outcome of the request.
      * The interpretation of this value is specific to each networking
      * implementation+feature combination, except that the value {@code -1}
@@ -538,8 +557,9 @@ public class ConnectivityManager {
      * already exists is ignored, but treated as successful.
      * <p>This method requires the caller to hold the permission
      * {@link android.Manifest.permission#CHANGE_NETWORK_STATE}.
+     *
      * @param networkType the type of the network over which traffic to the specified
-     * host is to be routed
+     *                    host is to be routed
      * @param hostAddress the IP address of the host to which the route is desired
      * @return {@code true} on success, {@code false} on failure
      */
@@ -557,8 +577,9 @@ public class ConnectivityManager {
      * Ensure that a network route exists to deliver traffic to the specified
      * host via the specified network interface. An attempt to add a route that
      * already exists is ignored, but treated as successful.
+     *
      * @param networkType the type of the network over which traffic to the specified
-     * host is to be routed
+     *                    host is to be routed
      * @param hostAddress the IP address of the host to which the route is desired
      * @return {@code true} on success, {@code false} on failure
      * @hide
@@ -577,16 +598,16 @@ public class ConnectivityManager {
      * applications should not use the network if the application is not in the
      * foreground. Developers should respect this setting, and check the value
      * of this before performing any background data operations.
-     * <p>
+     * <p/>
      * All applications that have background services that use the network
      * should listen to {@link #ACTION_BACKGROUND_DATA_SETTING_CHANGED}.
-     * <p>
+     * <p/>
+     *
+     * @return Whether background data usage is allowed.
      * @deprecated As of {@link VERSION_CODES#ICE_CREAM_SANDWICH}, availability of
      * background data depends on several combined factors, and this method will
      * always return {@code true}. Instead, when background data is unavailable,
      * {@link #getActiveNetworkInfo()} will now appear disconnected.
-     *
-     * @return Whether background data usage is allowed.
      */
     @Deprecated
     public boolean getBackgroundDataSetting() {
@@ -599,11 +620,10 @@ public class ConnectivityManager {
      * Sets the value of the setting for background data usage.
      *
      * @param allowBackgroundData Whether an application should use data while
-     *            it is in the background.
-     *
+     *                            it is in the background.
      * @attr ref android.Manifest.permission#CHANGE_BACKGROUND_DATA_SETTING
-     * @see #getBackgroundDataSetting()
      * @hide
+     * @see #getBackgroundDataSetting()
      */
     @Deprecated
     public void setBackgroundDataSetting(boolean allowBackgroundData) {
@@ -643,7 +663,7 @@ public class ConnectivityManager {
      * Sets the persisted value for enabling/disabling Mobile data.
      *
      * @param enabled Whether the mobile data connection should be
-     *            used or not.
+     *                used or not.
      * @hide
      */
     public void setMobileDataEnabled(boolean enabled) {
@@ -660,7 +680,9 @@ public class ConnectivityManager {
         mService = checkNotNull(service, "missing IConnectivityManager");
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public static ConnectivityManager from(Context context) {
         return (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
     }
@@ -777,33 +799,55 @@ public class ConnectivityManager {
         }
     }
 
-    /** {@hide} */
-    public static final int TETHER_ERROR_NO_ERROR           = 0;
-    /** {@hide} */
-    public static final int TETHER_ERROR_UNKNOWN_IFACE      = 1;
-    /** {@hide} */
-    public static final int TETHER_ERROR_SERVICE_UNAVAIL    = 2;
-    /** {@hide} */
-    public static final int TETHER_ERROR_UNSUPPORTED        = 3;
-    /** {@hide} */
-    public static final int TETHER_ERROR_UNAVAIL_IFACE      = 4;
-    /** {@hide} */
-    public static final int TETHER_ERROR_MASTER_ERROR       = 5;
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_NO_ERROR = 0;
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_UNKNOWN_IFACE = 1;
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_SERVICE_UNAVAIL = 2;
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_UNSUPPORTED = 3;
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_UNAVAIL_IFACE = 4;
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_MASTER_ERROR = 5;
+    /**
+     * {@hide}
+     */
     public static final int TETHER_ERROR_TETHER_IFACE_ERROR = 6;
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public static final int TETHER_ERROR_UNTETHER_IFACE_ERROR = 7;
-    /** {@hide} */
-    public static final int TETHER_ERROR_ENABLE_NAT_ERROR     = 8;
-    /** {@hide} */
-    public static final int TETHER_ERROR_DISABLE_NAT_ERROR    = 9;
-    /** {@hide} */
-    public static final int TETHER_ERROR_IFACE_CFG_ERROR      = 10;
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_ENABLE_NAT_ERROR = 8;
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_DISABLE_NAT_ERROR = 9;
+    /**
+     * {@hide}
+     */
+    public static final int TETHER_ERROR_IFACE_CFG_ERROR = 10;
 
     /**
      * @param iface The name of the interface we're interested in
      * @return error The error code of the last error tethering or untethering the named
-     *               interface
+     * interface
      * {@hide}
      */
     public int getLastTetherError(String iface) {
@@ -816,6 +860,7 @@ public class ConnectivityManager {
 
     /**
      * Ensure the device stays awake until we connect with the next network
+     *
      * @param forWhome The name of the network going down for logging purposes
      * @return {@code true} on success, {@code false} on failure
      * {@hide}
@@ -831,8 +876,8 @@ public class ConnectivityManager {
 
     /**
      * @param networkType The type of network you want to report on
-     * @param percentage The quality of the connection 0 is bad, 100 is good
-     * {@hide}
+     * @param percentage  The quality of the connection 0 is bad, 100 is good
+     *                    {@hide}
      */
     public void reportInetCondition(int networkType, int percentage) {
         try {
@@ -843,7 +888,7 @@ public class ConnectivityManager {
 
     /**
      * @param proxyProperties The definition for the new global http proxy
-     * {@hide}
+     *                        {@hide}
      */
     public void setGlobalProxy(ProxyProperties p) {
         try {
@@ -878,8 +923,8 @@ public class ConnectivityManager {
 
     /**
      * @param networkType The network who's dependence has changed
-     * @param met Boolean - true if network use is ok, false if not
-     * {@hide}
+     * @param met         Boolean - true if network use is ok, false if not
+     *                    {@hide}
      */
     public void setDataDependency(int networkType, boolean met) {
         try {
@@ -895,6 +940,7 @@ public class ConnectivityManager {
      * hardware supports it.  For example a gsm phone without a sim
      * should still return true for mobile data, but a wifi only tablet
      * would return false.
+     *
      * @param networkType The nework type we'd like to check
      * @return true if supported, else false
      * @hide
@@ -902,7 +948,8 @@ public class ConnectivityManager {
     public boolean isNetworkSupported(int networkType) {
         try {
             return mService.isNetworkSupported(networkType);
-        } catch (RemoteException e) {}
+        } catch (RemoteException e) {
+        }
         return false;
     }
 
@@ -921,7 +968,9 @@ public class ConnectivityManager {
         }
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public boolean updateLockdownVpn() {
         try {
             return mService.updateLockdownVpn();

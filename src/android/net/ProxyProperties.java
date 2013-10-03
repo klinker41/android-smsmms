@@ -21,10 +21,12 @@ import android.annotation.SuppressLint;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
+
 import java.net.InetSocketAddress;
 
 /**
  * A container class for the http proxy info
+ *
  * @hide
  */
 public class ProxyProperties implements Parcelable {
@@ -61,7 +63,8 @@ public class ProxyProperties implements Parcelable {
         InetSocketAddress inetSocketAddress = null;
         try {
             inetSocketAddress = new InetSocketAddress(mHost, mPort);
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+        }
         return inetSocketAddress;
     }
 
@@ -80,7 +83,7 @@ public class ProxyProperties implements Parcelable {
 
     // comma separated
     @SuppressLint("DefaultLocale")
-	private void setExclusionList(String exclusionList) {
+    private void setExclusionList(String exclusionList) {
         mExclusionList = exclusionList;
         if (mExclusionList == null) {
             mParsedExclusionList = new String[0];
@@ -90,8 +93,8 @@ public class ProxyProperties implements Parcelable {
             for (int i = 0; i < splitExclusionList.length; i++) {
                 String s = splitExclusionList[i].trim();
                 if (s.startsWith(".")) s = s.substring(1);
-                mParsedExclusionList[i*2] = s;
-                mParsedExclusionList[(i*2)+1] = "." + s;
+                mParsedExclusionList[i * 2] = s;
+                mParsedExclusionList[(i * 2) + 1] = "." + s;
             }
         }
     }
@@ -103,9 +106,9 @@ public class ProxyProperties implements Parcelable {
         Uri u = Uri.parse(url);
         String urlDomain = u.getHost();
         if (urlDomain == null) return false;
-        for (int i = 0; i< mParsedExclusionList.length; i+=2) {
+        for (int i = 0; i < mParsedExclusionList.length; i += 2) {
             if (urlDomain.equals(mParsedExclusionList[i]) ||
-                    urlDomain.endsWith(mParsedExclusionList[i+1])) {
+                    urlDomain.endsWith(mParsedExclusionList[i + 1])) {
                 return true;
             }
         }
@@ -133,7 +136,7 @@ public class ProxyProperties implements Parcelable {
             sb.append("] ");
             sb.append(Integer.toString(mPort));
             if (mExclusionList != null) {
-                    sb.append(" xl=").append(mExclusionList);
+                sb.append(" xl=").append(mExclusionList);
             }
         } else {
             sb.append("[ProxyProperties.mHost == null]");
@@ -144,7 +147,7 @@ public class ProxyProperties implements Parcelable {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof ProxyProperties)) return false;
-        ProxyProperties p = (ProxyProperties)o;
+        ProxyProperties p = (ProxyProperties) o;
         if (mExclusionList != null && !mExclusionList.equals(p.getExclusionList())) return false;
         if (mHost != null && p.getHost() != null && mHost.equals(p.getHost()) == false) {
             return false;
@@ -157,6 +160,7 @@ public class ProxyProperties implements Parcelable {
 
     /**
      * Implement the Parcelable interface
+     *
      * @hide
      */
     public int describeContents() {
@@ -169,21 +173,22 @@ public class ProxyProperties implements Parcelable {
      */
     public int hashCode() {
         return ((null == mHost) ? 0 : mHost.hashCode())
-        + ((null == mExclusionList) ? 0 : mExclusionList.hashCode())
-        + mPort;
+                + ((null == mExclusionList) ? 0 : mExclusionList.hashCode())
+                + mPort;
     }
 
     /**
      * Implement the Parcelable interface.
+     *
      * @hide
      */
     public void writeToParcel(Parcel dest, int flags) {
         if (mHost != null) {
-            dest.writeByte((byte)1);
+            dest.writeByte((byte) 1);
             dest.writeString(mHost);
             dest.writeInt(mPort);
         } else {
-            dest.writeByte((byte)0);
+            dest.writeByte((byte) 0);
         }
         dest.writeString(mExclusionList);
         dest.writeStringArray(mParsedExclusionList);
@@ -191,26 +196,27 @@ public class ProxyProperties implements Parcelable {
 
     /**
      * Implement the Parcelable interface.
+     *
      * @hide
      */
     public static final Creator<ProxyProperties> CREATOR =
-        new Creator<ProxyProperties>() {
-            public ProxyProperties createFromParcel(Parcel in) {
-                String host = null;
-                int port = 0;
-                if (in.readByte() == 1) {
-                    host = in.readString();
-                    port = in.readInt();
+            new Creator<ProxyProperties>() {
+                public ProxyProperties createFromParcel(Parcel in) {
+                    String host = null;
+                    int port = 0;
+                    if (in.readByte() == 1) {
+                        host = in.readString();
+                        port = in.readInt();
+                    }
+                    String exclList = in.readString();
+                    //String[] parsedExclList = in.readStringArray();
+                    ProxyProperties proxyProperties =
+                            new ProxyProperties(host, port, exclList, null);
+                    return proxyProperties;
                 }
-                String exclList = in.readString();
-                //String[] parsedExclList = in.readStringArray();
-                ProxyProperties proxyProperties =
-                        new ProxyProperties(host, port, exclList, null);
-                return proxyProperties;
-            }
 
-            public ProxyProperties[] newArray(int size) {
-                return new ProxyProperties[size];
-            }
-        };
+                public ProxyProperties[] newArray(int size) {
+                    return new ProxyProperties[size];
+                }
+            };
 }

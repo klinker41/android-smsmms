@@ -28,6 +28,7 @@ import java.util.Collections;
 /**
  * A simple object for retrieving the results of a DHCP request.
  * Replaces (internally) the IPv4-only DhcpInfo class.
+ *
  * @hide
  */
 public class DhcpInfoInternal {
@@ -67,7 +68,8 @@ public class DhcpInfoInternal {
                 if (inetAddress instanceof Inet4Address) {
                     return NetworkUtils.inetAddressToInt(inetAddress);
                 }
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
         }
         return 0;
     }
@@ -83,7 +85,8 @@ public class DhcpInfoInternal {
         }
         try {
             info.netmask = NetworkUtils.prefixLengthToNetmaskInt(prefixLength);
-        } catch (IllegalArgumentException e) {}
+        } catch (IllegalArgumentException e) {
+        }
         info.dns1 = convertToInt(dns1);
         info.dns2 = convertToInt(dns2);
         info.serverAddress = convertToInt(serverAddress);

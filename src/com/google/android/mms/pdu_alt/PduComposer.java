@@ -45,9 +45,9 @@ public class PduComposer {
     static final String REGEXP_EMAIL_ADDRESS_TYPE = "[a-zA-Z| ]*\\<{0,1}[a-zA-Z| ]+@{1}" +
             "[a-zA-Z| ]+\\.{1}[a-zA-Z| ]+\\>{0,1}";
     static final String REGEXP_IPV6_ADDRESS_TYPE =
-        "[a-fA-F]{4}\\:{1}[a-fA-F0-9]{4}\\:{1}[a-fA-F0-9]{4}\\:{1}" +
-        "[a-fA-F0-9]{4}\\:{1}[a-fA-F0-9]{4}\\:{1}[a-fA-F0-9]{4}\\:{1}" +
-        "[a-fA-F0-9]{4}\\:{1}[a-fA-F0-9]{4}";
+            "[a-fA-F]{4}\\:{1}[a-fA-F0-9]{4}\\:{1}[a-fA-F0-9]{4}\\:{1}" +
+                    "[a-fA-F0-9]{4}\\:{1}[a-fA-F0-9]{4}\\:{1}[a-fA-F0-9]{4}\\:{1}" +
+                    "[a-fA-F0-9]{4}\\:{1}[a-fA-F0-9]{4}";
     static final String REGEXP_IPV4_ADDRESS_TYPE = "[0-9]{1,3}\\.{1}[0-9]{1,3}\\.{1}" +
             "[0-9]{1,3}\\.{1}[0-9]{1,3}";
 
@@ -129,7 +129,7 @@ public class PduComposer {
      * Constructor.
      *
      * @param context the context
-     * @param pdu the pdu_alt to be composed
+     * @param pdu     the pdu_alt to be composed
      */
     public PduComposer(Context context, GenericPdu pdu) {
         mPdu = pdu;
@@ -145,7 +145,7 @@ public class PduComposer {
      * because the constructors of outgoing pdus are taking care of this.
      *
      * @return OutputStream of maked message. Return null if
-     *         the PDU is invalid.
+     * the PDU is invalid.
      */
     public byte[] make() {
         // Get Message-type.
@@ -181,7 +181,7 @@ public class PduComposer {
     }
 
     /**
-     *  Copy buf to mMessage.
+     * Copy buf to mMessage.
      */
     protected void arraycopy(byte[] buf, int pos, int length) {
         mMessage.write(buf, pos, length);
@@ -193,7 +193,7 @@ public class PduComposer {
      */
     protected void append(int value) {
         mMessage.write(value);
-        mPosition ++;
+        mPosition++;
     }
 
     /**
@@ -257,7 +257,7 @@ public class PduComposer {
         long temp = longInt;
 
         // Count the length of the long integer.
-        for(size = 0; (temp != 0) && (size < LONG_INTEGER_LENGTH_MAX); size++) {
+        for (size = 0; (temp != 0) && (size < LONG_INTEGER_LENGTH_MAX); size++) {
             temp = (temp >>> 8);
         }
 
@@ -266,10 +266,10 @@ public class PduComposer {
 
         // Count and set the long integer.
         int i;
-        int shift = (size -1) * 8;
+        int shift = (size - 1) * 8;
 
         for (i = 0; i < size; i++) {
-            append((int)((longInt >>> shift) & 0xff));
+            append((int) ((longInt >>> shift) & 0xff));
             shift = shift - 8;
         }
     }
@@ -287,7 +287,7 @@ public class PduComposer {
          * ; a Quote character must precede it. Otherwise the Quote character
          * ;must be omitted. The Quote is not part of the contents.
          */
-        if (((text[0])&0xff) > TEXT_MAX) { // No need to check for <= 255
+        if (((text[0]) & 0xff) > TEXT_MAX) { // No need to check for <= 255
             append(TEXT_MAX);
         }
 
@@ -321,7 +321,7 @@ public class PduComposer {
          * From OMA-TS-MMS-ENC-V1_3-20050927-C:
          * Encoded-string-value = Text-string | Value-length Char-set Text-string
          */
-        assert(enStr != null);
+        assert (enStr != null);
 
         int charset = enStr.getCharacterSet();
         byte[] textString = enStr.getTextString();
@@ -371,16 +371,16 @@ public class PduComposer {
             max = (max << 7) | 0x7fl;
         }
 
-        while(i > 0) {
+        while (i > 0) {
             long temp = value >>> (i * 7);
             temp = temp & 0x7f;
 
-            append((int)((temp | 0x80) & 0xff));
+            append((int) ((temp | 0x80) & 0xff));
 
             i--;
         }
 
-        append((int)(value & 0x7f));
+        append((int) (value & 0x7f));
     }
 
     /**
@@ -531,7 +531,7 @@ public class PduComposer {
                 if ((from == null)
                         || TextUtils.isEmpty(from.getString())
                         || new String(from.getTextString()).equals(
-                                PduHeaders.FROM_INSERT_ADDRESS_TOKEN_STR)) {
+                        PduHeaders.FROM_INSERT_ADDRESS_TOKEN_STR)) {
                     // Length of from = 1
                     append(1);
                     // Insert-address-token = <Octet 129>
@@ -584,7 +584,7 @@ public class PduComposer {
 
             case PduHeaders.SUBJECT:
                 EncodedStringValue enString =
-                    mPduHeader.getEncodedStringValue(field);
+                        mPduHeader.getEncodedStringValue(field);
                 if (null == enString) {
                     return PDU_COMPOSE_FIELD_NOT_SET;
                 }
@@ -883,8 +883,7 @@ public class PduComposer {
             // content-type parameter: type
             appendOctet(PduPart.P_CT_MR_TYPE);
             appendTextString(part.getContentType());
-        }
-        catch (ArrayIndexOutOfBoundsException e){
+        } catch (ArrayIndexOutOfBoundsException e) {
             e.printStackTrace();
         }
 
@@ -913,7 +912,7 @@ public class PduComposer {
 
             // content-type value
             Integer partContentTypeIdentifier =
-                mContentTypeMap.get(new String(partContentType));
+                    mContentTypeMap.get(new String(partContentType));
             if (partContentTypeIdentifier == null) {
                 appendTextString(partContentType);
             } else {
@@ -970,8 +969,8 @@ public class PduComposer {
             // content-location
             byte[] contentLocation = part.getContentLocation();
             if (null != contentLocation) {
-            	appendOctet(PduPart.P_CONTENT_LOCATION);
-            	appendTextString(contentLocation);
+                appendOctet(PduPart.P_CONTENT_LOCATION);
+                appendTextString(contentLocation);
             }
 
             // content
@@ -1017,7 +1016,7 @@ public class PduComposer {
     }
 
     /**
-     *  Record current message informations.
+     * Record current message informations.
      */
     static private class LengthRecordNode {
         ByteArrayOutputStream currentMessage = null;
@@ -1057,7 +1056,7 @@ public class PduComposer {
         int stackSize = 0;
 
         /**
-         *  Create a new message buffer and push it into the stack.
+         * Create a new message buffer and push it into the stack.
          */
         void newbuf() {
             // You can't create a new buff when toCopy != null
@@ -1082,7 +1081,7 @@ public class PduComposer {
         }
 
         /**
-         *  Pop the message before and record current message in the stack.
+         * Pop the message before and record current message in the stack.
          */
         void pop() {
             ByteArrayOutputStream currentMessage = mMessage;
@@ -1102,7 +1101,7 @@ public class PduComposer {
         }
 
         /**
-         *  Append current message to the message before.
+         * Append current message to the message before.
          */
         void copy() {
             arraycopy(toCopy.currentMessage.toByteArray(), 0,
@@ -1112,7 +1111,7 @@ public class PduComposer {
         }
 
         /**
-         *  Mark current message position
+         * Mark current message position
          */
         PositionMarker mark() {
             PositionMarker m = new PositionMarker();
@@ -1128,12 +1127,12 @@ public class PduComposer {
      * Check address type.
      *
      * @param address address string without the postfix stinng type,
-     *        such as "/TYPE=PLMN", "/TYPE=IPv6" and "/TYPE=IPv4"
+     *                such as "/TYPE=PLMN", "/TYPE=IPv6" and "/TYPE=IPv4"
      * @return PDU_PHONE_NUMBER_ADDRESS_TYPE if it is phone number,
-     *         PDU_EMAIL_ADDRESS_TYPE if it is email address,
-     *         PDU_IPV4_ADDRESS_TYPE if it is ipv4 address,
-     *         PDU_IPV6_ADDRESS_TYPE if it is ipv6 address,
-     *         PDU_UNKNOWN_ADDRESS_TYPE if it is unknown.
+     * PDU_EMAIL_ADDRESS_TYPE if it is email address,
+     * PDU_IPV4_ADDRESS_TYPE if it is ipv4 address,
+     * PDU_IPV6_ADDRESS_TYPE if it is ipv6 address,
+     * PDU_UNKNOWN_ADDRESS_TYPE if it is unknown.
      */
     protected static int checkAddressType(String address) {
         /**
@@ -1161,7 +1160,7 @@ public class PduComposer {
         if (address.matches(REGEXP_IPV4_ADDRESS_TYPE)) {
             // Ipv4 address.
             return PDU_IPV4_ADDRESS_TYPE;
-        }else if (address.matches(REGEXP_PHONE_NUMBER_ADDRESS_TYPE)) {
+        } else if (address.matches(REGEXP_PHONE_NUMBER_ADDRESS_TYPE)) {
             // Phone number.
             return PDU_PHONE_NUMBER_ADDRESS_TYPE;
         } else if (address.matches(REGEXP_EMAIL_ADDRESS_TYPE)) {

@@ -22,7 +22,7 @@ import com.google.android.mms.InvalidHeaderValueException;
 /**
  * Multimedia message PDU.
  */
-public class MultimediaMessagePdu extends GenericPdu{
+public class MultimediaMessagePdu extends GenericPdu {
     /**
      * The body.
      */
@@ -39,7 +39,7 @@ public class MultimediaMessagePdu extends GenericPdu{
      * Constructor.
      *
      * @param header the header of this PDU
-     * @param body the body of this PDU
+     * @param body   the body of this PDU
      */
     public MultimediaMessagePdu(PduHeaders header, PduBody body) {
         super(header);

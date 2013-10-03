@@ -18,7 +18,6 @@
 package com.google.android.mms.pdu_alt;
 
 import android.util.Log;
-
 import com.google.android.mms.InvalidHeaderValueException;
 
 public class SendReq extends MultimediaMessagePdu {
@@ -50,12 +49,12 @@ public class SendReq extends MultimediaMessagePdu {
     /**
      * Constructor, used when composing a M-Send.req pdu_alt.
      *
-     * @param contentType the content type value
-     * @param from the from value
-     * @param mmsVersion current viersion of mms
+     * @param contentType   the content type value
+     * @param from          the from value
+     * @param mmsVersion    current viersion of mms
      * @param transactionId the transaction-id value
      * @throws InvalidHeaderValueException if parameters are invalid.
-     *         NullPointerException if contentType, form or transactionId is null.
+     *                                     NullPointerException if contentType, form or transactionId is null.
      */
     public SendReq(byte[] contentType,
                    EncodedStringValue from,
@@ -82,7 +81,7 @@ public class SendReq extends MultimediaMessagePdu {
      * Constructor with given headers and body
      *
      * @param headers Headers for this PDU.
-     * @param body Body of this PDu.
+     * @param body    Body of this PDu.
      */
     SendReq(PduHeaders headers, PduBody body) {
         super(headers, body);
@@ -186,9 +185,9 @@ public class SendReq extends MultimediaMessagePdu {
 
     /**
      * Get X-Mms-Expiry value.
-     *
+     * <p/>
      * Expiry-value = Value-length
-     *      (Absolute-token Date-value | Relative-token Delta-seconds-value)
+     * (Absolute-token Date-value | Relative-token Delta-seconds-value)
      *
      * @return the value
      */
@@ -207,7 +206,7 @@ public class SendReq extends MultimediaMessagePdu {
 
     /**
      * Get X-Mms-MessageSize value.
-     *
+     * <p/>
      * Expiry-value = size of message
      *
      * @return the value

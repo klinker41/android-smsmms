@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 /**
  * Common methods to be used for data connectivity/sending messages ect
+ *
  * @author Jake Klinker
  */
 public class Utils {
@@ -32,10 +33,11 @@ public class Utils {
 
     /**
      * Gets the current users phone number
+     *
      * @param context is the context of the activity or service
      * @return a string of the phone number on the device
      */
-    public static String getMyPhoneNumber(Context context){
+    public static String getMyPhoneNumber(Context context) {
         TelephonyManager mTelephonyMgr;
         mTelephonyMgr = (TelephonyManager)
                 context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -44,6 +46,7 @@ public class Utils {
 
     /**
      * Enable mobile connection for a specific address
+     *
      * @param address the address to enable
      * @return true for success, else false
      */
@@ -59,6 +62,7 @@ public class Utils {
 
     /**
      * Function for getting the weird auth token used to send or receive google voice messages
+     *
      * @param account is the string of the account name to get the auth token for
      * @param context is the context of the activity or service
      * @return a string of the auth token to be saved for later
@@ -73,6 +77,7 @@ public class Utils {
 
     /**
      * This method extracts from address the hostname
+     *
      * @param url eg. http://some.where.com:8080/sync
      * @return some.where.com
      */
@@ -81,7 +86,7 @@ public class Utils {
 
         //find protocol
         int protocolEndIndex = url.indexOf("://");
-        if(protocolEndIndex>0) {
+        if (protocolEndIndex > 0) {
             urlToProcess = url.substring(protocolEndIndex + 3);
         } else {
             urlToProcess = url;
@@ -133,16 +138,17 @@ public class Utils {
         addr = ((addrBytes[3] & 0xff) << 24)
                 | ((addrBytes[2] & 0xff) << 16)
                 | ((addrBytes[1] & 0xff) << 8)
-                |  (addrBytes[0] & 0xff);
+                | (addrBytes[0] & 0xff);
 
         return addr;
     }
 
     /**
      * Ensures that the host MMSC is reachable
+     *
      * @param context is the context of the activity or service
-     * @param url is the MMSC to check
-     * @param proxy is the proxy of the APN to check
+     * @param url     is the MMSC to check
+     * @param proxy   is the proxy of the APN to check
      * @throws java.io.IOException when route cannot be established
      */
     public static void ensureRouteToHost(Context context, String url, String proxy) throws IOException {
@@ -180,6 +186,7 @@ public class Utils {
 
     /**
      * Checks whether or not mobile data is enabled and returns the result
+     *
      * @param context is the context of the activity or service
      * @return true if data is enabled or false if disabled
      */
@@ -190,7 +197,7 @@ public class Utils {
             Class<?> c = Class.forName(cm.getClass().getName());
             Method m = c.getDeclaredMethod("getMobileDataEnabled");
             m.setAccessible(true);
-            return (Boolean)m.invoke(cm);
+            return (Boolean) m.invoke(cm);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -199,6 +206,7 @@ public class Utils {
 
     /**
      * Toggles mobile data
+     *
      * @param context is the context of the activity or service
      * @param enabled is whether to enable or disable data
      */
@@ -222,8 +230,9 @@ public class Utils {
 
     /**
      * Gets the number of pages in the SMS based on settings and the length of string
+     *
      * @param settings is the settings object to check against
-     * @param text is the text from the message object to be sent
+     * @param text     is the text from the message object to be sent
      * @return the number of pages required to hold message
      */
     public static int getNumPages(Settings settings, String text) {
@@ -246,7 +255,7 @@ public class Utils {
         int pages = 1;
 
         while (length > size) {
-            length-=size;
+            length -= size;
             pages++;
         }
 

@@ -16,12 +16,11 @@
 
 package android.net;
 
-import static com.android.internal.util.Preconditions.checkNotNull;
-
 import android.os.Parcel;
 import android.os.Parcelable;
-
 import com.android.internal.util.Objects;
+
+import static com.android.internal.util.Preconditions.checkNotNull;
 
 /**
  * Policy for networks matching a {@link NetworkTemplate}, including usage cycle
@@ -49,14 +48,14 @@ public class NetworkPolicy implements Parcelable, Comparable<NetworkPolicy> {
 
     @Deprecated
     public NetworkPolicy(NetworkTemplate template, int cycleDay, String cycleTimezone,
-            long warningBytes, long limitBytes, boolean metered) {
+                         long warningBytes, long limitBytes, boolean metered) {
         this(template, cycleDay, cycleTimezone, warningBytes, limitBytes, SNOOZE_NEVER,
                 SNOOZE_NEVER, metered, false);
     }
 
     public NetworkPolicy(NetworkTemplate template, int cycleDay, String cycleTimezone,
-            long warningBytes, long limitBytes, long lastWarningSnooze, long lastLimitSnooze,
-            boolean metered, boolean inferred) {
+                         long warningBytes, long limitBytes, long lastWarningSnooze, long lastLimitSnooze,
+                         boolean metered, boolean inferred) {
         this.template = checkNotNull(template, "missing NetworkTemplate");
         this.cycleDay = cycleDay;
         this.cycleTimezone = checkNotNull(cycleTimezone, "missing cycleTimezone");

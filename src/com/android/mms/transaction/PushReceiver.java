@@ -17,15 +17,7 @@
 
 package com.android.mms.transaction;
 
-import static android.provider.Telephony.Sms.Intents.WAP_PUSH_RECEIVED_ACTION;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
+import android.content.*;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SqliteWrapper;
@@ -35,12 +27,13 @@ import android.os.PowerManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
 import android.util.Log;
-
 import com.android.mms.MmsConfig;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.*;
-import com.google.android.mms.pdu_alt.PduPersister;
+
+import static android.provider.Telephony.Sms.Intents.WAP_PUSH_RECEIVED_ACTION;
+import static com.google.android.mms.pdu_alt.PduHeaders.*;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
@@ -50,8 +43,9 @@ public class PushReceiver extends BroadcastReceiver {
     private static final String TAG = "PushReceiver";
     private static final boolean LOCAL_LOGV = false;
 
-    private class ReceivePushTask extends AsyncTask<Intent,Void,Void> {
+    private class ReceivePushTask extends AsyncTask<Intent, Void, Void> {
         private Context mContext;
+
         public ReceivePushTask(Context context) {
             mContext = context;
         }
@@ -98,11 +92,11 @@ public class PushReceiver extends BroadcastReceiver {
                         NotificationInd nInd = (NotificationInd) pdu;
 
                         if (MmsConfig.getTransIdEnabled()) {
-                            byte [] contentLocation = nInd.getContentLocation();
+                            byte[] contentLocation = nInd.getContentLocation();
                             if ('=' == contentLocation[contentLocation.length - 1]) {
-                                byte [] transactionId = nInd.getTransactionId();
-                                byte [] contentLocationWithId = new byte [contentLocation.length
-                                                                          + transactionId.length];
+                                byte[] transactionId = nInd.getTransactionId();
+                                byte[] contentLocationWithId = new byte[contentLocation.length
+                                        + transactionId.length];
                                 System.arraycopy(contentLocation, 0, contentLocationWithId,
                                         0, contentLocation.length);
                                 System.arraycopy(transactionId, 0, contentLocationWithId,
@@ -159,9 +153,9 @@ public class PushReceiver extends BroadcastReceiver {
 
             // Hold a wake lock for 5 seconds, enough to give any
             // services we start time to take their own wake locks.
-            PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
             PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                                            "MMS PushReceiver");
+                    "MMS PushReceiver");
             wl.acquire(5000);
             new ReceivePushTask(context).execute(intent);
         }
@@ -188,8 +182,8 @@ public class PushReceiver extends BroadcastReceiver {
         // sb.append(')');
 
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                            Mms.CONTENT_URI, new String[] { Mms.THREAD_ID },
-                            sb.toString(), null, null);
+                Mms.CONTENT_URI, new String[]{Mms.THREAD_ID},
+                sb.toString(), null, null);
         if (cursor != null) {
             try {
                 if ((cursor.getCount() == 1) && cursor.moveToFirst()) {
@@ -209,10 +203,10 @@ public class PushReceiver extends BroadcastReceiver {
         if (rawLocation != null) {
             String location = new String(rawLocation);
             String selection = Mms.CONTENT_LOCATION + " = ?";
-            String[] selectionArgs = new String[] { location };
+            String[] selectionArgs = new String[]{location};
             Cursor cursor = SqliteWrapper.query(
                     context, context.getContentResolver(),
-                    Mms.CONTENT_URI, new String[] { Mms._ID },
+                    Mms.CONTENT_URI, new String[]{Mms._ID},
                     selection, selectionArgs, null);
             if (cursor != null) {
                 try {

@@ -56,20 +56,20 @@ public class LegacyVpnInfo implements Parcelable {
 
     public static final Parcelable.Creator<LegacyVpnInfo> CREATOR =
             new Parcelable.Creator<LegacyVpnInfo>() {
-        @Override
-        public LegacyVpnInfo createFromParcel(Parcel in) {
-            LegacyVpnInfo info = new LegacyVpnInfo();
-            info.key = in.readString();
-            info.state = in.readInt();
-            info.intent = in.readParcelable(null);
-            return info;
-        }
+                @Override
+                public LegacyVpnInfo createFromParcel(Parcel in) {
+                    LegacyVpnInfo info = new LegacyVpnInfo();
+                    info.key = in.readString();
+                    info.state = in.readInt();
+                    info.intent = in.readParcelable(null);
+                    return info;
+                }
 
-        @Override
-        public LegacyVpnInfo[] newArray(int size) {
-            return new LegacyVpnInfo[size];
-        }
-    };
+                @Override
+                public LegacyVpnInfo[] newArray(int size) {
+                    return new LegacyVpnInfo[size];
+                }
+            };
 
     /**
      * Return best matching {@link LegacyVpnInfo} state based on given

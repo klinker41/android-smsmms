@@ -21,7 +21,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Parcel;
 import android.os.Parcelable;
-
 import com.android.internal.util.Preconditions;
 
 import java.util.List;
@@ -91,26 +90,26 @@ public class VpnConfig implements Parcelable {
 
     public static final Parcelable.Creator<VpnConfig> CREATOR =
             new Parcelable.Creator<VpnConfig>() {
-        @Override
-        public VpnConfig createFromParcel(Parcel in) {
-            VpnConfig config = new VpnConfig();
-            config.user = in.readString();
-            config.interfaze = in.readString();
-            config.session = in.readString();
-            config.mtu = in.readInt();
-            config.addresses = in.readString();
-            config.routes = in.readString();
-            config.dnsServers = in.createStringArrayList();
-            config.searchDomains = in.createStringArrayList();
-            config.configureIntent = in.readParcelable(null);
-            config.startTime = in.readLong();
-            config.legacy = in.readInt() != 0;
-            return config;
-        }
+                @Override
+                public VpnConfig createFromParcel(Parcel in) {
+                    VpnConfig config = new VpnConfig();
+                    config.user = in.readString();
+                    config.interfaze = in.readString();
+                    config.session = in.readString();
+                    config.mtu = in.readInt();
+                    config.addresses = in.readString();
+                    config.routes = in.readString();
+                    config.dnsServers = in.createStringArrayList();
+                    config.searchDomains = in.createStringArrayList();
+                    config.configureIntent = in.readParcelable(null);
+                    config.startTime = in.readLong();
+                    config.legacy = in.readInt() != 0;
+                    return config;
+                }
 
-        @Override
-        public VpnConfig[] newArray(int size) {
-            return new VpnConfig[size];
-        }
-    };
+                @Override
+                public VpnConfig[] newArray(int size) {
+                    return new VpnConfig[size];
+                }
+            };
 }

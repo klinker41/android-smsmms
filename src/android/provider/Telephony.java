@@ -30,7 +30,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
 
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -43,6 +42,7 @@ import java.util.regex.Pattern;
  */
 public final class Telephony {
     private static final String TAG = "Telephony";
+
     // Constructor
     public Telephony() {
     }
@@ -57,10 +57,10 @@ public final class Telephony {
          */
         public static final String TYPE = "type";
 
-        public static final int MESSAGE_TYPE_ALL    = 0;
-        public static final int MESSAGE_TYPE_INBOX  = 1;
-        public static final int MESSAGE_TYPE_SENT   = 2;
-        public static final int MESSAGE_TYPE_DRAFT  = 3;
+        public static final int MESSAGE_TYPE_ALL = 0;
+        public static final int MESSAGE_TYPE_INBOX = 1;
+        public static final int MESSAGE_TYPE_SENT = 2;
+        public static final int MESSAGE_TYPE_DRAFT = 3;
         public static final int MESSAGE_TYPE_OUTBOX = 4;
         public static final int MESSAGE_TYPE_FAILED = 5; // for failed outgoing messages
         public static final int MESSAGE_TYPE_QUEUED = 6; // for messages to send later
@@ -183,16 +183,16 @@ public final class Telephony {
         }
 
         public static final Cursor query(ContentResolver cr, String[] projection,
-                String where, String orderBy) {
+                                         String where, String orderBy) {
             return cr.query(CONTENT_URI, projection, where,
-                                         null, orderBy == null ? DEFAULT_SORT_ORDER : orderBy);
+                    null, orderBy == null ? DEFAULT_SORT_ORDER : orderBy);
         }
 
         /**
          * The content:// style URL for this table
          */
         public static final Uri CONTENT_URI =
-            Uri.parse("content://sms");
+                Uri.parse("content://sms");
 
         /**
          * The default sort order for this table
@@ -202,19 +202,19 @@ public final class Telephony {
         /**
          * Add an SMS to the given URI.
          *
-         * @param resolver the content resolver to use
-         * @param uri the URI to add the message to
-         * @param address the address of the sender
-         * @param body the body of the message
-         * @param subject the psuedo-subject of the message
-         * @param date the timestamp for the message
-         * @param read true if the message has been read, false if not
+         * @param resolver       the content resolver to use
+         * @param uri            the URI to add the message to
+         * @param address        the address of the sender
+         * @param body           the body of the message
+         * @param subject        the psuedo-subject of the message
+         * @param date           the timestamp for the message
+         * @param read           true if the message has been read, false if not
          * @param deliveryReport true if a delivery report was requested, false if not
          * @return the URI for the new message
          */
         public static Uri addMessageToUri(ContentResolver resolver,
-                Uri uri, String address, String body, String subject,
-                Long date, boolean read, boolean deliveryReport) {
+                                          Uri uri, String address, String body, String subject,
+                                          Long date, boolean read, boolean deliveryReport) {
             return addMessageToUri(resolver, uri, address, body, subject,
                     date, read, deliveryReport, -1L);
         }
@@ -222,20 +222,20 @@ public final class Telephony {
         /**
          * Add an SMS to the given URI with thread_id specified.
          *
-         * @param resolver the content resolver to use
-         * @param uri the URI to add the message to
-         * @param address the address of the sender
-         * @param body the body of the message
-         * @param subject the psuedo-subject of the message
-         * @param date the timestamp for the message
-         * @param read true if the message has been read, false if not
+         * @param resolver       the content resolver to use
+         * @param uri            the URI to add the message to
+         * @param address        the address of the sender
+         * @param body           the body of the message
+         * @param subject        the psuedo-subject of the message
+         * @param date           the timestamp for the message
+         * @param read           true if the message has been read, false if not
          * @param deliveryReport true if a delivery report was requested, false if not
-         * @param threadId the thread_id of the message
+         * @param threadId       the thread_id of the message
          * @return the URI for the new message
          */
         public static Uri addMessageToUri(ContentResolver resolver,
-                Uri uri, String address, String body, String subject,
-                Long date, boolean read, boolean deliveryReport, long threadId) {
+                                          Uri uri, String address, String body, String subject,
+                                          Long date, boolean read, boolean deliveryReport, long threadId) {
             ContentValues values = new ContentValues(7);
 
             values.put(ADDRESS, address);
@@ -258,32 +258,32 @@ public final class Telephony {
          * Move a message to the given folder.
          *
          * @param context the context to use
-         * @param uri the message to move
-         * @param folder the folder to move to
+         * @param uri     the message to move
+         * @param folder  the folder to move to
          * @return true if the operation succeeded
          */
         public static boolean moveMessageToFolder(Context context,
-                Uri uri, int folder, int error) {
+                                                  Uri uri, int folder, int error) {
             if (uri == null) {
                 return false;
             }
 
             boolean markAsUnread = false;
             boolean markAsRead = false;
-            switch(folder) {
-            case MESSAGE_TYPE_INBOX:
-            case MESSAGE_TYPE_DRAFT:
-                break;
-            case MESSAGE_TYPE_OUTBOX:
-            case MESSAGE_TYPE_SENT:
-                markAsRead = true;
-                break;
-            case MESSAGE_TYPE_FAILED:
-            case MESSAGE_TYPE_QUEUED:
-                markAsUnread = true;
-                break;
-            default:
-                return false;
+            switch (folder) {
+                case MESSAGE_TYPE_INBOX:
+                case MESSAGE_TYPE_DRAFT:
+                    break;
+                case MESSAGE_TYPE_OUTBOX:
+                case MESSAGE_TYPE_SENT:
+                    markAsRead = true;
+                    break;
+                case MESSAGE_TYPE_FAILED:
+                case MESSAGE_TYPE_QUEUED:
+                    markAsUnread = true;
+                    break;
+                default:
+                    return false;
             }
 
             ContentValues values = new ContentValues(3);
@@ -297,7 +297,7 @@ public final class Telephony {
             values.put(ERROR_CODE, error);
 
             return 1 == SqliteWrapper.update(context, context.getContentResolver(),
-                            uri, values, null, null);
+                    uri, values, null, null);
         }
 
         /**
@@ -305,7 +305,7 @@ public final class Telephony {
          * outgoing message.
          */
         public static boolean isOutgoingFolder(int messageType) {
-            return  (messageType == MESSAGE_TYPE_FAILED)
+            return (messageType == MESSAGE_TYPE_FAILED)
                     || (messageType == MESSAGE_TYPE_OUTBOX)
                     || (messageType == MESSAGE_TYPE_SENT)
                     || (messageType == MESSAGE_TYPE_QUEUED);
@@ -319,7 +319,7 @@ public final class Telephony {
              * The content:// style URL for this table
              */
             public static final Uri CONTENT_URI =
-                Uri.parse("content://sms/inbox");
+                    Uri.parse("content://sms/inbox");
 
             /**
              * The default sort order for this table
@@ -330,16 +330,16 @@ public final class Telephony {
              * Add an SMS to the Draft box.
              *
              * @param resolver the content resolver to use
-             * @param address the address of the sender
-             * @param body the body of the message
-             * @param subject the psuedo-subject of the message
-             * @param date the timestamp for the message
-             * @param read true if the message has been read, false if not
+             * @param address  the address of the sender
+             * @param body     the body of the message
+             * @param subject  the psuedo-subject of the message
+             * @param date     the timestamp for the message
+             * @param read     true if the message has been read, false if not
              * @return the URI for the new message
              */
             public static Uri addMessage(ContentResolver resolver,
-                    String address, String body, String subject, Long date,
-                    boolean read) {
+                                         String address, String body, String subject, Long date,
+                                         boolean read) {
                 return addMessageToUri(resolver, CONTENT_URI, address, body,
                         subject, date, read, false);
             }
@@ -364,14 +364,14 @@ public final class Telephony {
              * Add an SMS to the Draft box.
              *
              * @param resolver the content resolver to use
-             * @param address the address of the sender
-             * @param body the body of the message
-             * @param subject the psuedo-subject of the message
-             * @param date the timestamp for the message
+             * @param address  the address of the sender
+             * @param body     the body of the message
+             * @param subject  the psuedo-subject of the message
+             * @param date     the timestamp for the message
              * @return the URI for the new message
              */
             public static Uri addMessage(ContentResolver resolver,
-                    String address, String body, String subject, Long date) {
+                                         String address, String body, String subject, Long date) {
                 return addMessageToUri(resolver, CONTENT_URI, address, body,
                         subject, date, true, false);
             }
@@ -396,14 +396,14 @@ public final class Telephony {
              * Add an SMS to the Draft box.
              *
              * @param resolver the content resolver to use
-             * @param address the address of the sender
-             * @param body the body of the message
-             * @param subject the psuedo-subject of the message
-             * @param date the timestamp for the message
+             * @param address  the address of the sender
+             * @param body     the body of the message
+             * @param subject  the psuedo-subject of the message
+             * @param date     the timestamp for the message
              * @return the URI for the new message
              */
             public static Uri addMessage(ContentResolver resolver,
-                    String address, String body, String subject, Long date) {
+                                         String address, String body, String subject, Long date) {
                 return addMessageToUri(resolver, CONTENT_URI, address, body,
                         subject, date, true, false);
             }
@@ -412,12 +412,12 @@ public final class Telephony {
              * Save over an existing draft message.
              *
              * @param resolver the content resolver to use
-             * @param uri of existing message
-             * @param body the new body for the draft message
+             * @param uri      of existing message
+             * @param body     the new body for the draft message
              * @return true is successful, false otherwise
              */
             public static boolean saveMessage(ContentResolver resolver,
-                    Uri uri, String body) {
+                                              Uri uri, String body) {
                 ContentValues values = new ContentValues(2);
                 values.put(BODY, body);
                 values.put(DATE, System.currentTimeMillis());
@@ -433,7 +433,7 @@ public final class Telephony {
              * The content:// style URL for this table
              */
             public static final Uri CONTENT_URI =
-                Uri.parse("content://sms/outbox");
+                    Uri.parse("content://sms/outbox");
 
             /**
              * The default sort order for this table
@@ -443,17 +443,17 @@ public final class Telephony {
             /**
              * Add an SMS to the Out box.
              *
-             * @param resolver the content resolver to use
-             * @param address the address of the sender
-             * @param body the body of the message
-             * @param subject the psuedo-subject of the message
-             * @param date the timestamp for the message
+             * @param resolver       the content resolver to use
+             * @param address        the address of the sender
+             * @param body           the body of the message
+             * @param subject        the psuedo-subject of the message
+             * @param date           the timestamp for the message
              * @param deliveryReport whether a delivery report was requested for the message
              * @return the URI for the new message
              */
             public static Uri addMessage(ContentResolver resolver,
-                    String address, String body, String subject, Long date,
-                    boolean deliveryReport, long threadId) {
+                                         String address, String body, String subject, Long date,
+                                         boolean deliveryReport, long threadId) {
                 return addMessageToUri(resolver, CONTENT_URI, address, body,
                         subject, date, true, deliveryReport, threadId);
             }
@@ -468,7 +468,7 @@ public final class Telephony {
              * The content:// style URL for this table
              */
             public static final Uri CONTENT_URI =
-                Uri.parse("content://sms/conversations");
+                    Uri.parse("content://sms/conversations");
 
             /**
              * The default sort order for this table
@@ -521,15 +521,15 @@ public final class Telephony {
              * Broadcast Action: A new text based SMS message has been received
              * by the device. The intent will have the following extra
              * values:</p>
-             *
+             * <p/>
              * <ul>
-             *   <li><em>pdus</em> - An Object[] od byte[]s containing the PDUs
-             *   that make up the message.</li>
+             * <li><em>pdus</em> - An Object[] od byte[]s containing the PDUs
+             * that make up the message.</li>
              * </ul>
-             *
+             * <p/>
              * <p>The extra values can be extracted using
              * {@link #getMessagesFromIntent(Intent)}.</p>
-             *
+             * <p/>
              * <p>If a BroadcastReceiver encounters an error while processing
              * this intent it should set the result code appropriately.</p>
              */
@@ -541,15 +541,15 @@ public final class Telephony {
              * Broadcast Action: A new data based SMS message has been received
              * by the device. The intent will have the following extra
              * values:</p>
-             *
+             * <p/>
              * <ul>
-             *   <li><em>pdus</em> - An Object[] of byte[]s containing the PDUs
-             *   that make up the message.</li>
+             * <li><em>pdus</em> - An Object[] of byte[]s containing the PDUs
+             * that make up the message.</li>
              * </ul>
-             *
+             * <p/>
              * <p>The extra values can be extracted using
              * {@link #getMessagesFromIntent(Intent)}.</p>
-             *
+             * <p/>
              * <p>If a BroadcastReceiver encounters an error while processing
              * this intent it should set the result code appropriately.</p>
              */
@@ -561,23 +561,23 @@ public final class Telephony {
              * Broadcast Action: A new WAP PUSH message has been received by the
              * device. The intent will have the following extra
              * values:</p>
-             *
+             * <p/>
              * <ul>
-             *   <li><em>transactionId (Integer)</em> - The WAP transaction ID</li>
-             *   <li><em>pduType (Integer)</em> - The WAP PDU type</li>
-             *   <li><em>header (byte[])</em> - The header of the message</li>
-             *   <li><em>data (byte[])</em> - The data payload of the message</li>
-             *   <li><em>contentTypeParameters (HashMap&lt;String,String&gt;)</em>
-             *   - Any parameters associated with the content type
-             *   (decoded from the WSP Content-Type header)</li>
+             * <li><em>transactionId (Integer)</em> - The WAP transaction ID</li>
+             * <li><em>pduType (Integer)</em> - The WAP PDU type</li>
+             * <li><em>header (byte[])</em> - The header of the message</li>
+             * <li><em>data (byte[])</em> - The data payload of the message</li>
+             * <li><em>contentTypeParameters (HashMap&lt;String,String&gt;)</em>
+             * - Any parameters associated with the content type
+             * (decoded from the WSP Content-Type header)</li>
              * </ul>
-             *
+             * <p/>
              * <p>If a BroadcastReceiver encounters an error while processing
              * this intent it should set the result code appropriately.</p>
-             *
+             * <p/>
              * <p>The contentTypeParameters extra value is map of content parameters keyed by
              * their names.</p>
-             *
+             * <p/>
              * <p>If any unassigned well-known parameters are encountered, the key of the map will
              * be 'unassigned/0x...', where '...' is the hex value of the unassigned parameter.  If
              * a parameter has No-Value the value in the map will be null.</p>
@@ -590,15 +590,15 @@ public final class Telephony {
              * Broadcast Action: A new Cell Broadcast message has been received
              * by the device. The intent will have the following extra
              * values:</p>
-             *
+             * <p/>
              * <ul>
-             *   <li><em>message</em> - An SmsCbMessage object containing the broadcast message
-             *   data. This is not an emergency alert, so ETWS and CMAS data will be null.</li>
+             * <li><em>message</em> - An SmsCbMessage object containing the broadcast message
+             * data. This is not an emergency alert, so ETWS and CMAS data will be null.</li>
              * </ul>
-             *
+             * <p/>
              * <p>The extra values can be extracted using
              * {@link #getMessagesFromIntent(Intent)}.</p>
-             *
+             * <p/>
              * <p>If a BroadcastReceiver encounters an error while processing
              * this intent it should set the result code appropriately.</p>
              */
@@ -610,15 +610,15 @@ public final class Telephony {
              * Broadcast Action: A new Emergency Broadcast message has been received
              * by the device. The intent will have the following extra
              * values:</p>
-             *
+             * <p/>
              * <ul>
-             *   <li><em>message</em> - An SmsCbMessage object containing the broadcast message
-             *   data, including ETWS or CMAS warning notification info if present.</li>
+             * <li><em>message</em> - An SmsCbMessage object containing the broadcast message
+             * data, including ETWS or CMAS warning notification info if present.</li>
              * </ul>
-             *
+             * <p/>
              * <p>The extra values can be extracted using
              * {@link #getMessagesFromIntent(Intent)}.</p>
-             *
+             * <p/>
              * <p>If a BroadcastReceiver encounters an error while processing
              * this intent it should set the result code appropriately.</p>
              */
@@ -630,15 +630,15 @@ public final class Telephony {
              * Broadcast Action: A new CDMA SMS has been received containing Service Category
              * Program Data (updates the list of enabled broadcast channels). The intent will
              * have the following extra values:</p>
-             *
+             * <p/>
              * <ul>
-             *   <li><em>operations</em> - An array of CdmaSmsCbProgramData objects containing
-             *   the service category operations (add/delete/clear) to perform.</li>
+             * <li><em>operations</em> - An array of CdmaSmsCbProgramData objects containing
+             * the service category operations (add/delete/clear) to perform.</li>
              * </ul>
-             *
+             * <p/>
              * <p>The extra values can be extracted using
              * {@link #getMessagesFromIntent(Intent)}.</p>
-             *
+             * <p/>
              * <p>If a BroadcastReceiver encounters an error while processing
              * this intent it should set the result code appropriately.</p>
              */
@@ -660,17 +660,16 @@ public final class Telephony {
              * telephony framework.  This intent is sent in lieu of any
              * of the RECEIVED_ACTION intents.  The intent will have the
              * following extra value:</p>
-             *
+             * <p/>
              * <ul>
-             *   <li><em>result</em> - An int result code, eg,
-             *   <code>{@link #RESULT_SMS_OUT_OF_MEMORY}</code>,
-             *   indicating the error returned to the network.</li>
+             * <li><em>result</em> - An int result code, eg,
+             * <code>{@link #RESULT_SMS_OUT_OF_MEMORY}</code>,
+             * indicating the error returned to the network.</li>
              * </ul>
-
              */
             @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
             public static final String SMS_REJECTED_ACTION =
-                "android.provider.Telephony.SMS_REJECTED";
+                    "android.provider.Telephony.SMS_REJECTED";
 
             /**
              * Read the PDUs out of an {@link #SMS_RECEIVED_ACTION} or a
@@ -705,9 +704,9 @@ public final class Telephony {
      */
     public interface BaseMmsColumns extends BaseColumns {
 
-        public static final int MESSAGE_BOX_ALL    = 0;
-        public static final int MESSAGE_BOX_INBOX  = 1;
-        public static final int MESSAGE_BOX_SENT   = 2;
+        public static final int MESSAGE_BOX_ALL = 0;
+        public static final int MESSAGE_BOX_INBOX = 1;
+        public static final int MESSAGE_BOX_SENT = 2;
         public static final int MESSAGE_BOX_DRAFTS = 3;
         public static final int MESSAGE_BOX_OUTBOX = 4;
 
@@ -1183,7 +1182,7 @@ public final class Telephony {
     public interface ThreadsColumns extends BaseColumns {
         /**
          * The date at which the thread was created.
-         *
+         * <p/>
          * <P>Type: INTEGER (long)</P>
          */
         public static final String DATE = "date";
@@ -1238,7 +1237,7 @@ public final class Telephony {
      * Helper functions for the "threads" table used by MMS and SMS.
      */
     public static final class Threads implements ThreadsColumns {
-        private static final String[] ID_PROJECTION = { BaseColumns._ID };
+        private static final String[] ID_PROJECTION = {BaseColumns._ID};
         private static final Uri THREAD_ID_CONTENT_URI = Uri.parse(
                 "content://mms-sms/threadID");
         public static final Uri CONTENT_URI = Uri.withAppendedPath(
@@ -1246,7 +1245,7 @@ public final class Telephony {
         public static final Uri OBSOLETE_THREADS_URI = Uri.withAppendedPath(
                 CONTENT_URI, "obsolete");
 
-        public static final int COMMON_THREAD    = 0;
+        public static final int COMMON_THREAD = 0;
         public static final int BROADCAST_THREAD = 1;
 
         // No one should construct an instance of this class.
@@ -1270,7 +1269,7 @@ public final class Telephony {
          * return its thread ID.  If the message starts a new thread,
          * allocate a new thread ID.  Otherwise, use the appropriate
          * existing thread ID.
-         *
+         * <p/>
          * Find the thread ID of the same set of recipients (in
          * any order, without any additions). If one
          * is found, return it.  Otherwise, return a unique thread ID.
@@ -1319,10 +1318,10 @@ public final class Telephony {
         public static final Uri CONTENT_URI = Uri.parse("content://mms");
 
         public static final Uri REPORT_REQUEST_URI = Uri.withAppendedPath(
-                                            CONTENT_URI, "report-request");
+                CONTENT_URI, "report-request");
 
         public static final Uri REPORT_STATUS_URI = Uri.withAppendedPath(
-                                            CONTENT_URI, "report-status");
+                CONTENT_URI, "report-status");
 
         /**
          * The default sort order for this table
@@ -1339,8 +1338,8 @@ public final class Telephony {
 
         /**
          * quoted-string   =       [CFWS]
-         *                         DQUOTE *([FWS] qcontent) [FWS] DQUOTE
-         *                         [CFWS]
+         * DQUOTE *([FWS] qcontent) [FWS] DQUOTE
+         * [CFWS]
          */
         public static final Pattern QUOTED_STRING_PATTERN =
                 Pattern.compile("\\s*\"([^\"]*)\"\\s*");
@@ -1607,26 +1606,26 @@ public final class Telephony {
              * The extra field to store the type of the contents,
              * which should be an array of String.
              */
-            public static final String EXTRA_TYPES    = "types";
+            public static final String EXTRA_TYPES = "types";
             /**
              * The extra field to store the 'Cc' addresses.
              */
-            public static final String EXTRA_CC       = "cc";
+            public static final String EXTRA_CC = "cc";
             /**
              * The extra field to store the 'Bcc' addresses;
              */
-            public static final String EXTRA_BCC      = "bcc";
+            public static final String EXTRA_BCC = "bcc";
             /**
              * The extra field to store the 'Subject'.
              */
-            public static final String EXTRA_SUBJECT  = "subject";
+            public static final String EXTRA_SUBJECT = "subject";
             /**
              * Indicates that the contents of specified URIs were changed.
              * The application which is showing or caching these contents
              * should be updated.
              */
             public static final String
-            CONTENT_CHANGED_ACTION = "android.intent.action.CONTENT_CHANGED";
+                    CONTENT_CHANGED_ACTION = "android.intent.action.CONTENT_CHANGED";
             /**
              * An extra field which stores the URI of deleted contents.
              */
@@ -1661,7 +1660,7 @@ public final class Telephony {
         public static final Uri CONTENT_LOCKED_URI = Uri.parse(
                 "content://mms-sms/locked");
 
-        /***
+        /**
          * Pass in a query parameter called "pattern" which is the text
          * to search for.
          * The sort order is fixed to be thread_id ASC,date DESC.
@@ -1674,14 +1673,14 @@ public final class Telephony {
         public static final int MMS_PROTO = 1;
 
         // Constants for error types of pending messages.
-        public static final int NO_ERROR                      = 0;
-        public static final int ERR_TYPE_GENERIC              = 1;
-        public static final int ERR_TYPE_SMS_PROTO_TRANSIENT  = 2;
-        public static final int ERR_TYPE_MMS_PROTO_TRANSIENT  = 3;
-        public static final int ERR_TYPE_TRANSPORT_FAILURE    = 4;
-        public static final int ERR_TYPE_GENERIC_PERMANENT    = 10;
-        public static final int ERR_TYPE_SMS_PROTO_PERMANENT  = 11;
-        public static final int ERR_TYPE_MMS_PROTO_PERMANENT  = 12;
+        public static final int NO_ERROR = 0;
+        public static final int ERR_TYPE_GENERIC = 1;
+        public static final int ERR_TYPE_SMS_PROTO_TRANSIENT = 2;
+        public static final int ERR_TYPE_MMS_PROTO_TRANSIENT = 3;
+        public static final int ERR_TYPE_TRANSPORT_FAILURE = 4;
+        public static final int ERR_TYPE_GENERIC_PERMANENT = 10;
+        public static final int ERR_TYPE_SMS_PROTO_PERMANENT = 11;
+        public static final int ERR_TYPE_MMS_PROTO_PERMANENT = 12;
 
         public static final class PendingMessages implements BaseColumns {
             public static final Uri CONTENT_URI = Uri.withAppendedPath(
@@ -1740,7 +1739,7 @@ public final class Telephony {
          * The content:// style URL for this table
          */
         public static final Uri CONTENT_URI =
-            Uri.parse("content://telephony/carriers");
+                Uri.parse("content://telephony/carriers");
 
         /**
          * The default sort order for this table
@@ -1787,33 +1786,33 @@ public final class Telephony {
 
         /**
          * The protocol to be used to connect to this APN.
-         *
+         * <p/>
          * One of the PDP_type values in TS 27.007 section 10.1.1.
          * For example, "IP", "IPV6", "IPV4V6", or "PPP".
          */
         public static final String PROTOCOL = "protocol";
 
         /**
-          * The protocol to be used to connect to this APN when roaming.
-          *
-          * The syntax is the same as protocol.
-          */
+         * The protocol to be used to connect to this APN when roaming.
+         * <p/>
+         * The syntax is the same as protocol.
+         */
         public static final String ROAMING_PROTOCOL = "roaming_protocol";
 
         public static final String CURRENT = "current";
 
         /**
-          * Current status of APN
-          * true : enabled APN, false : disabled APN.
-          */
+         * Current status of APN
+         * true : enabled APN, false : disabled APN.
+         */
         public static final String CARRIER_ENABLED = "carrier_enabled";
 
         /**
-          * Radio Access Technology info
-          * To check what values can hold, refer to ServiceState.java.
-          * This should be spread to other technologies,
-          * but currently only used for LTE(14) and EHRPD(13).
-          */
+         * Radio Access Technology info
+         * To check what values can hold, refer to ServiceState.java.
+         * This should be spread to other technologies,
+         * but currently only used for LTE(14) and EHRPD(13).
+         */
         public static final String BEARER = "bearer";
     }
 
@@ -1822,14 +1821,17 @@ public final class Telephony {
      */
     public static final class CellBroadcasts implements BaseColumns {
 
-        /** Not instantiable. */
-        private CellBroadcasts() {}
+        /**
+         * Not instantiable.
+         */
+        private CellBroadcasts() {
+        }
 
         /**
          * The content:// style URL for this table
          */
         public static final Uri CONTENT_URI =
-            Uri.parse("content://cellbroadcasts");
+                Uri.parse("content://cellbroadcasts");
 
         /**
          * Message geographical scope.

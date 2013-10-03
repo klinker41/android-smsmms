@@ -20,10 +20,10 @@ package com.android.internal.telephony;
  * Contains a list of string constants used to get or set telephone properties
  * in the system. You can use {@link android.os.SystemProperties os.SystemProperties}
  * to get and set these values.
+ *
  * @hide
  */
-public interface TelephonyProperties
-{
+public interface TelephonyProperties {
     //****** Baseband and Radio Interface version
 
     //TODO T: property strings do not have to be gsm specific
@@ -35,40 +35,47 @@ public interface TelephonyProperties
      */
     static final String PROPERTY_BASEBAND_VERSION = "gsm.version.baseband";
 
-    /** Radio Interface Layer (RIL) library implementation. */
+    /**
+     * Radio Interface Layer (RIL) library implementation.
+     */
     static final String PROPERTY_RIL_IMPL = "gsm.version.ril-impl";
 
     //****** Current Network
 
-    /** Alpha name of current registered operator.<p>
-     *  Availability: when registered to a network. Result may be unreliable on
-     *  CDMA networks.
+    /**
+     * Alpha name of current registered operator.<p>
+     * Availability: when registered to a network. Result may be unreliable on
+     * CDMA networks.
      */
     static final String PROPERTY_OPERATOR_ALPHA = "gsm.operator.alpha";
     //TODO: most of these properties are generic, substitute gsm. with phone. bug 1856959
 
-    /** Numeric name (MCC+MNC) of current registered operator.<p>
-     *  Availability: when registered to a network. Result may be unreliable on
-     *  CDMA networks.
+    /**
+     * Numeric name (MCC+MNC) of current registered operator.<p>
+     * Availability: when registered to a network. Result may be unreliable on
+     * CDMA networks.
      */
     static final String PROPERTY_OPERATOR_NUMERIC = "gsm.operator.numeric";
 
-    /** 'true' if the device is on a manually selected network
-     *
-     *  Availability: when registered to a network
+    /**
+     * 'true' if the device is on a manually selected network
+     * <p/>
+     * Availability: when registered to a network
      */
     static final String PROPERTY_OPERATOR_ISMANUAL = "operator.ismanual";
 
-    /** 'true' if the device is considered roaming on this network for GSM
-     *  purposes.
-     *  Availability: when registered to a network
+    /**
+     * 'true' if the device is considered roaming on this network for GSM
+     * purposes.
+     * Availability: when registered to a network
      */
     static final String PROPERTY_OPERATOR_ISROAMING = "gsm.operator.isroaming";
 
-    /** The ISO country code equivalent of the current registered operator's
-     *  MCC (Mobile Country Code)<p>
-     *  Availability: when registered to a network. Result may be unreliable on
-     *  CDMA networks.
+    /**
+     * The ISO country code equivalent of the current registered operator's
+     * MCC (Mobile Country Code)<p>
+     * Availability: when registered to a network. Result may be unreliable on
+     * CDMA networks.
      */
     static final String PROPERTY_OPERATOR_ISO_COUNTRY = "gsm.operator.iso-country";
 
@@ -97,18 +104,22 @@ public interface TelephonyProperties
      */
     static String PROPERTY_SIM_STATE = "gsm.sim.state";
 
-    /** The MCC+MNC (mobile country code+mobile network code) of the
-     *  provider of the SIM. 5 or 6 decimal digits.
-     *  Availability: SIM state must be "READY"
+    /**
+     * The MCC+MNC (mobile country code+mobile network code) of the
+     * provider of the SIM. 5 or 6 decimal digits.
+     * Availability: SIM state must be "READY"
      */
     static String PROPERTY_ICC_OPERATOR_NUMERIC = "gsm.sim.operator.numeric";
 
-    /** PROPERTY_ICC_OPERATOR_ALPHA is also known as the SPN, or Service Provider Name.
-     *  Availability: SIM state must be "READY"
+    /**
+     * PROPERTY_ICC_OPERATOR_ALPHA is also known as the SPN, or Service Provider Name.
+     * Availability: SIM state must be "READY"
      */
     static String PROPERTY_ICC_OPERATOR_ALPHA = "gsm.sim.operator.alpha";
 
-    /** ISO country code equivalent for the SIM provider's country code*/
+    /**
+     * ISO country code equivalent for the SIM provider's country code
+     */
     static String PROPERTY_ICC_OPERATOR_ISO_COUNTRY = "gsm.sim.operator.iso-country";
 
     /**
@@ -117,13 +128,19 @@ public interface TelephonyProperties
      */
     static String PROPERTY_DATA_NETWORK_TYPE = "gsm.network.type";
 
-    /** Indicate if phone is in emergency callback mode */
+    /**
+     * Indicate if phone is in emergency callback mode
+     */
     static final String PROPERTY_INECM_MODE = "ril.cdma.inecmmode";
 
-    /** Indicate the timer value for exiting emergency callback mode */
+    /**
+     * Indicate the timer value for exiting emergency callback mode
+     */
     static final String PROPERTY_ECM_EXIT_TIMER = "ro.cdma.ecmexittimer";
 
-    /** The international dialing prefix conversion string */
+    /**
+     * The international dialing prefix conversion string
+     */
     static final String PROPERTY_IDP_STRING = "ro.cdma.idpstring";
 
     /**
@@ -140,7 +157,7 @@ public interface TelephonyProperties
      * Set to true for vendor RIL's that send multiple UNSOL_CALL_RING notifications.
      */
     static final String PROPERTY_RIL_SENDS_MULTIPLE_CALL_RING =
-        "ro.telephony.call_ring.multiple";
+            "ro.telephony.call_ring.multiple";
 
     /**
      * The number of milliseconds between CALL_RING notifications.

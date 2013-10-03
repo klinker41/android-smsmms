@@ -38,14 +38,14 @@ public class MmsSystemEventReceiver extends BroadcastReceiver {
     private static MmsSystemEventReceiver sMmsSystemEventReceiver;
 
     private static void wakeUpService(Context context) {
-        
+
 
         context.startService(new Intent(context, TransactionService.class));
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        
+
 
         String action = intent.getAction();
         if (action.equals(Mms.Intents.CONTENT_CHANGED_ACTION)) {
@@ -68,7 +68,7 @@ public class MmsSystemEventReceiver extends BroadcastReceiver {
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.intent.action.ANY_DATA_STATE");
-        
+
         if (sMmsSystemEventReceiver == null) {
             sMmsSystemEventReceiver = new MmsSystemEventReceiver();
         }
@@ -77,7 +77,7 @@ public class MmsSystemEventReceiver extends BroadcastReceiver {
     }
 
     public static void unRegisterForConnectionStateChanges(Context context) {
-        
+
         if (sMmsSystemEventReceiver != null) {
             try {
                 context.unregisterReceiver(sMmsSystemEventReceiver);

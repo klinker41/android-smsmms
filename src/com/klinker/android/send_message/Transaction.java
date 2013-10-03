@@ -16,7 +16,8 @@
 
 package com.klinker.android.send_message;
 
-import android.app.*;
+import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.*;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -49,11 +50,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Class to process transaction requests for sending
+ *
  * @author Jake Klinker
  */
 public class Transaction {
@@ -76,6 +76,7 @@ public class Transaction {
 
     /**
      * Sets context and initializes settings to default values
+     *
      * @param context is the context of the activity or service
      */
     public Transaction(Context context) {
@@ -85,7 +86,8 @@ public class Transaction {
 
     /**
      * Sets context and settings
-     * @param context is the context of the activity or service
+     *
+     * @param context  is the context of the activity or service
      * @param settings is the settings object to process send requests through
      */
     public Transaction(Context context, Settings settings) {
@@ -95,7 +97,8 @@ public class Transaction {
 
     /**
      * Called to send a new message depending on settings and provided Message object
-     * @param message is the message that you want to send
+     *
+     * @param message  is the message that you want to send
      * @param threadId is the thread id of who to send the message to (can also be set to Transaction.NO_THREAD_ID)
      */
     public void sendNewMessage(Message message, long threadId) {
@@ -151,7 +154,7 @@ public class Transaction {
             // we take the current length + the remaining length to get the total number of characters
             // that message set can support, and then divide by the number of message that will require
             // to get the length supported by a single message
-            int length = (body.length() + splitData[2])/splitData[0];
+            int length = (body.length() + splitData[2]) / splitData[0];
 
             boolean counter = false;
             if (settings.getSplitCounter() && body.length() > length) {
@@ -175,8 +178,7 @@ public class Transaction {
                     smsManager.sendMultipartTextMessage(addresses[j], null, parts, sPI, dPI);
                 }
             }
-        } else
-        {
+        } else {
             // send the message normally without forcing anything to be split
             ArrayList<String> parts = smsManager.divideMessage(body);
 
@@ -345,7 +347,7 @@ public class Transaction {
             values.put("status", 2);   // if you want to be able to tell the difference between sms and voice, look for this value. SMS will be -1, 0, 64, 128 and voice will be 2
 
             // attempt to create correct thread id if one is not supplied
-            if (threadId ==  NO_THREAD_ID || addresses.length > 1) {
+            if (threadId == NO_THREAD_ID || addresses.length > 1) {
                 threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
             }
 
@@ -367,17 +369,17 @@ public class Transaction {
         String[] returnArray = new String[arraySize];
 
         int index = 0;
-        for(int i = 0; i < s.length(); i = i+chunkSize) {
-            if(s.length() - i < chunkSize) {
+        for (int i = 0; i < s.length(); i = i + chunkSize) {
+            if (s.length() - i < chunkSize) {
                 returnArray[index++] = s.substring(i);
             } else {
-                returnArray[index++] = s.substring(i, i+chunkSize);
+                returnArray[index++] = s.substring(i, i + chunkSize);
             }
         }
 
         if (counter && returnArray.length > 1) {
             for (int i = 0; i < returnArray.length; i++) {
-                returnArray[i] = "(" + (i+1) + "/" + returnArray.length + ") " + returnArray[i];
+                returnArray[i] = "(" + (i + 1) + "/" + returnArray.length + ") " + returnArray[i];
             }
         }
 
@@ -591,7 +593,7 @@ public class Transaction {
                     context.sendBroadcast(progressIntent);
 
                     if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
-                        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
+                        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
                         query.moveToFirst();
                         String id = query.getString(query.getColumnIndex("_id"));
                         query.close();
@@ -672,7 +674,7 @@ public class Transaction {
             reinstateWifi();
         }
 
-        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[] {"_id"}, null, null, "date desc");
+        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
         query.moveToFirst();
         String id = query.getString(query.getColumnIndex("_id"));
         query.close();
@@ -720,7 +722,8 @@ public class Transaction {
                     sendRnrSe(authToken, rnrse, destAddr, text);
                     successVoice();
                     return;
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                }
 
                 try {
                     // try again...
@@ -772,7 +775,7 @@ public class Transaction {
         Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
         // mark message as sent successfully
-        if (query.moveToFirst()){
+        if (query.moveToFirst()) {
             String id = query.getString(query.getColumnIndex("_id"));
             ContentValues values = new ContentValues();
             values.put("type", "2");
@@ -795,11 +798,11 @@ public class Transaction {
         String rnrse = userInfo.get("r").getAsString();
 
         try {
-            TelephonyManager tm = (TelephonyManager)context.getSystemService(Activity.TELEPHONY_SERVICE);
+            TelephonyManager tm = (TelephonyManager) context.getSystemService(Activity.TELEPHONY_SERVICE);
             String number = tm.getLine1Number();
             if (number != null) {
                 JsonObject phones = userInfo.getAsJsonObject("phones");
-                for (Map.Entry<String, JsonElement> entry: phones.entrySet()) {
+                for (Map.Entry<String, JsonElement> entry : phones.entrySet()) {
                     JsonObject phone = entry.getValue().getAsJsonObject();
                     if (!PhoneNumberUtils.compare(number, phone.get("phoneNumber").getAsString()))
                         continue;
@@ -846,7 +849,7 @@ public class Transaction {
             long now = System.currentTimeMillis();
             ContentValues mmsValues = new ContentValues();
             mmsValues.put("thread_id", thread_id);
-            mmsValues.put("date", now/1000L);
+            mmsValues.put("date", now / 1000L);
             mmsValues.put("msg_box", 4);
             //mmsValues.put("m_id", System.currentTimeMillis());
             mmsValues.put("read", true);
@@ -866,7 +869,7 @@ public class Transaction {
             mmsValues.put("m_type", 128); // 132 (RETRIEVE CONF) 130 (NOTIF IND) 128 (SEND REQ)
             mmsValues.put("v", 19);
             mmsValues.put("pri", 129);
-            mmsValues.put("tr_id", "T"+ Long.toHexString(now));
+            mmsValues.put("tr_id", "T" + Long.toHexString(now));
             mmsValues.put("resp_st", 128);
 
             // Insert message
@@ -915,7 +918,7 @@ public class Transaction {
         ByteArrayInputStream is = new ByteArrayInputStream(imageBytes);
         byte[] buffer = new byte[256];
 
-        for (int len=0; (len=is.read(buffer)) != -1;) {
+        for (int len = 0; (len = is.read(buffer)) != -1; ) {
             os.write(buffer, 0, len);
         }
 
@@ -944,7 +947,7 @@ public class Transaction {
         addrValues.put("address", addr);
         addrValues.put("charset", "106");
         addrValues.put("type", 151); // TO
-        Uri addrUri = Uri.parse("content://mms/"+ id +"/addr");
+        Uri addrUri = Uri.parse("content://mms/" + id + "/addr");
         Uri res = context.getContentResolver().insert(addrUri, addrValues);
 
         return res;
@@ -952,6 +955,7 @@ public class Transaction {
 
     /**
      * A method for checking whether or not a certain message will be sent as mms depending on its contents and the settings
+     *
      * @param message is the message that you are checking against
      * @return true if the message will be mms, otherwise false
      */

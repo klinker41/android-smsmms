@@ -16,15 +16,14 @@
 
 package android.net;
 
-import static android.net.ConnectivityManager.TYPE_WIFI;
-
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
-
 import com.android.internal.util.Objects;
+
+import static android.net.ConnectivityManager.TYPE_WIFI;
 
 /**
  * Network definition that includes strong identity. Analogous to combining
@@ -55,8 +54,10 @@ public class NetworkIdentity {
         mNetworkId = networkId;
         mRoaming = roaming;
     }
-    
-    /** {@hide} */
+
+    /**
+     * {@hide}
+     */
     public static String getNetworkTypeName(int type) {
         switch (type) {
             case 0:
@@ -91,8 +92,10 @@ public class NetworkIdentity {
                 return Integer.toString(type);
         }
     }
-    
-    /** {@hide} */
+
+    /**
+     * {@hide}
+     */
     public static boolean isNetworkTypeMobile(int networkType) {
         switch (networkType) {
             case 0:

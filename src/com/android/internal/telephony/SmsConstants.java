@@ -22,13 +22,17 @@ package com.android.internal.telephony;
  * @hide
  */
 public class SmsConstants {
-    /** User data text encoding code unit size */
+    /**
+     * User data text encoding code unit size
+     */
     public static final int ENCODING_UNKNOWN = 0;
     public static final int ENCODING_7BIT = 1;
     public static final int ENCODING_8BIT = 2;
     public static final int ENCODING_16BIT = 3;
 
-    /** The maximum number of payload septets per message */
+    /**
+     * The maximum number of payload septets per message
+     */
     public static final int MAX_USER_DATA_SEPTETS = 160;
 
     /**
@@ -43,7 +47,9 @@ public class SmsConstants {
      */
     public static final int ENCODING_KSC5601 = 4;
 
-    /** The maximum number of payload bytes per message */
+    /**
+     * The maximum number of payload bytes per message
+     */
     public static final int MAX_USER_DATA_BYTES = 140;
 
     /**
@@ -57,18 +63,20 @@ public class SmsConstants {
      * SMS Class enumeration.
      * See TS 23.038.
      */
-    public enum MessageClass{
+    public enum MessageClass {
         UNKNOWN, CLASS_0, CLASS_1, CLASS_2, CLASS_3;
     }
 
     /**
      * Indicates a 3GPP format SMS message.
+     *
      * @hide pending API council approval
      */
     public static final String FORMAT_3GPP = "3gpp";
 
     /**
      * Indicates a 3GPP2 format SMS message.
+     *
      * @hide pending API council approval
      */
     public static final String FORMAT_3GPP2 = "3gpp2";

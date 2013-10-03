@@ -17,16 +17,15 @@
 
 package com.android.mms.transaction;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Uri;
-
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.MmsException;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Transaction is an abstract class for notification transaction, send transaction
@@ -48,18 +47,18 @@ public abstract class Transaction extends Observable {
     /**
      * Identifies deferred retrieve requests.
      */
-    public static final int RETRIEVE_TRANSACTION     = 1;
+    public static final int RETRIEVE_TRANSACTION = 1;
     /**
      * Identifies send multimedia message requests.
      */
-    public static final int SEND_TRANSACTION         = 2;
+    public static final int SEND_TRANSACTION = 2;
     /**
      * Identifies send read report requests.
      */
-    public static final int READREC_TRANSACTION      = 3;
+    public static final int READREC_TRANSACTION = 3;
 
     public Transaction(Context context, int serviceId,
-            TransactionSettings settings) {
+                       TransactionSettings settings) {
         mContext = context;
         mTransactionState = new TransactionState();
         mServiceId = serviceId;
@@ -95,6 +94,7 @@ public abstract class Transaction extends Observable {
 
     /**
      * Get the service-id of this transaction which was assigned by the framework.
+     *
      * @return the service-id of the transaction
      */
     public int getServiceId() {
@@ -104,6 +104,7 @@ public abstract class Transaction extends Observable {
     public TransactionSettings getConnectionSettings() {
         return mTransactionSettings;
     }
+
     public void setConnectionSettings(TransactionSettings settings) {
         mTransactionSettings = settings;
     }
@@ -113,9 +114,9 @@ public abstract class Transaction extends Observable {
      *
      * @param pdu A byte array which contains the data of the PDU.
      * @return A byte array which contains the response data.
-     *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
-     *         an HTTP error code(>=400) returned from the server.
+     * If an HTTP error code is returned, an IOException will be thrown.
+     * @throws IOException  if any error occurred on network interface or
+     *                      an HTTP error code(>=400) returned from the server.
      * @throws MmsException if pdu_alt is null.
      */
     protected byte[] sendPdu(byte[] pdu) throws IOException, MmsException {
@@ -126,12 +127,12 @@ public abstract class Transaction extends Observable {
     /**
      * A common method to send a PDU to MMSC.
      *
-     * @param pdu A byte array which contains the data of the PDU.
+     * @param pdu     A byte array which contains the data of the PDU.
      * @param mmscUrl Url of the recipient MMSC.
      * @return A byte array which contains the response data.
-     *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
-     *         an HTTP error code(>=400) returned from the server.
+     * If an HTTP error code is returned, an IOException will be thrown.
+     * @throws IOException  if any error occurred on network interface or
+     *                      an HTTP error code(>=400) returned from the server.
      * @throws MmsException if pdu_alt is null.
      */
     protected byte[] sendPdu(byte[] pdu, String mmscUrl) throws IOException, MmsException {
@@ -142,11 +143,11 @@ public abstract class Transaction extends Observable {
      * A common method to send a PDU to MMSC.
      *
      * @param token The token to identify the sending progress.
-     * @param pdu A byte array which contains the data of the PDU.
+     * @param pdu   A byte array which contains the data of the PDU.
      * @return A byte array which contains the response data.
-     *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
-     *         an HTTP error code(>=400) returned from the server.
+     * If an HTTP error code is returned, an IOException will be thrown.
+     * @throws IOException  if any error occurred on network interface or
+     *                      an HTTP error code(>=400) returned from the server.
      * @throws MmsException if pdu_alt is null.
      */
     protected byte[] sendPdu(long token, byte[] pdu) throws IOException, MmsException {
@@ -156,17 +157,17 @@ public abstract class Transaction extends Observable {
     /**
      * A common method to send a PDU to MMSC.
      *
-     * @param token The token to identify the sending progress.
-     * @param pdu A byte array which contains the data of the PDU.
+     * @param token   The token to identify the sending progress.
+     * @param pdu     A byte array which contains the data of the PDU.
      * @param mmscUrl Url of the recipient MMSC.
      * @return A byte array which contains the response data.
-     *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
-     *         an HTTP error code(>=400) returned from the server.
+     * If an HTTP error code is returned, an IOException will be thrown.
+     * @throws IOException  if any error occurred on network interface or
+     *                      an HTTP error code(>=400) returned from the server.
      * @throws MmsException if pdu_alt is null.
      */
     protected byte[] sendPdu(long token, byte[] pdu,
-            String mmscUrl) throws IOException, MmsException {
+                             String mmscUrl) throws IOException, MmsException {
         if (pdu == null) {
             throw new MmsException();
         }
@@ -186,9 +187,9 @@ public abstract class Transaction extends Observable {
      *
      * @param url The URL of the message which we are going to retrieve.
      * @return A byte array which contains the data of the PDU.
-     *         If the status code is not correct, an IOException will be thrown.
+     * If the status code is not correct, an IOException will be thrown.
      * @throws IOException if any error occurred on network interface or
-     *         an HTTP error code(>=400) returned from the server.
+     *                     an HTTP error code(>=400) returned from the server.
      */
     protected byte[] getPdu(String url) throws IOException {
         ensureRouteToHost(url, mTransactionSettings);
@@ -203,7 +204,8 @@ public abstract class Transaction extends Observable {
     /**
      * Make sure that a network route exists to allow us to reach the host in the
      * supplied URL, and to the MMS proxy host as well, if a proxy is used.
-     * @param url The URL of the MMSC to which we need a route
+     *
+     * @param url      The URL of the MMSC to which we need a route
      * @param settings Specifies the address of the proxy host, if any
      * @throws IOException if the host doesn't exist, or adding the route fails.
      */
@@ -241,6 +243,7 @@ public abstract class Transaction extends Observable {
      * Look up a host name and return the result as an int. Works if the argument
      * is an IP address in dot notation. Obviously, this can only be used for IPv4
      * addresses.
+     *
      * @param hostname the name of the host (or the IP address)
      * @return the IP address as an {@code int} in network byte order
      */
@@ -258,7 +261,7 @@ public abstract class Transaction extends Observable {
         addr = ((addrBytes[3] & 0xff) << 24)
                 | ((addrBytes[2] & 0xff) << 16)
                 | ((addrBytes[1] & 0xff) << 8)
-                |  (addrBytes[0] & 0xff);
+                | (addrBytes[0] & 0xff);
         return addr;
     }
 

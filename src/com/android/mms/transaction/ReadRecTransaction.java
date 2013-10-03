@@ -17,24 +17,23 @@
 
 package com.android.mms.transaction;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.net.Uri;
 import android.provider.Telephony.Mms.Sent;
 import android.util.Log;
-
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.EncodedStringValue;
 import com.google.android.mms.pdu_alt.PduComposer;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadRecInd;
 
+import java.io.IOException;
+
 /**
  * The ReadRecTransaction is responsible for sending read report
  * notifications (M-read-rec.ind) to clients that have requested them.
  * It:
- *
+ * <p/>
  * <ul>
  * <li>Loads the read report indication from storage (Outbox).
  * <li>Packs M-read-rec.ind and sends it.
@@ -48,9 +47,9 @@ public class ReadRecTransaction extends Transaction {
     private final Uri mReadReportURI;
 
     public ReadRecTransaction(Context context,
-            int transId,
-            TransactionSettings connectionSettings,
-            String uri) {
+                              int transId,
+                              TransactionSettings connectionSettings,
+                              String uri) {
         super(context, transId, connectionSettings);
         mReadReportURI = Uri.parse(uri);
         mId = uri;

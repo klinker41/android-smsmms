@@ -63,12 +63,12 @@ public class ReadOrigInd extends GenericPdu {
     /**
      * Get From value.
      * From-value = Value-length
-     *      (Address-present-token Encoded-string-value | Insert-address-token)
+     * (Address-present-token Encoded-string-value | Insert-address-token)
      *
      * @return the value
      */
     public EncodedStringValue getFrom() {
-       return mPduHeaders.getEncodedStringValue(PduHeaders.FROM);
+        return mPduHeaders.getEncodedStringValue(PduHeaders.FROM);
     }
 
     /**

@@ -96,7 +96,7 @@ public class SendConf extends GenericPdu {
      * @throws NullPointerException if the value is null.
      */
     public void setTransactionId(byte[] value) {
-            mPduHeaders.setTextString(value, PduHeaders.TRANSACTION_ID);
+        mPduHeaders.setTextString(value, PduHeaders.TRANSACTION_ID);
     }
 
     /*

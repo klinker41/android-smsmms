@@ -16,10 +16,6 @@
 
 package android.net;
 
-import static android.content.pm.PackageManager.GET_SIGNATURES;
-import static android.net.NetworkPolicy.CYCLE_NONE;
-import static android.text.format.Time.MONTH_DAY;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -27,27 +23,38 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.os.RemoteException;
 import android.text.format.Time;
-
 import com.google.android.collect.Sets;
 
 import java.io.PrintWriter;
 import java.util.HashSet;
 
+import static android.content.pm.PackageManager.GET_SIGNATURES;
+import static android.net.NetworkPolicy.CYCLE_NONE;
+import static android.text.format.Time.MONTH_DAY;
+
 /**
  * Manager for creating and modifying network policy rules.
- *
+ * <p/>
  * {@hide}
  */
 public class NetworkPolicyManager {
 
-    /** No specific network policy, use system default. */
+    /**
+     * No specific network policy, use system default.
+     */
     public static final int POLICY_NONE = 0x0;
-    /** Reject network usage on metered networks when application in background. */
+    /**
+     * Reject network usage on metered networks when application in background.
+     */
     public static final int POLICY_REJECT_METERED_BACKGROUND = 0x1;
 
-    /** All network traffic should be allowed. */
+    /**
+     * All network traffic should be allowed.
+     */
     public static final int RULE_ALLOW_ALL = 0x0;
-    /** Reject traffic on metered networks. */
+    /**
+     * Reject traffic on metered networks.
+     */
     public static final int RULE_REJECT_METERED = 0x1;
 
     private static final boolean ALLOW_PLATFORM_APP_POLICY = true;
@@ -75,7 +82,7 @@ public class NetworkPolicyManager {
      * Set policy flags for specific UID.
      *
      * @param policy {@link #POLICY_NONE} or combination of flags like
-     *            {@link #POLICY_REJECT_METERED_BACKGROUND}.
+     *               {@link #POLICY_REJECT_METERED_BACKGROUND}.
      */
     public void setUidPolicy(int uid, int policy) {
         try {
@@ -181,7 +188,9 @@ public class NetworkPolicyManager {
         return cycle.toMillis(true);
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public static long computeNextCycleBoundary(long currentTime, NetworkPolicy policy) {
         if (policy.cycleDay == CYCLE_NONE) {
             throw new IllegalArgumentException("Unable to compute boundary without cycleDay");
@@ -263,7 +272,9 @@ public class NetworkPolicyManager {
         return true;
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public static void dumpPolicy(PrintWriter fout, int policy) {
         fout.write("[");
         if ((policy & POLICY_REJECT_METERED_BACKGROUND) != 0) {
@@ -272,7 +283,9 @@ public class NetworkPolicyManager {
         fout.write("]");
     }
 
-    /** {@hide} */
+    /**
+     * {@hide}
+     */
     public static void dumpRules(PrintWriter fout, int rules) {
         fout.write("[");
         if ((rules & RULE_REJECT_METERED) != 0) {

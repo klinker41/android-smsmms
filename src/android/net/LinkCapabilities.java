@@ -16,8 +16,8 @@
 
 package android.net;
 
-import android.os.Parcelable;
 import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import java.util.Collection;
@@ -35,28 +35,34 @@ public class LinkCapabilities implements Parcelable {
     private static final String TAG = "LinkCapabilities";
     private static final boolean DBG = false;
 
-    /** The Map of Keys to Values */
+    /**
+     * The Map of Keys to Values
+     */
     private HashMap<Integer, String> mCapabilities;
 
 
     /**
      * The set of keys defined for a links capabilities.
-     *
+     * <p/>
      * Keys starting with RW are read + write, i.e. the application
      * can request for a certain requirement corresponding to that key.
      * Keys starting with RO are read only, i.e. the the application
      * can read the value of that key from the socket but cannot request
      * a corresponding requirement.
-     *
+     * <p/>
      * TODO: Provide a documentation technique for concisely and precisely
      * define the syntax for each value string associated with a key.
      */
     public static final class Key {
-        /** No constructor */
-        private Key() {}
+        /**
+         * No constructor
+         */
+        private Key() {
+        }
 
         /**
          * An integer representing the network type.
+         *
          * @see ConnectivityManager
          */
         public final static int RO_NETWORK_TYPE = 1;
@@ -86,7 +92,7 @@ public class LinkCapabilities implements Parcelable {
          * Desired minimum reverse link (upload) bandwidth for the socket
          * in kilobits per second (kbps).
          * Values should be strings such as "50", "100", "1500", etc.
-         * <p>
+         * <p/>
          * This key is set via the needs map.
          */
         public final static int RW_DESIRED_REV_BW = 5;
@@ -134,37 +140,58 @@ public class LinkCapabilities implements Parcelable {
     /**
      * Role informs the LinkSocket about the data usage patterns of your
      * application.
-     * <P>
+     * <p/>
      * {@code Role.DEFAULT} is the default role, and is used whenever
      * a role isn't set.
      */
     public static final class Role {
-        /** No constructor */
-        private Role() {}
+        /**
+         * No constructor
+         */
+        private Role() {
+        }
 
         // examples only, discuss which roles should be defined, and then
         // code these to match
 
-        /** Default Role */
+        /**
+         * Default Role
+         */
         public static final String DEFAULT = "default";
-        /** Bulk down load */
+        /**
+         * Bulk down load
+         */
         public static final String BULK_DOWNLOAD = "bulk.download";
-        /** Bulk upload */
+        /**
+         * Bulk upload
+         */
         public static final String BULK_UPLOAD = "bulk.upload";
 
-        /** VoIP Application at 24kbps */
+        /**
+         * VoIP Application at 24kbps
+         */
         public static final String VOIP_24KBPS = "voip.24k";
-        /** VoIP Application at 32kbps */
+        /**
+         * VoIP Application at 32kbps
+         */
         public static final String VOIP_32KBPS = "voip.32k";
 
-        /** Video Streaming at 480p */
+        /**
+         * Video Streaming at 480p
+         */
         public static final String VIDEO_STREAMING_480P = "video.streaming.480p";
-        /** Video Streaming at 720p */
+        /**
+         * Video Streaming at 720p
+         */
         public static final String VIDEO_STREAMING_720I = "video.streaming.720i";
 
-        /** Video Chat Application at 360p */
+        /**
+         * Video Chat Application at 360p
+         */
         public static final String VIDEO_CHAT_360P = "video.chat.360p";
-        /** Video Chat Application at 480p */
+        /**
+         * Video Chat Application at 480p
+         */
         public static final String VIDEO_CHAT_480P = "video.chat.480i";
     }
 
@@ -190,6 +217,7 @@ public class LinkCapabilities implements Parcelable {
 
     /**
      * Create the {@code LinkCapabilities} with values depending on role type.
+     *
      * @param applicationRole a {@code LinkSocket.Role}
      * @return the {@code LinkCapabilities} associated with the applicationRole, empty if none
      */
@@ -246,7 +274,7 @@ public class LinkCapabilities implements Parcelable {
      *
      * @param key to search for.
      * @return {@code true} if this map contains the specified key,
-     *         {@code false} otherwise.
+     * {@code false} otherwise.
      */
     public boolean containsKey(int key) {
         return mCapabilities.containsKey(key);
@@ -257,7 +285,7 @@ public class LinkCapabilities implements Parcelable {
      *
      * @param value to search for.
      * @return {@code true} if this map contains the specified value,
-     *         {@code false} otherwise.
+     * {@code false} otherwise.
      */
     public boolean containsValue(String value) {
         return mCapabilities.containsValue(value);
@@ -290,6 +318,7 @@ public class LinkCapabilities implements Parcelable {
 
     /**
      * Implement the Parcelable interface
+     *
      * @hide
      */
     public int describeContents() {
@@ -321,6 +350,7 @@ public class LinkCapabilities implements Parcelable {
 
     /**
      * Implement the Parcelable interface.
+     *
      * @hide
      */
     public void writeToParcel(Parcel dest, int flags) {
@@ -333,25 +363,26 @@ public class LinkCapabilities implements Parcelable {
 
     /**
      * Implement the Parcelable interface.
+     *
      * @hide
      */
     public static final Creator<LinkCapabilities> CREATOR =
-        new Creator<LinkCapabilities>() {
-            public LinkCapabilities createFromParcel(Parcel in) {
-                LinkCapabilities capabilities = new LinkCapabilities();
-                int size = in.readInt();
-                while (size-- != 0) {
-                    int key = in.readInt();
-                    String value = in.readString();
-                    capabilities.mCapabilities.put(key, value);
+            new Creator<LinkCapabilities>() {
+                public LinkCapabilities createFromParcel(Parcel in) {
+                    LinkCapabilities capabilities = new LinkCapabilities();
+                    int size = in.readInt();
+                    while (size-- != 0) {
+                        int key = in.readInt();
+                        String value = in.readString();
+                        capabilities.mCapabilities.put(key, value);
+                    }
+                    return capabilities;
                 }
-                return capabilities;
-            }
 
-            public LinkCapabilities[] newArray(int size) {
-                return new LinkCapabilities[size];
-            }
-        };
+                public LinkCapabilities[] newArray(int size) {
+                    return new LinkCapabilities[size];
+                }
+            };
 
     /**
      * Debug logging

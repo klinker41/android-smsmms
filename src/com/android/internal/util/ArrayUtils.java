@@ -26,8 +26,7 @@ import java.lang.reflect.Array;
  * ArrayUtils contains some methods that you can call to find out
  * the most efficient increments by which to grow arrays.
  */
-public class ArrayUtils
-{
+public class ArrayUtils {
     private static Object[] EMPTY = new Object[0];
     private static final int CACHE_SIZE = 73;
     private static Object[] sCache = new Object[CACHE_SIZE];
@@ -99,7 +98,7 @@ public class ArrayUtils
      * although this is not guaranteed.
      */
     @SuppressWarnings("unchecked")
-	public static <T> T[] emptyArray(Class<T> kind) {
+    public static <T> T[] emptyArray(Class<T> kind) {
         if (kind == Object.class) {
             return (T[]) EMPTY;
         }
@@ -119,6 +118,7 @@ public class ArrayUtils
 
     /**
      * Checks that value is present as at least one of the elements of the array.
+     *
      * @param array the array to check in
      * @param value the value to check for
      * @return true if the value is present in the array
@@ -153,7 +153,8 @@ public class ArrayUtils
 
     /**
      * Appends an element to a copy of the array and returns the copy.
-     * @param array The original array, or null to represent an empty array.
+     *
+     * @param array   The original array, or null to represent an empty array.
      * @param element The element to add.
      * @return A new array that contains all of the elements of the original array
      * with the specified element added at the end.
@@ -164,11 +165,11 @@ public class ArrayUtils
         final int end;
         if (array != null) {
             end = array.length;
-            result = (T[])Array.newInstance(kind, end + 1);
+            result = (T[]) Array.newInstance(kind, end + 1);
             System.arraycopy(array, 0, result, 0, end);
         } else {
             end = 0;
-            result = (T[])Array.newInstance(kind, 1);
+            result = (T[]) Array.newInstance(kind, 1);
         }
         result[end] = element;
         return result;
@@ -177,7 +178,8 @@ public class ArrayUtils
     /**
      * Removes an element from a copy of the array and returns the copy.
      * If the element is not present, then the original array is returned unmodified.
-     * @param array The original array, or null to represent an empty array.
+     *
+     * @param array   The original array, or null to represent an empty array.
      * @param element The element to remove.
      * @return A new array that contains all of the elements of the original array
      * except the first copy of the specified element removed.  If the specified element
@@ -193,7 +195,7 @@ public class ArrayUtils
                     if (length == 1) {
                         return null;
                     }
-                    T[] result = (T[])Array.newInstance(kind, length - 1);
+                    T[] result = (T[]) Array.newInstance(kind, length - 1);
                     System.arraycopy(array, 0, result, 0, i);
                     System.arraycopy(array, i + 1, result, i, length - i - 1);
                     return result;
@@ -205,7 +207,7 @@ public class ArrayUtils
 
     public static int[] appendInt(int[] cur, int val) {
         if (cur == null) {
-            return new int[] { val };
+            return new int[]{val};
         }
         final int N = cur.length;
         for (int i = 0; i < N; i++) {
