@@ -40,6 +40,7 @@ public class Settings {
     private boolean splitCounter;
     private boolean stripUnicode;
     private String signature;
+    private String preText;
     private boolean sendLongAsMms;
     private int sendLongAsMmsAfter;
 
@@ -51,7 +52,7 @@ public class Settings {
      * Default constructor to set everything to default values
      */
     public Settings() {
-        this("", "", "0", true, true, false, false, false, false, false, "", true, 3, "", null);
+        this("", "", "0", true, true, false, false, false, false, false, "", "", true, 3, "", null);
     }
 
     /**
@@ -70,6 +71,7 @@ public class Settings {
         this.splitCounter = s.getSplitCounter();
         this.stripUnicode = s.getStripUnicode();
         this.signature = s.getSignature();
+        this.preText = s.getPreText();
         this.sendLongAsMms = s.getSendLongAsMms();
         this.sendLongAsMmsAfter = s.getSendLongAsMmsAfter();
         this.account = s.getAccount();
@@ -94,7 +96,7 @@ public class Settings {
      * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
      * @deprecated Construtor to create object of all values
      */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
+    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
         this.mmsc = mmsc;
         this.proxy = proxy;
         this.port = port;
@@ -106,6 +108,7 @@ public class Settings {
         this.splitCounter = splitCounter;
         this.stripUnicode = stripUnicode;
         this.signature = signature;
+        this.preText = preText;
         this.sendLongAsMms = sendLongAsMms;
         this.sendLongAsMmsAfter = sendLongAsMmsAfter;
         this.account = account;
@@ -123,28 +126,14 @@ public class Settings {
      * @param splitCounter       adds a split counter to the front of all split messages
      * @param stripUnicode       replaces many unicode characters with their gsm compatible equivalent to allow for sending 160 characters instead of 70
      * @param signature          a signature to attach at the end of each message
+     * @param preText            text to be inserted before a message
      * @param sendLongAsMms      if a message is too long to be multiple SMS, convert it to a single MMS
      * @param sendLongAsMmsAfter is an int of how many pages long an SMS must be before it is split
      * @param account            is the google account to send Google Voice messages through
      * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
-     * @deprecated Construtor to create object of all values
      */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
-        this.mmsc = mmsc;
-        this.proxy = proxy;
-        this.port = port;
-        this.group = group;
-        this.preferVoice = preferVoice;
-        this.deliveryReports = deliveryReports;
-        this.split = split;
-        this.splitCounter = splitCounter;
-        this.stripUnicode = stripUnicode;
-        this.signature = signature;
-        this.sendLongAsMms = sendLongAsMms;
-        this.sendLongAsMmsAfter = sendLongAsMmsAfter;
-        this.account = account;
-        this.rnrSe = rnrSe;
-        this.wifiMmsFix = false;
+    public Settings(String mmsc, String proxy, String port, boolean group, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
+        this(mmsc, proxy, port, group, false, preferVoice, deliveryReports, split, splitCounter, stripUnicode, signature, preText, sendLongAsMms, sendLongAsMmsAfter, account, rnrSe);
     }
 
     /**
@@ -235,6 +224,15 @@ public class Settings {
      */
     public void setSignature(String signature) {
         this.signature = signature;
+    }
+
+    /**
+     * Sets the text to be sent before an SMS message
+     *
+     * @param preText text to be attached to the beginning of each message
+     */
+    public void setPreText(String preText) {
+        this.preText = preText;
     }
 
     /**
@@ -341,6 +339,13 @@ public class Settings {
      */
     public String getSignature() {
         return this.signature;
+    }
+
+    /**
+     * @return the text attached to the beginning of each SMS
+     */
+    public String getPreText() {
+        return this.preText;
     }
 
     /**

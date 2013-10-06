@@ -145,6 +145,10 @@ public class Transaction {
             body += "\n" + settings.getSignature();
         }
 
+        if (!settings.getPreText().equals("")) {
+            body = settings.getPreText() + " " + body;
+        }
+
         SmsManager smsManager = SmsManager.getDefault();
 
         if (settings.getSplit()) {
