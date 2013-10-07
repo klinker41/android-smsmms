@@ -555,10 +555,17 @@ public class Transaction {
                 String mmscUrl = apns.get(0).MMSCenterUrl != null ? apns.get(0).MMSCenterUrl.trim() : null;
                 apns.get(0).MMSCenterUrl = mmscUrl;
 
-                if (apns.get(0).MMSCenterUrl.equals("")) {
-                    // attempt to get apns from internal databases, most likely will fail due to insignificant permissions
-                    APNHelper helper = new APNHelper(context);
-                    apns = helper.getMMSApns();
+                try {
+                    if (apns.get(0).MMSCenterUrl.equals("")) {
+                        // attempt to get apns from internal databases, most likely will fail due to insignificant permissions
+                        APNHelper helper = new APNHelper(context);
+                        apns = helper.getMMSApns();
+                    }
+                } catch (Exception e) {
+                    // error in the apns, none are available most likely causing an index out of bounds
+                    // exception. cant send a message, so therefore mark as failed
+                    markMmsFailed();
+                    return;
                 }
 
                 Log.v("sending_mms_library", apns.get(0).MMSCenterUrl + " " + apns.get(0).MMSProxy + " " + apns.get(0).MMSPort);
