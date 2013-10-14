@@ -97,6 +97,7 @@ public class Transaction {
 
     /**
      * Called to send a new message depending on settings and provided Message object
+     * If you want to send message as mms, call this from the UI thread
      *
      * @param message  is the message that you want to send
      * @param threadId is the thread id of who to send the message to (can also be set to Transaction.NO_THREAD_ID)
