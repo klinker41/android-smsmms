@@ -8,6 +8,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -236,29 +237,11 @@ public class Utils {
      * @return the number of pages required to hold message
      */
     public static int getNumPages(Settings settings, String text) {
-        int length = text.length();
-
-        if (!settings.getSignature().equals("")) {
-            length += ("\n" + settings.getSignature()).length();
+        if (settings.getStripUnicode()) {
+            text = StripAccents.stripAccents(text);
         }
 
-        String patternStr = "[^" + GSM_CHARACTERS_REGEX + "]";
-        Pattern pattern = Pattern.compile(patternStr);
-        Matcher matcher = pattern.matcher(text);
-
-        int size = 160;
-
-        if (matcher.find() && !settings.getStripUnicode()) {
-            size = 70;
-        }
-
-        int pages = 1;
-
-        while (length > size) {
-            length -= size;
-            pages++;
-        }
-
-        return pages;
+        int[] data = SmsMessage.calculateLength(text, false);
+        return data[0];
     }
 }
