@@ -480,7 +480,13 @@ public class Transaction {
             int resultInt = mConnMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
 
             if (resultInt == 0) {
-                sendData(bytesToSend);
+                try {
+                    Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
+                    sendData(bytesToSend);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    sendData(bytesToSend);
+                }
             } else {
                 // if mms feature is not already running (most likely isn't...) then register a receiver and wait for it to be active
                 IntentFilter filter = new IntentFilter();
@@ -504,8 +510,14 @@ public class Transaction {
                             return;
                         } else {
                             alreadySending = true;
-                            Utils.forceMobileConnectionForAddress(mConnMgr, settings.getMmsc());
-                            sendData(bytesToSend);
+
+                            try {
+                                Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
+                                sendData(bytesToSend);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                sendData(bytesToSend);
+                            }
 
                             context.unregisterReceiver(this);
                         }
@@ -533,7 +545,13 @@ public class Transaction {
 
                             }
 
-                            sendData(bytesToSend);
+                            try {
+                                Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
+                                sendData(bytesToSend);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                sendData(bytesToSend);
+                            }
                         }
                     }
                 }, 7000);
@@ -628,7 +646,7 @@ public class Transaction {
                                     reinstateWifi();
                                 }
                             }
-                        }, 5000);
+                        }, 1000);
                     } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
                         // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
                         Log.v("sending_mms_library", "sending aborted for some reason...");
