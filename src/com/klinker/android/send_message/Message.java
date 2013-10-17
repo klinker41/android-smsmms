@@ -327,7 +327,7 @@ public class Message {
      */
     public static byte[] bitmapToByteArray(Bitmap image) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
         return stream.toByteArray();
     }
 }
