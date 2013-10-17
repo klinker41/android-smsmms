@@ -256,7 +256,7 @@ public class Transaction {
             byte[] imageBytes = Message.bitmapToByteArray(image[i]);
 
             MMSPart part = new MMSPart();
-            part.MimeType = "image/jpg";
+            part.MimeType = "image/jpeg";
             part.Name = "Image";
             part.Data = imageBytes;
             data.add(part);
