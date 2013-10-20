@@ -566,9 +566,9 @@ public class Transaction {
 
             @Override
             public void run() {
-                try {
-                    List<APN> apns = new ArrayList<APN>();
+                List<APN> apns = new ArrayList<APN>();
 
+                try {
                     APN apn = new APN(settings.getMmsc(), settings.getPort(), settings.getProxy());
                     apns.add(apn);
 
