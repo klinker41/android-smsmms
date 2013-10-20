@@ -566,15 +566,15 @@ public class Transaction {
 
             @Override
             public void run() {
-                List<APN> apns = new ArrayList<APN>();
-
-                APN apn = new APN(settings.getMmsc(), settings.getPort(), settings.getProxy());
-                apns.add(apn);
-
-                String mmscUrl = apns.get(0).MMSCenterUrl != null ? apns.get(0).MMSCenterUrl.trim() : null;
-                apns.get(0).MMSCenterUrl = mmscUrl;
-
                 try {
+                    List<APN> apns = new ArrayList<APN>();
+
+                    APN apn = new APN(settings.getMmsc(), settings.getPort(), settings.getProxy());
+                    apns.add(apn);
+
+                    String mmscUrl = apns.get(0).MMSCenterUrl != null ? apns.get(0).MMSCenterUrl.trim() : null;
+                    apns.get(0).MMSCenterUrl = mmscUrl;
+
                     if (apns.get(0).MMSCenterUrl.equals("")) {
                         // attempt to get apns from internal databases, most likely will fail due to insignificant permissions
                         APNHelper helper = new APNHelper(context);
