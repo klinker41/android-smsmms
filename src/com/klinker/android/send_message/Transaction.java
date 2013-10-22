@@ -319,14 +319,9 @@ public class Transaction {
                         partPdu.setName(part.Name.getBytes());
                         partPdu.setContentType(part.MimeType.getBytes());
 
-                        String location = "";
                         if (part.MimeType.startsWith("text")) {
-                            location = "text_" + i + ".txt";
                             partPdu.setCharset(CharacterSets.UTF_8);
-                        } else {
-                            location = ""
                         }
-
 
                         partPdu.setData(part.Data);
                         pduBody.addPart(partPdu);
