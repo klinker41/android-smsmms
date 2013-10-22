@@ -35,17 +35,21 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
+import com.android.mms.dom.smil.parser.SmilXmlSerializer;
 import com.android.mms.transaction.HttpUtils;
 import com.android.mms.transaction.ProgressCallbackEntity;
 import com.google.android.mms.APN;
 import com.google.android.mms.APNHelper;
+import com.google.android.mms.ContentType;
 import com.google.android.mms.MMSPart;
 import com.google.android.mms.pdu_alt.*;
+import com.google.android.mms.smil.SmilHelper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.koushikdutta.ion.Ion;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -257,17 +261,19 @@ public class Transaction {
 
             MMSPart part = new MMSPart();
             part.MimeType = "image/jpeg";
-            part.Name = "Image";
+            part.Name = "image" + i;
             part.Data = imageBytes;
             data.add(part);
         }
 
-        // add text to the end of the part and send
-        MMSPart part = new MMSPart();
-        part.Name = "Text";
-        part.MimeType = "text/plain";
-        part.Data = text.getBytes();
-        data.add(part);
+        if (!text.equals("")) {
+            // add text to the end of the part and send
+            MMSPart part = new MMSPart();
+            part.Name = "text";
+            part.MimeType = "text/plain";
+            part.Data = text.getBytes();
+            data.add(part);
+        }
 
         // insert the pdu into the database and return the bytes to send
         if (settings.getWifiMmsFix()) {
@@ -305,12 +311,23 @@ public class Transaction {
 
         // assign parts to the pdu body which contains sending data
         if (parts != null) {
-            for (MMSPart part : parts) {
+            for (int i = 0; i < parts.length; i++) {
+                MMSPart part = parts[i];
                 if (part != null) {
                     try {
-                        final PduPart partPdu = new PduPart();
+                        PduPart partPdu = new PduPart();
                         partPdu.setName(part.Name.getBytes());
                         partPdu.setContentType(part.MimeType.getBytes());
+
+                        String location = "";
+                        if (part.MimeType.startsWith("text")) {
+                            location = "text_" + i + ".txt";
+                            partPdu.setCharset(CharacterSets.UTF_8);
+                        } else {
+                            location = ""
+                        }
+
+
                         partPdu.setData(part.Data);
                         pduBody.addPart(partPdu);
                     } catch (Exception e) {
@@ -319,6 +336,15 @@ public class Transaction {
                 }
             }
         }
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmilXmlSerializer.serialize(SmilHelper.createSmilDocument(pduBody), out);
+        PduPart smilPart = new PduPart();
+        smilPart.setContentId("smil".getBytes());
+        smilPart.setContentLocation("smil.xml".getBytes());
+        smilPart.setContentType(ContentType.APP_SMIL.getBytes());
+        smilPart.setData(out.toByteArray());
+        pduBody.addPart(0, smilPart);
 
         sendRequest.setBody(pduBody);
 
