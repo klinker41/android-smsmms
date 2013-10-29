@@ -62,9 +62,11 @@ import java.util.concurrent.ExecutionException;
  */
 public class Transaction {
 
-    public Settings settings;
-    public Context context;
-    public ConnectivityManager mConnMgr;
+    private Settings settings;
+    private Context context;
+    private ConnectivityManager mConnMgr;
+
+    private boolean saveMessage = true;
 
     public static final String SMS_SENT = "com.klinker.android.send_message.SMS_SENT";
     public static final String SMS_DELIVERED = "com.klinker.android.send_message.SMS_DELIVERED";
@@ -84,7 +86,7 @@ public class Transaction {
      * @param context is the context of the activity or service
      */
     public Transaction(Context context) {
-        settings = new Settings();
+        this.settings = new Settings();
         this.context = context;
     }
 
@@ -107,6 +109,7 @@ public class Transaction {
      * @param threadId is the thread id of who to send the message to (can also be set to Transaction.NO_THREAD_ID)
      */
     public void sendNewMessage(Message message, long threadId) {
+        this.saveMessage = message.getSave();
 
         // if message:
         //      1) Has images attached
@@ -179,8 +182,8 @@ public class Transaction {
                 ArrayList<String> parts = smsManager.divideMessage(textToSend[i]);
 
                 for (int j = 0; j < parts.size(); j++) {
-                    sPI.add(sentPI);
-                    dPI.add(settings.getDeliveryReports() ? deliveredPI : null);
+                    sPI.add(saveMessage ? sentPI : null);
+                    dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
                 }
 
                 for (int j = 0; j < addresses.length; j++) {
@@ -192,8 +195,8 @@ public class Transaction {
             ArrayList<String> parts = smsManager.divideMessage(body);
 
             for (int i = 0; i < parts.size(); i++) {
-                sPI.add(sentPI);
-                dPI.add(settings.getDeliveryReports() ? deliveredPI : null);
+                sPI.add(saveMessage ? sentPI : null);
+                dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
             }
 
             try {
@@ -218,27 +221,29 @@ public class Transaction {
             }
         }
 
-        // add signature to original text to be saved in database (does not strip unicode for saving though)
-        if (!settings.getSignature().equals("")) {
-            text += "\n" + settings.getSignature();
-        }
-
-        // save the message for each of the addresses
-        for (int i = 0; i < addresses.length; i++) {
-            Calendar cal = Calendar.getInstance();
-            ContentValues values = new ContentValues();
-            values.put("address", addresses[i]);
-            values.put("body", settings.getStripUnicode() ? StripAccents.stripAccents(text) : text);
-            values.put("date", cal.getTimeInMillis() + "");
-            values.put("read", 1);
-
-            // attempt to create correct thread id if one is not supplied
-            if (threadId == NO_THREAD_ID || addresses.length > 1) {
-                threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
+        if (saveMessage) {
+            // add signature to original text to be saved in database (does not strip unicode for saving though)
+            if (!settings.getSignature().equals("")) {
+                text += "\n" + settings.getSignature();
             }
 
-            values.put("thread_id", threadId);
-            context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
+            // save the message for each of the addresses
+            for (int i = 0; i < addresses.length; i++) {
+                Calendar cal = Calendar.getInstance();
+                ContentValues values = new ContentValues();
+                values.put("address", addresses[i]);
+                values.put("body", settings.getStripUnicode() ? StripAccents.stripAccents(text) : text);
+                values.put("date", cal.getTimeInMillis() + "");
+                values.put("read", 1);
+
+                // attempt to create correct thread id if one is not supplied
+                if (threadId == NO_THREAD_ID || addresses.length > 1) {
+                    threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
+                }
+
+                values.put("thread_id", threadId);
+                context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
+            }
         }
     }
 
@@ -357,15 +362,17 @@ public class Transaction {
         final PduComposer composer = new PduComposer(context, sendRequest);
         final byte[] bytesToSend = composer.make();
 
-        try {
-            PduPersister persister = PduPersister.getPduPersister(context);
-            persister.persist(sendRequest, Telephony.Mms.Outbox.CONTENT_URI, true, settings.getGroup(), null);
-        } catch (Exception e) {
-            Log.v("sending_mms_library", "error saving mms message");
-            e.printStackTrace();
+        if (saveMessage) {
+            try {
+                PduPersister persister = PduPersister.getPduPersister(context);
+                persister.persist(sendRequest, Telephony.Mms.Outbox.CONTENT_URI, true, settings.getGroup(), null);
+            } catch (Exception e) {
+                Log.v("sending_mms_library", "error saving mms message");
+                e.printStackTrace();
 
-            // use the old way if something goes wrong with the persister
-            insert(recipients, parts, subject);
+                // use the old way if something goes wrong with the persister
+                insert(recipients, parts, subject);
+            }
         }
 
         return bytesToSend;
@@ -374,21 +381,23 @@ public class Transaction {
     private void sendVoiceMessage(String text, String[] addresses, long threadId) {
         // send a voice message to each recipient based off of koush's voice implementation in Voice+
         for (int i = 0; i < addresses.length; i++) {
-            Calendar cal = Calendar.getInstance();
-            ContentValues values = new ContentValues();
-            values.put("address", addresses[i]);
-            values.put("body", text);
-            values.put("date", cal.getTimeInMillis() + "");
-            values.put("read", 1);
-            values.put("status", 2);   // if you want to be able to tell the difference between sms and voice, look for this value. SMS will be -1, 0, 64, 128 and voice will be 2
+            if (saveMessage) {
+                Calendar cal = Calendar.getInstance();
+                ContentValues values = new ContentValues();
+                values.put("address", addresses[i]);
+                values.put("body", text);
+                values.put("date", cal.getTimeInMillis() + "");
+                values.put("read", 1);
+                values.put("status", 2);   // if you want to be able to tell the difference between sms and voice, look for this value. SMS will be -1, 0, 64, 128 and voice will be 2
 
-            // attempt to create correct thread id if one is not supplied
-            if (threadId == NO_THREAD_ID || addresses.length > 1) {
-                threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
+                // attempt to create correct thread id if one is not supplied
+                if (threadId == NO_THREAD_ID || addresses.length > 1) {
+                    threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
+                }
+
+                values.put("thread_id", threadId);
+                context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
             }
-
-            values.put("thread_id", threadId);
-            context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
 
             if (!settings.getSignature().equals("")) {
                 text += "\n" + settings.getSignature();
@@ -654,16 +663,18 @@ public class Transaction {
                     context.sendBroadcast(progressIntent);
 
                     if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
-                        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
-                        query.moveToFirst();
-                        String id = query.getString(query.getColumnIndex("_id"));
-                        query.close();
+                        if (saveMessage) {
+                            Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
+                            query.moveToFirst();
+                            String id = query.getString(query.getColumnIndex("_id"));
+                            query.close();
 
-                        // move to the sent box
-                        ContentValues values = new ContentValues();
-                        values.put("msg_box", 2);
-                        String where = "_id" + " = '" + id + "'";
-                        context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+                            // move to the sent box
+                            ContentValues values = new ContentValues();
+                            values.put("msg_box", 2);
+                            String where = "_id" + " = '" + id + "'";
+                            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+                        }
 
                         context.sendBroadcast(new Intent(REFRESH));
                         context.unregisterReceiver(this);
@@ -735,16 +746,18 @@ public class Transaction {
             reinstateWifi();
         }
 
-        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
-        query.moveToFirst();
-        String id = query.getString(query.getColumnIndex("_id"));
-        query.close();
+        if (saveMessage) {
+            Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
+            query.moveToFirst();
+            String id = query.getString(query.getColumnIndex("_id"));
+            query.close();
 
-        // mark message as failed
-        ContentValues values = new ContentValues();
-        values.put("msg_box", 5);
-        String where = "_id" + " = '" + id + "'";
-        context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+            // mark message as failed
+            ContentValues values = new ContentValues();
+            values.put("msg_box", 5);
+            String where = "_id" + " = '" + id + "'";
+            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+        }
 
         ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
 
@@ -815,36 +828,40 @@ public class Transaction {
     }
 
     private void failVoice() {
-        Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
+        if (saveMessage) {
+            Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
-        // mark message as failed
-        if (query.moveToFirst()) {
-            String id = query.getString(query.getColumnIndex("_id"));
-            ContentValues values = new ContentValues();
-            values.put("type", "5");
-            values.put("read", true);
-            context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+            // mark message as failed
+            if (query.moveToFirst()) {
+                String id = query.getString(query.getColumnIndex("_id"));
+                ContentValues values = new ContentValues();
+                values.put("type", "5");
+                values.put("read", true);
+                context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+            }
+
+            query.close();
         }
-
-        query.close();
 
         context.sendBroadcast(new Intent(REFRESH));
         context.sendBroadcast(new Intent(VOICE_FAILED));
     }
 
     private void successVoice() {
-        Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
+        if (saveMessage) {
+            Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
-        // mark message as sent successfully
-        if (query.moveToFirst()) {
-            String id = query.getString(query.getColumnIndex("_id"));
-            ContentValues values = new ContentValues();
-            values.put("type", "2");
-            values.put("read", true);
-            context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+            // mark message as sent successfully
+            if (query.moveToFirst()) {
+                String id = query.getString(query.getColumnIndex("_id"));
+                ContentValues values = new ContentValues();
+                values.put("type", "2");
+                values.put("read", true);
+                context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+            }
+
+            query.close();
         }
-
-        query.close();
 
         context.sendBroadcast(new Intent(REFRESH));
     }

@@ -33,6 +33,7 @@ public class Message {
     private Bitmap[] images;
     private byte[] media;
     private String mediaMimeType;
+    private boolean save;
 
     /**
      * Default constructor
@@ -75,6 +76,7 @@ public class Message {
         this.subject = null;
         this.media = new byte[0];
         this.mediaMimeType = null;
+        this.save = true;
     }
 
     /**
@@ -91,6 +93,7 @@ public class Message {
         this.subject = subject;
         this.media = new byte[0];
         this.mediaMimeType = null;
+        this.save = true;
     }
 
     /**
@@ -176,6 +179,7 @@ public class Message {
         this.subject = null;
         this.media = new byte[0];
         this.mediaMimeType = null;
+        this.save = true;
     }
 
     /**
@@ -193,6 +197,7 @@ public class Message {
         this.subject = subject;
         this.media = new byte[0];
         this.mediaMimeType = null;
+        this.save = true;
     }
 
     /**
@@ -280,6 +285,15 @@ public class Message {
      */
     public void setSubject(String subject) {
         this.subject = subject;
+    }
+
+    /**
+     * Sets whether or not to save a message to the database
+     *
+     * @param save is whether or not to save the message
+     */
+    public void setSave(boolean save) {
+        this.save = save;
     }
 
     /**
@@ -376,6 +390,15 @@ public class Message {
      */
     public String getSubject() {
         return this.subject;
+    }
+
+    /**
+     * Gets whether or not to save the message to the database
+     *
+     * @return a boolean of whether or not to save
+     */
+    public boolean getSave() {
+        return this.save;
     }
 
     /**
