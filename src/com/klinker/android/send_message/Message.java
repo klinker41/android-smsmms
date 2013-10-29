@@ -31,6 +31,8 @@ public class Message {
     private String subject;
     private String[] addresses;
     private Bitmap[] images;
+    private byte[] media;
+    private String mediaMimeType;
 
     /**
      * Default constructor
@@ -71,6 +73,8 @@ public class Message {
         this.addresses = addresses;
         this.images = new Bitmap[0];
         this.subject = null;
+        this.media = new byte[0];
+        this.mediaMimeType = null;
     }
 
     /**
@@ -85,6 +89,8 @@ public class Message {
         this.addresses = addresses;
         this.images = new Bitmap[0];
         this.subject = subject;
+        this.media = new byte[0];
+        this.mediaMimeType = null;
     }
 
     /**
@@ -168,6 +174,8 @@ public class Message {
         this.addresses = addresses;
         this.images = images;
         this.subject = null;
+        this.media = new byte[0];
+        this.mediaMimeType = null;
     }
 
     /**
@@ -183,6 +191,8 @@ public class Message {
         this.addresses = addresses;
         this.images = images;
         this.subject = subject;
+        this.media = new byte[0];
+        this.mediaMimeType = null;
     }
 
     /**
@@ -230,6 +240,37 @@ public class Message {
     public void setImage(Bitmap image) {
         this.images = new Bitmap[1];
         this.images[0] = image;
+    }
+    
+    /**
+     * Sets audio file
+     *
+     * @param audio is the single audio sample to send to recipient
+     */
+    public void setAudio(byte[] audio) {
+        this.media = audio;
+        this.mediaMimeType = "audio/wav";
+    }
+
+    /**
+     * Sets video file
+     *
+     * @param video is the single video sample to send to recipient
+     */
+    public void setVideo(byte[] video) {
+        this.media = video;
+        this.mediaMimeType = "video/3gpp";
+    }
+
+    /**
+     * Sets other media
+     *
+     * @param media is the media you want to send
+     * @param mimeType is the mimeType of the media
+     */
+    public void setMedia(byte[] media, String mimeType) {
+        this.media = media;
+        this.mediaMimeType = mimeType;
     }
 
     /**
@@ -308,6 +349,24 @@ public class Message {
      */
     public Bitmap[] getImages() {
         return this.images;
+    }
+    
+    /**
+     * Gets the audio sample in the message
+     *
+     * @return an array of bytes with audio information for the message
+     */
+    public byte[] getMedia() {
+        return this.media;
+    }
+
+    /**
+     * Gets the mimetype of the extra media (eg, audio or video)
+     *
+     * @return a string of the mimetype
+     */
+    public String getMediaMimeType() {
+        return this.mediaMimeType;
     }
 
     /**

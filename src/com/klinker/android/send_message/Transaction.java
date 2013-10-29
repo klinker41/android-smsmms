@@ -120,7 +120,7 @@ public class Transaction {
         //
         // then, send as MMS, else send as Voice or SMS
         if (checkMMS(message)) {
-            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getSubject());
+            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getMedia(), message.getMediaMimeType(), message.getSubject());
         } else {
             if (settings.getPreferVoice()) {
                 sendVoiceMessage(message.getText(), message.getAddresses(), threadId);
@@ -242,7 +242,7 @@ public class Transaction {
         }
     }
 
-    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, String subject) {
+    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, byte[] media, String mimeType, String subject) {
         // merge the string[] of addresses into a single string so they can be inserted into the database easier
         String address = "";
 
@@ -266,6 +266,16 @@ public class Transaction {
             data.add(part);
         }
 
+        // add any extra media according to their mimeType set in the message
+        //      eg. videos, audio, contact cards, location maybe?
+        if (media.length > 0 && mimeType != null) {
+            MMSPart part = new MMSPart();
+            part.MimeType = mimeType;
+            part.Name = mimeType.split("/")[0];
+            part.Data = media;
+            data.add(part);     	
+        }
+        
         if (!text.equals("")) {
             // add text to the end of the part and send
             MMSPart part = new MMSPart();
@@ -1012,6 +1022,7 @@ public class Transaction {
      */
     public boolean checkMMS(Message message) {
         return message.getImages().length != 0 ||
+                (message.getMedia().length != 0 && message.getMediaMimeType() != null) ||
                 (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) ||
                 (message.getAddresses().length > 1 && settings.getGroup()) ||
                 message.getSubject() != null;
