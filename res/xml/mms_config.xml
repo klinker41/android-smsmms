@@ -25,15 +25,6 @@
     <!-- Flag indicating whether MMS should be enabled -->
     <bool name="enabledMMS">true</bool>
 
-    <!-- Maximum message size in bytes for a MMS message -->
-    <int name="maxMessageSize">307200</int>
-
-    <!-- Maximum height for an attached image -->
-    <int name="maxImageHeight">480</int>
-
-    <!-- Maximum width for an attached image -->
-    <int name="maxImageWidth">640</int>
-
     <!-- Maximum number of SMS message to save per thread before auto-delete kicks in.
          This is the default value. -->
     <int name="defaultSMSMessagesPerThread">500</int>
