@@ -627,10 +627,9 @@ public class Transaction {
                     return;
                 }
 
-                Log.v("sending_mms_library", apns.get(0).MMSCenterUrl + " " + apns.get(0).MMSProxy + " " + apns.get(0).MMSPort);
-
                 try {
                     // attempts to send the message using given apns
+                    Log.v("sending_mms_library", apns.get(0).MMSCenterUrl + " " + apns.get(0).MMSProxy + " " + apns.get(0).MMSPort);
                     Log.v("sending_mms_libarry", "initial attempt at sending starting now");
                     trySending(apns.get(0), bytesToSend, 0);
                 } catch (Exception e) {
