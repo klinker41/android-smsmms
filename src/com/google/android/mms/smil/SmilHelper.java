@@ -1,5 +1,6 @@
 package com.google.android.mms.smil;
 
+import android.util.Log;
 import com.android.mms.dom.smil.SmilDocumentImpl;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.pdu_alt.PduBody;
@@ -13,6 +14,7 @@ public class SmilHelper {
     public static final String ELEMENT_TAG_IMAGE = "img";
     public static final String ELEMENT_TAG_AUDIO = "audio";
     public static final String ELEMENT_TAG_VIDEO = "video";
+    public static final String ELEMENT_TAG_VCARD = "vcard";
 
     public static SMILDocument createSmilDocument(PduBody pb) {
 
@@ -76,7 +78,13 @@ public class SmilHelper {
                         ELEMENT_TAG_AUDIO, document, part.generateLocation());
                 par.appendChild(audioElement);
                 hasMedia = true;
+            } else if (contentType.equals(ContentType.TEXT_VCARD)) {
+                SMILMediaElement textElement = createMediaElement(
+                        ELEMENT_TAG_VCARD, document, part.generateLocation());
+                par.appendChild(textElement);
+                hasMedia = true;
             } else {
+                Log.e("creating_smil_document", "unknown mimetype");
             }
         }
 
