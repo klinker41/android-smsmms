@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2007-2008 Esmertec AG.
  * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +44,9 @@ public class ContentType {
 
     public static final String AUDIO_UNSPECIFIED = "audio/*";
     public static final String AUDIO_AAC         = "audio/aac";
+    public static final String AUDIO_AAC_MP4     = "audio/aac_mp4";
+    public static final String AUDIO_QCELP       = "audio/qcelp";
+    public static final String AUDIO_EVRC        = "audio/evrc";
     public static final String AUDIO_AMR         = "audio/amr";
     public static final String AUDIO_IMELODY     = "audio/imelody";
     public static final String AUDIO_MID         = "audio/mid";
@@ -95,6 +99,9 @@ public class ContentType {
         //supportedContentTypes.add(IMAGE_SVG); not yet supported.
 
         sSupportedContentTypes.add(AUDIO_AAC);
+        sSupportedContentTypes.add(AUDIO_AAC_MP4);
+        sSupportedContentTypes.add(AUDIO_QCELP);
+        sSupportedContentTypes.add(AUDIO_EVRC);
         sSupportedContentTypes.add(AUDIO_AMR);
         sSupportedContentTypes.add(AUDIO_IMELODY);
         sSupportedContentTypes.add(AUDIO_MID);
@@ -136,6 +143,9 @@ public class ContentType {
 
         // add supported audio types
         sSupportedAudioTypes.add(AUDIO_AAC);
+        sSupportedAudioTypes.add(AUDIO_AAC_MP4);
+        sSupportedAudioTypes.add(AUDIO_QCELP);
+        sSupportedAudioTypes.add(AUDIO_EVRC);
         sSupportedAudioTypes.add(AUDIO_AMR);
         sSupportedAudioTypes.add(AUDIO_IMELODY);
         sSupportedAudioTypes.add(AUDIO_MID);
