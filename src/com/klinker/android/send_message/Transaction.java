@@ -339,6 +339,9 @@ public class Transaction {
                         }
 
                         partPdu.setData(part.Data);
+                        partPdu.setContentId((Calendar.getInstance().getTimeInMillis() + "").getBytes());
+                        partPdu.setContentLocation(partPdu.generateLocation().getBytes());
+
                         pduBody.addPart(partPdu);
                     } catch (Exception e) {
 
