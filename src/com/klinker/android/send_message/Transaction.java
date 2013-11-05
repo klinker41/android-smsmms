@@ -212,7 +212,7 @@ public class Transaction {
 
                         @Override
                         public void run() {
-                            Toast.makeText(context, "Error, check the \"Split SMS\" option in advanced settings and retry.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, "Message could not be sent", Toast.LENGTH_LONG).show();
                         }
                     });
                 } catch (Exception f) {
@@ -766,6 +766,7 @@ public class Transaction {
             @Override
             public void run() {
                 context.sendBroadcast(new Intent(REFRESH));
+                context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
 
                 // broadcast that mms has failed and you can notify user from there if you would like
                 context.sendBroadcast(new Intent(MMS_ERROR));

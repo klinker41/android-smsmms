@@ -1378,9 +1378,6 @@ public class PduPersister {
                 }
             }
         }
-        // Record whether this mms message is a simple plain text or not. This is a hint for the
-        // UI.
-        values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
 
         Uri res = null;
         if (existingUri) {
