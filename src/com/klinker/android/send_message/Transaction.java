@@ -68,8 +68,8 @@ public class Transaction {
 
     private boolean saveMessage = true;
 
-    public static final String SMS_SENT = "com.klinker.android.send_message.SMS_SENT";
-    public static final String SMS_DELIVERED = "com.klinker.android.send_message.SMS_DELIVERED";
+    public static String SMS_SENT = ".SMS_SENT";
+    public static String SMS_DELIVERED = ".SMS_DELIVERED";
     public static final String MMS_ERROR = "com.klinker.android.send_message.MMS_ERROR";
     public static final String REFRESH = "com.klinker.android.send_message.REFRESH";
     public static final String MMS_PROGRESS = "com.klinker.android.send_message.MMS_PROGRESS";
@@ -86,8 +86,7 @@ public class Transaction {
      * @param context is the context of the activity or service
      */
     public Transaction(Context context) {
-        this.settings = new Settings();
-        this.context = context;
+        this(context, new Settings());
     }
 
     /**
@@ -99,6 +98,9 @@ public class Transaction {
     public Transaction(Context context, Settings settings) {
         this.settings = settings;
         this.context = context;
+
+        Transaction.SMS_SENT = context.getPackageName() + Transaction.SMS_SENT;
+        Transaction.SMS_DELIVERED = context.getPackageName() + Transaction.SMS_DELIVERED;
     }
 
     /**
