@@ -76,16 +76,18 @@ You'll also need to register a few receivers for when the messages have been sen
 ```xml
 <receiver android:name="com.klinker.android.send_message.SentReceiver" >
 	<intent-filter>
-		<action android:name="com.klinker.android.send_message.SMS_SENT" />
+		<action android:name="[insert package name here].SMS_SENT" />
 	</intent-filter> 
 </receiver>
         
 <receiver android:name="com.klinker.android.send_message.DeliveredReceiver" >
 	<intent-filter>
-                <action android:name="com.klinker.android.send_message.SMS_DELIVERED" />
+                <action android:name="[insert package name here].SMS_DELIVERED" />
 	</intent-filter> 
 </receiver>
 ```
+
+Be sure to replace the [insert package name here] with your package name defined in the manifest. For example, Sliding Messaging's is com.klinker.android.messaging_donate.
 
 Lastly, you'll need to include permissions in your manifest depending on what you want to do. Here are all of them:
 
