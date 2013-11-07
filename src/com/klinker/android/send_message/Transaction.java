@@ -68,8 +68,9 @@ public class Transaction {
 
     private boolean saveMessage = true;
 
-    public static String SMS_SENT = ".SMS_SENT";
-    public static String SMS_DELIVERED = ".SMS_DELIVERED";
+    public String SMS_SENT = ".SMS_SENT";
+    public String SMS_DELIVERED = ".SMS_DELIVERED";
+
     public static final String MMS_ERROR = "com.klinker.android.send_message.MMS_ERROR";
     public static final String REFRESH = "com.klinker.android.send_message.REFRESH";
     public static final String MMS_PROGRESS = "com.klinker.android.send_message.MMS_PROGRESS";
@@ -99,8 +100,8 @@ public class Transaction {
         this.settings = settings;
         this.context = context;
 
-        Transaction.SMS_SENT = context.getPackageName() + Transaction.SMS_SENT;
-        Transaction.SMS_DELIVERED = context.getPackageName() + Transaction.SMS_DELIVERED;
+        SMS_SENT = context.getPackageName() + SMS_SENT;
+        SMS_DELIVERED = context.getPackageName() + SMS_DELIVERED;
     }
 
     /**
@@ -341,7 +342,6 @@ public class Transaction {
                         }
 
                         partPdu.setData(part.Data);
-                        partPdu.setContentId((Calendar.getInstance().getTimeInMillis() + "").getBytes());
 
                         pduBody.addPart(partPdu);
                     } catch (Exception e) {
