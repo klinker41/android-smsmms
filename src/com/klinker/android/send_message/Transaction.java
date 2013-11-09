@@ -71,13 +71,13 @@ public class Transaction {
     public String SMS_SENT = ".SMS_SENT";
     public String SMS_DELIVERED = ".SMS_DELIVERED";
 
+    public static String NOTIFY_SMS_FAILURE = ".NOTIFY_SMS_FAILURE";
     public static final String MMS_ERROR = "com.klinker.android.send_message.MMS_ERROR";
     public static final String REFRESH = "com.klinker.android.send_message.REFRESH";
     public static final String MMS_PROGRESS = "com.klinker.android.send_message.MMS_PROGRESS";
     public static final String VOICE_FAILED = "com.klinker.android.send_message.VOICE_FAILED";
     public static final String VOICE_TOKEN = "com.klinker.android.send_message.RNRSE";
     public static final String NOTIFY_OF_DELIVERY = "com.klinker.android.send_message.NOTIFY_DELIVERY";
-    public static final String NOTIFY_SMS_FAILURE = "com.klinker.android.send_message.NOTIFY_SMS_FAILURE";
 
     public static final long NO_THREAD_ID = 0;
 
@@ -102,6 +102,10 @@ public class Transaction {
 
         SMS_SENT = context.getPackageName() + SMS_SENT;
         SMS_DELIVERED = context.getPackageName() + SMS_DELIVERED;
+
+        if (NOTIFY_SMS_FAILURE.equals(".NOTIFY_SMS_FAILURE")) {
+            NOTIFY_SMS_FAILURE = context.getPackageName() + NOTIFY_SMS_FAILURE;
+        }
     }
 
     /**
@@ -767,7 +771,7 @@ public class Transaction {
             @Override
             public void run() {
                 context.sendBroadcast(new Intent(REFRESH));
-                context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
+                context.sendBroadcast(new Intent(NOTIFY_SMS_FAILURE));
 
                 // broadcast that mms has failed and you can notify user from there if you would like
                 context.sendBroadcast(new Intent(MMS_ERROR));
