@@ -245,7 +245,7 @@ public class Transaction {
 
                 // attempt to create correct thread id if one is not supplied
                 if (threadId == NO_THREAD_ID || addresses.length > 1) {
-                    threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
+                    threadId = Utils.getOrCreateThreadId(context, addresses[i]);
                 }
 
                 values.put("thread_id", threadId);
@@ -400,7 +400,7 @@ public class Transaction {
 
                 // attempt to create correct thread id if one is not supplied
                 if (threadId == NO_THREAD_ID || addresses.length > 1) {
-                    threadId = Telephony.Threads.getOrCreateThreadId(context, addresses[i]);
+                    threadId = Utils.getOrCreateThreadId(context, addresses[i]);
                 }
 
                 values.put("thread_id", threadId);
@@ -923,7 +923,7 @@ public class Transaction {
 
             Set<String> recipients = new HashSet<String>();
             recipients.addAll(Arrays.asList(to));
-            long thread_id = Telephony.Threads.getOrCreateThreadId(context, recipients);
+            long thread_id = Utils.getOrCreateThreadId(context, recipients);
 
             // Create a dummy sms
             ContentValues dummyValues = new ContentValues();
