@@ -16,14 +16,19 @@
 
 package com.android.mms;
 
-import android.content.Context;
-import android.content.res.XmlResourceParser;
-import android.util.Log;
+import java.io.IOException;
+
 import com.klinker.android.send_message.R;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.XmlResourceParser;
+import android.preference.PreferenceManager;
+import android.provider.Telephony;
+import android.util.Log;
 
 public class MmsConfig {
     private static final String TAG = "MmsConfig";
@@ -32,6 +37,10 @@ public class MmsConfig {
 
     private static final String DEFAULT_HTTP_KEY_X_WAP_PROFILE = "x-wap-profile";
     private static final String DEFAULT_USER_AGENT = "Android-Mms/2.0";
+
+    private static final String MMS_APP_PACKAGE = "com.android.mms";
+
+    private static final String SMS_PROMO_DISMISSED_KEY = "sms_promo_dismissed_key";
 
     private static final int MAX_IMAGE_HEIGHT = 480;
     private static final int MAX_IMAGE_WIDTH = 640;
@@ -52,11 +61,11 @@ public class MmsConfig {
     private static int mMaxImageHeight = MAX_IMAGE_HEIGHT;      // default value
     private static int mMaxImageWidth = MAX_IMAGE_WIDTH;        // default value
     private static int mRecipientLimit = Integer.MAX_VALUE;     // default value
-    private static int mDefaultSMSMessagesPerThread = 500;      // default value
-    private static int mDefaultMMSMessagesPerThread = 50;       // default value
+    private static int mDefaultSMSMessagesPerThread = 10000;    // default value
+    private static int mDefaultMMSMessagesPerThread = 1000;     // default value
     private static int mMinMessageCountPerThread = 2;           // default value
     private static int mMaxMessageCountPerThread = 5000;        // default value
-    private static int mHttpSocketTimeout = 60 * 1000;            // default to 1 min
+    private static int mHttpSocketTimeout = 60*1000;            // default to 1 min
     private static int mMinimumSlideElementDuration = 7;        // default to 7 sec
     private static boolean mNotifyWapMMSC = false;
     private static boolean mAllowAttachAudio = true;
@@ -67,15 +76,12 @@ public class MmsConfig {
     // than a single segment (i.e. 140 chars), then the message will turn into and be sent
     // as an mms message. This feature exists for carriers that don't support multi-part sms's.
     private static boolean mEnableMultipartSMS = true;
-
+    
     // By default, the radio splits multipart sms, not the application. If the carrier or radio
     // does not support this, and the recipient gets garbled text, set this to true. If this is
     // true and mEnableMultipartSMS is false, the mSmsToMmsTextThreshold will be observed,
     // converting to mms if we reach the required number of segments.
     private static boolean mEnableSplitSMS = false;
-
-    // Support to hide sprint VVM's 9016 text mesages.
-    private static boolean mEnableSprintVVM = false;
 
     // If mEnableMultipartSMS is true and mSmsToMmsTextThreshold > 1, then multi-part SMS messages
     // will be converted into a single mms message. For example, if the mms_config.xml file
@@ -100,7 +106,7 @@ public class MmsConfig {
     private static int mAliasRuleMaxChars = 48;
 
     private static int mMaxSubjectLength = 40;  // maximum number of characters allowed for mms
-    // subject
+                                                // subject
 
     // If mEnableGroupMms is true, a message with multiple recipients, regardless of contents,
     // will be sent as a single MMS message with multiple "TO" fields set for each recipient.
@@ -112,8 +118,36 @@ public class MmsConfig {
         if (LOCAL_LOGV) {
             Log.v(TAG, "MmsConfig.init()");
         }
+        // Always put the mnc/mcc in the log so we can tell which mms_config.xml was loaded.
 
         loadMmsSettings(context);
+    }
+
+    public static boolean isSmsEnabled(Context context) {
+        String defaultSmsApplication = Telephony.Sms.getDefaultSmsPackage(context);
+
+        if (defaultSmsApplication != null && defaultSmsApplication.equals(MMS_APP_PACKAGE)) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isSmsPromoDismissed(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getBoolean(SMS_PROMO_DISMISSED_KEY, false);
+    }
+
+    public static void setSmsPromoDismissed(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(SMS_PROMO_DISMISSED_KEY, true);
+        editor.apply();
+    }
+
+    public static Intent getRequestDefaultSmsAppActivity() {
+        final Intent intent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+        intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, MMS_APP_PACKAGE);
+        return intent;
     }
 
     public static int getSmsToMmsTextThreshold() {
@@ -128,7 +162,7 @@ public class MmsConfig {
         if (LOCAL_LOGV) {
             Log.v(TAG, "MmsConfig.getMaxMessageSize(): " + mMaxMessageSize);
         }
-        return mMaxMessageSize;
+       return mMaxMessageSize;
     }
 
     /**
@@ -260,18 +294,15 @@ public class MmsConfig {
         return mEnableGroupMms;
     }
 
-    public static boolean isSuppressedSprintVVM(String address) {
-        return mEnableSprintVVM && address.contentEquals("9016");
-    }
-
-    public static final void beginDocument(XmlPullParser parser, String firstElementName) throws XmlPullParserException, IOException {
+    public static final void beginDocument(XmlPullParser parser, String firstElementName) throws XmlPullParserException, IOException
+    {
         int type;
-        while ((type = parser.next()) != XmlPullParser.START_TAG
-                && type != XmlPullParser.END_DOCUMENT) {
+        while ((type=parser.next()) != parser.START_TAG
+                   && type != parser.END_DOCUMENT) {
             ;
         }
 
-        if (type != XmlPullParser.START_TAG) {
+        if (type != parser.START_TAG) {
             throw new XmlPullParserException("No start tag found");
         }
 
@@ -281,10 +312,11 @@ public class MmsConfig {
         }
     }
 
-    public static final void nextElement(XmlPullParser parser) throws XmlPullParserException, IOException {
+    public static final void nextElement(XmlPullParser parser) throws XmlPullParserException, IOException
+    {
         int type;
-        while ((type = parser.next()) != XmlPullParser.START_TAG
-                && type != XmlPullParser.END_DOCUMENT) {
+        while ((type=parser.next()) != parser.START_TAG
+                   && type != parser.END_DOCUMENT) {
             ;
         }
     }
@@ -329,8 +361,6 @@ public class MmsConfig {
                             mEnableMultipartSMS = "true".equalsIgnoreCase(text);
                         } else if ("enableSplitSMS".equalsIgnoreCase(value)) {
                             mEnableSplitSMS = "true".equalsIgnoreCase(text);
-                        } else if ("enableSprintVVM".equalsIgnoreCase(value)) {
-                            mEnableSprintVVM = "true".equalsIgnoreCase(text);
                         } else if ("enableSlideDuration".equalsIgnoreCase(value)) {
                             mEnableSlideDuration = "true".equalsIgnoreCase(text);
                         } else if ("enableMMSReadReports".equalsIgnoreCase(value)) {
@@ -416,8 +446,8 @@ public class MmsConfig {
 
         if (errorStr != null) {
             String err =
-                    String.format("MmsConfig.loadMmsSettings mms_config.xml missing %s setting",
-                            errorStr);
+                String.format("MmsConfig.loadMmsSettings mms_config.xml missing %s setting",
+                        errorStr);
             Log.e(TAG, err);
         }
     }

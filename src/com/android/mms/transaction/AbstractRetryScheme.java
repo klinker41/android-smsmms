@@ -28,6 +28,5 @@ public abstract class AbstractRetryScheme {
     }
 
     abstract public int getRetryLimit();
-
     abstract public long getWaitingInterval();
 }

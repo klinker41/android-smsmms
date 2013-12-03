@@ -17,19 +17,6 @@
 
 package com.android.mms.transaction;
 
-import android.content.Context;
-import android.net.http.AndroidHttpClient;
-import android.telephony.TelephonyManager;
-import android.text.TextUtils;
-import com.android.mms.MmsConfig;
-import org.apache.http.*;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.params.ConnRouteParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.SocketException;
@@ -37,10 +24,37 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.params.ConnRouteParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+
+import android.content.Context;
+import android.net.http.AndroidHttpClient;
+import android.telephony.TelephonyManager;
+import android.text.TextUtils;
+import android.util.Config;
+import android.util.Log;
+
+import com.android.mms.MmsConfig;
+
 public class HttpUtils {
+    private static final String TAG = "android-smsmms_transaction";
+
+    private static final boolean DEBUG = false;
+    private static final boolean LOCAL_LOGV = DEBUG ? Config.LOGD : Config.LOGV;
 
     public static final int HTTP_POST_METHOD = 1;
     public static final int HTTP_GET_METHOD = 2;
+
+    private static final int MMS_READ_BUFFER = 4096;
 
     // This is the value to use for the "Accept-Language" header.
     // Once it becomes possible for the user to change the locale
@@ -57,7 +71,7 @@ public class HttpUtils {
     private static final String HDR_KEY_ACCEPT_LANGUAGE = "Accept-Language";
 
     private static final String HDR_VALUE_ACCEPT =
-            "*/*, application/vnd.wap.mms-message, application/vnd.wap.sic";
+        "*/*, application/vnd.wap.mms-message, application/vnd.wap.sic";
 
     private HttpUtils() {
         // To forbidden instantiate this class.
@@ -66,22 +80,34 @@ public class HttpUtils {
     /**
      * A helper method to send or retrieve data through HTTP protocol.
      *
-     * @param token  The token to identify the sending progress.
-     * @param url    The URL used in a GET request. Null when the method is
-     *               HTTP_POST_METHOD.
-     * @param pdu    The data to be POST. Null when the method is HTTP_GET_METHOD.
+     * @param token The token to identify the sending progress.
+     * @param url The URL used in a GET request. Null when the method is
+     *         HTTP_POST_METHOD.
+     * @param pdu The data to be POST. Null when the method is HTTP_GET_METHOD.
      * @param method HTTP_POST_METHOD or HTTP_GET_METHOD.
      * @return A byte array which contains the response data.
-     * If an HTTP error code is returned, an IOException will be thrown.
+     *         If an HTTP error code is returned, an IOException will be thrown.
      * @throws IOException if any error occurred on network interface or
-     *                     an HTTP error code(&gt;=400) returned from the server.
+     *         an HTTP error code(&gt;=400) returned from the server.
      */
     public static byte[] httpConnection(Context context, long token,
-                                        String url, byte[] pdu, int method, boolean isProxySet,
-                                        String proxyHost, int proxyPort) throws IOException {
+            String url, byte[] pdu, int method, boolean isProxySet,
+            String proxyHost, int proxyPort) throws IOException {
         if (url == null) {
             throw new IllegalArgumentException("URL must not be null.");
         }
+
+            Log.v(TAG, "httpConnection: params list");
+            Log.v(TAG, "\ttoken\t\t= " + token);
+            Log.v(TAG, "\turl\t\t= " + url);
+            Log.v(TAG, "\tmethod\t\t= "
+                    + ((method == HTTP_POST_METHOD) ? "POST"
+                            : ((method == HTTP_GET_METHOD) ? "GET" : "UNKNOWN")));
+            Log.v(TAG, "\tisProxySet\t= " + isProxySet);
+            Log.v(TAG, "\tproxyHost\t= " + proxyHost);
+            Log.v(TAG, "\tproxyPort\t= " + proxyPort);
+            // TODO Print out binary data more readable.
+            //Log.v(TAG, "\tpdu\t\t= " + Arrays.toString(pdu));
 
         AndroidHttpClient client = null;
 
@@ -94,10 +120,10 @@ public class HttpUtils {
 
             client = createHttpClient(context);
             HttpRequest req = null;
-            switch (method) {
+            switch(method) {
                 case HTTP_POST_METHOD:
                     ProgressCallbackEntity entity = new ProgressCallbackEntity(
-                            context, token, pdu);
+                                                        context, token, pdu);
                     // Set request content type.
                     entity.setContentType("application/vnd.wap.mms-message");
 
@@ -109,7 +135,9 @@ public class HttpUtils {
                     req = new HttpGet(url);
                     break;
                 default:
-
+                    Log.e(TAG, "Unknown HTTP method: " + method
+                            + ". Must be one of POST[" + HTTP_POST_METHOD
+                            + "] or GET[" + HTTP_GET_METHOD + "].");
                     return null;
             }
 
@@ -128,7 +156,8 @@ public class HttpUtils {
                 String xWapProfileUrl = MmsConfig.getUaProfUrl();
 
                 if (xWapProfileUrl != null) {
-
+                        Log.d(TAG,
+                                "[HttpUtils] httpConn: xWapProfUrl=" + xWapProfileUrl);
                     req.addHeader(xWapProfileTagName, xWapProfileUrl);
                 }
             }
@@ -141,7 +170,7 @@ public class HttpUtils {
             String extraHttpParams = MmsConfig.getHttpParams();
 
             if (extraHttpParams != null) {
-                String line1Number = ((TelephonyManager) context
+                String line1Number = ((TelephonyManager)context
                         .getSystemService(Context.TELEPHONY_SERVICE))
                         .getLine1Number();
                 String line1Key = MmsConfig.getHttpParamsLine1Key();
@@ -184,11 +213,12 @@ public class HttpUtils {
                             try {
                                 dis.close();
                             } catch (IOException e) {
-
+                                Log.e(TAG, "Error closing input stream: " + e.getMessage());
                             }
                         }
                     }
                     if (entity.isChunked()) {
+                        Log.v(TAG, "httpConnection: transfer encoding is chunked");
                         int bytesTobeRead = MmsConfig.getMaxMessageSize();
                         byte[] tempBody = new byte[bytesTobeRead];
                         DataInputStream dis = new DataInputStream(entity.getContent());
@@ -201,6 +231,8 @@ public class HttpUtils {
                                     bytesRead = dis.read(tempBody, offset, bytesTobeRead);
                                 } catch (IOException e) {
                                     readError = true;
+                                    Log.e(TAG, "httpConnection: error reading input stream"
+                                        + e.getMessage());
                                     break;
                                 }
                                 if (bytesRead > 0) {
@@ -213,12 +245,16 @@ public class HttpUtils {
                                 // bytesRead will be -1 if the data was read till the eof
                                 body = new byte[offset];
                                 System.arraycopy(tempBody, 0, body, 0, offset);
+                                Log.v(TAG, "httpConnection: Chunked response length ["
+                                    + Integer.toString(offset) + "]");
                             } else {
+                                Log.e(TAG, "httpConnection: Response entity too large or empty");
                             }
                         } finally {
                             try {
                                 dis.close();
                             } catch (IOException e) {
+                                Log.e(TAG, "Error closing input stream: " + e.getMessage());
                             }
                         }
                     }
@@ -239,7 +275,8 @@ public class HttpUtils {
             handleHttpConnectionException(e, url);
         } catch (Exception e) {
             handleHttpConnectionException(e, url);
-        } finally {
+        }
+        finally {
             if (client != null) {
                 client.close();
             }
@@ -250,6 +287,7 @@ public class HttpUtils {
     private static void handleHttpConnectionException(Exception exception, String url)
             throws IOException {
         // Inner exception should be logged to make life easier.
+        Log.e(TAG, "Url: " + url + "\n" + exception.getMessage());
         IOException e = new IOException(exception.getMessage());
         e.initCause(exception);
         throw e;
@@ -264,6 +302,8 @@ public class HttpUtils {
         // set the socket timeout
         int soTimeout = MmsConfig.getHttpSocketTimeout();
 
+            Log.d(TAG, "[HttpUtils] createHttpClient w/ socket timeout " + soTimeout + " ms, "
+                    + ", UA=" + userAgent);
         HttpConnectionParams.setSoTimeout(params, soTimeout);
         return client;
     }
@@ -274,7 +314,6 @@ public class HttpUtils {
      * Return the Accept-Language header.  Use the current locale plus
      * US if we are in a different locale than US.
      * This code copied from the browser's WebSettings.java
-     *
      * @return Current AcceptLanguage String.
      */
     public static String getCurrentAcceptLanguage(Locale locale) {

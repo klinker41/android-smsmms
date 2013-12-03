@@ -20,8 +20,13 @@ package com.android.mms.transaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.provider.Telephony.Mms;
+import android.util.Log;
+
+import java.lang.reflect.Method;
 
 /**
  * MmsSystemEventReceiver receives the
@@ -35,55 +40,62 @@ import android.provider.Telephony.Mms;
  * </ul>
  */
 public class MmsSystemEventReceiver extends BroadcastReceiver {
-    private static MmsSystemEventReceiver sMmsSystemEventReceiver;
+    private static final String TAG = "MmsSystemEventReceiver";
+    private static ConnectivityManager mConnMgr = null;
 
-    private static void wakeUpService(Context context) {
-
+    public static void wakeUpService(Context context) {
+            Log.v(TAG, "wakeUpService: start transaction service ...");
 
         context.startService(new Intent(context, TransactionService.class));
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
+            Log.v(TAG, "Intent received: " + intent);
 
         String action = intent.getAction();
         if (action.equals(Mms.Intents.CONTENT_CHANGED_ACTION)) {
-            intent.getParcelableExtra(Mms.Intents.DELETED_CONTENTS);
-        } else if (action.equals("android.intent.action.ANY_DATA_STATE")) {
-            String state = intent.getStringExtra("state");
+            Uri changed = (Uri) intent.getParcelableExtra(Mms.Intents.DELETED_CONTENTS);
+        } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+            if (mConnMgr == null) {
+                mConnMgr = (ConnectivityManager) context
+                        .getSystemService(Context.CONNECTIVITY_SERVICE);
+            }
+            boolean mobileDataEnabled = false;
+            try {
+                Class cmClass = Class.forName(mConnMgr.getClass().getName());
+                Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
+                method.setAccessible(true); // Make the method callable
+                // get the setting for "mobile data"
+                mobileDataEnabled = (Boolean)method.invoke(mConnMgr);
+            } catch (Exception e) {
+                // Some problem accessible private API
+                // TODO do whatever error handling you want here
+            }
+            if (!mobileDataEnabled) {
+                    Log.v(TAG, "mobile data turned off, bailing");
+                return;
+            }
+            NetworkInfo mmsNetworkInfo = mConnMgr
+                    .getNetworkInfo(ConnectivityManager.TYPE_MOBILE_MMS);
+            boolean available = mmsNetworkInfo.isAvailable();
+            boolean isConnected = mmsNetworkInfo.isConnected();
 
-            if (state.equals("CONNECTED")) {
+                Log.v(TAG, "TYPE_MOBILE_MMS available = " + available +
+                           ", isConnected = " + isConnected);
+
+            // Wake up transact service when MMS data is available and isn't connected.
+            if (available && !isConnected) {
                 wakeUpService(context);
             }
         } else if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             // We should check whether there are unread incoming
             // messages in the Inbox and then update the notification icon.
-            // Called on the UI thread so don't block
-        }
-    }
+            // Called on the UI thread so don't block.
 
-    public static void registerForConnectionStateChanges(Context context) {
-        unRegisterForConnectionStateChanges(context);
-
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("android.intent.action.ANY_DATA_STATE");
-
-        if (sMmsSystemEventReceiver == null) {
-            sMmsSystemEventReceiver = new MmsSystemEventReceiver();
-        }
-
-        context.registerReceiver(sMmsSystemEventReceiver, intentFilter);
-    }
-
-    public static void unRegisterForConnectionStateChanges(Context context) {
-
-        if (sMmsSystemEventReceiver != null) {
-            try {
-                context.unregisterReceiver(sMmsSystemEventReceiver);
-            } catch (IllegalArgumentException e) {
-                // Allow un-matched register-unregister calls
-            }
+            // Scan and send pending Mms once after boot completed since
+            // ACTION_ANY_DATA_CONNECTION_STATE_CHANGED wasn't registered in a whole life cycle
+            wakeUpService(context);
         }
     }
 }

@@ -17,6 +17,8 @@
 
 package com.android.mms.transaction;
 
+import java.util.Arrays;
+
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -24,19 +26,24 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Sent;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+
 import com.android.mms.util.RateController;
 import com.android.mms.util.SendingProgressTokenManager;
-import com.google.android.mms.pdu_alt.*;
-
-import java.util.Arrays;
+import com.google.android.mms.pdu_alt.EncodedStringValue;
+import com.google.android.mms.pdu_alt.PduComposer;
+import com.google.android.mms.pdu_alt.PduHeaders;
+import com.google.android.mms.pdu_alt.PduParser;
+import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu_alt.SendConf;
+import com.google.android.mms.pdu_alt.SendReq;
+import com.klinker.android.send_message.Utils;
 
 /**
- * The Transaction is responsible for sending multimedia messages
+ * The SendTransaction is responsible for sending multimedia messages
  * (M-Send.req) to the MMSC server.  It:
- * <p/>
+ *
  * <ul>
  * <li>Loads the multimedia message from storage (Outbox).
  * <li>Packs M-Send.req and sends it.
@@ -47,13 +54,13 @@ import java.util.Arrays;
  * </ul>
  */
 public class SendTransaction extends Transaction implements Runnable {
-    private static final String TAG = "Transaction";
+    private static final String TAG = "SendTransaction";
 
     private Thread mThread;
-    private final Uri mSendReqURI;
+    public final Uri mSendReqURI;
 
     public SendTransaction(Context context,
-                           int transId, TransactionSettings connectionSettings, String uri) {
+            int transId, TransactionSettings connectionSettings, String uri) {
         super(context, transId, connectionSettings);
         mSendReqURI = Uri.parse(uri);
         mId = uri;
@@ -68,7 +75,7 @@ public class SendTransaction extends Transaction implements Runnable {
      */
     @Override
     public void process() {
-        mThread = new Thread(this, "Transaction");
+        mThread = new Thread(this, "SendTransaction");
         mThread.start();
     }
 
@@ -92,10 +99,10 @@ public class SendTransaction extends Transaction implements Runnable {
             ContentValues values = new ContentValues(1);
             values.put(Mms.DATE, date);
             SqliteWrapper.update(mContext, mContext.getContentResolver(),
-                    mSendReqURI, values, null, null);
+                                 mSendReqURI, values, null, null);
 
             // fix bug 2100169: insert the 'from' address per spec
-            String lineNumber = getMyPhoneNumber();
+            String lineNumber = Utils.getMyPhoneNumber(mContext);
             if (!TextUtils.isEmpty(lineNumber)) {
                 sendReq.setFrom(new EncodedStringValue(lineNumber));
             }
@@ -103,8 +110,11 @@ public class SendTransaction extends Transaction implements Runnable {
             // Pack M-Send.req, send it, retrieve confirmation data, and parse it
             long tokenKey = ContentUris.parseId(mSendReqURI);
             byte[] response = sendPdu(SendingProgressTokenManager.get(tokenKey),
-                    new PduComposer(mContext, sendReq).make());
+                                      new PduComposer(mContext, sendReq).make());
             SendingProgressTokenManager.remove(tokenKey);
+
+                String respStr = new String(response);
+                Log.d(TAG, "[SendTransaction] run: send mms msg (" + mId + "), resp=" + respStr);
 
             SendConf conf = (SendConf) new PduParser(response).parse();
             if (conf == null) {
@@ -130,7 +140,7 @@ public class SendTransaction extends Transaction implements Runnable {
 
             if (respStatus != PduHeaders.RESPONSE_STATUS_OK) {
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
-                        mSendReqURI, values, null, null);
+                                     mSendReqURI, values, null, null);
                 Log.e(TAG, "Server returned an error code: " + respStatus);
                 return;
             }
@@ -138,7 +148,7 @@ public class SendTransaction extends Transaction implements Runnable {
             String messageId = PduPersister.toIsoString(conf.getMessageId());
             values.put(Mms.MESSAGE_ID, messageId);
             SqliteWrapper.update(mContext, mContext.getContentResolver(),
-                    mSendReqURI, values, null, null);
+                                 mSendReqURI, values, null, null);
 
             // Move M-Send.req from Outbox into Sent.
             Uri uri = persister.move(mSendReqURI, Sent.CONTENT_URI);
@@ -160,12 +170,5 @@ public class SendTransaction extends Transaction implements Runnable {
     @Override
     public int getType() {
         return SEND_TRANSACTION;
-    }
-
-    public String getMyPhoneNumber() {
-        TelephonyManager mTelephonyMgr;
-        mTelephonyMgr = (TelephonyManager)
-                mContext.getSystemService(Context.TELEPHONY_SERVICE);
-        return mTelephonyMgr.getLine1Number();
     }
 }

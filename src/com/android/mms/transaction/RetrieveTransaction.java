@@ -17,6 +17,8 @@
 
 package com.android.mms.transaction;
 
+import java.io.IOException;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -24,20 +26,25 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.*;
-
-import java.io.IOException;
+import com.google.android.mms.pdu_alt.AcknowledgeInd;
+import com.google.android.mms.pdu_alt.EncodedStringValue;
+import com.google.android.mms.pdu_alt.PduComposer;
+import com.google.android.mms.pdu_alt.PduHeaders;
+import com.google.android.mms.pdu_alt.PduParser;
+import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu_alt.RetrieveConf;
+import com.klinker.android.send_message.Utils;
 
 /**
  * The RetrieveTransaction is responsible for retrieving multimedia
  * messages (M-Retrieve.conf) from the MMSC server.  It:
- * <p/>
+ *
  * <ul>
  * <li>Sends a GET request to the MMSC server.
  * <li>Retrieves the binary M-Retrieve.conf data and parses it.
@@ -49,23 +56,24 @@ import java.io.IOException;
  */
 public class RetrieveTransaction extends Transaction implements Runnable {
     private static final String TAG = "RetrieveTransaction";
+    private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
     private final Uri mUri;
     private final String mContentLocation;
     private boolean mLocked;
 
-    static final String[] PROJECTION = new String[]{
-            Mms.CONTENT_LOCATION,
-            Mms.LOCKED
+    static final String[] PROJECTION = new String[] {
+        Mms.CONTENT_LOCATION,
+        Mms.LOCKED
     };
 
     // The indexes of the columns which must be consistent with above PROJECTION.
-    static final int COLUMN_CONTENT_LOCATION = 0;
-    static final int COLUMN_LOCKED = 1;
+    static final int COLUMN_CONTENT_LOCATION      = 0;
+    static final int COLUMN_LOCKED                = 1;
 
     public RetrieveTransaction(Context context, int serviceId,
-                               TransactionSettings connectionSettings, String uri)
+            TransactionSettings connectionSettings, String uri)
             throws MmsException {
         super(context, serviceId, connectionSettings);
 
@@ -87,7 +95,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
     private String getContentLocation(Context context, Uri uri)
             throws MmsException {
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                uri, PROJECTION, null, null, null);
+                            uri, PROJECTION, null, null, null);
         mLocked = false;
 
         if (cursor != null) {
@@ -115,9 +123,6 @@ public class RetrieveTransaction extends Transaction implements Runnable {
         new Thread(this, "RetrieveTransaction").start();
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Runnable#run()
-     */
     public void run() {
         try {
             // Change the downloading state of the M-Notification.ind.
@@ -125,7 +130,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                     mUri, DownloadManager.STATE_DOWNLOADING);
 
             // Send GET request to MMSC and retrieve the response data.
-            byte[] resp = getPdu(mContentLocation);  //TODO
+            byte[] resp = getPdu(mContentLocation);
 
             // Parse M-Retrieve.conf
             RetrieveConf retrieveConf = (RetrieveConf) new PduParser(resp).parse();
@@ -143,7 +148,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                 // Store M-Retrieve.conf into Inbox
                 PduPersister persister = PduPersister.getPduPersister(mContext);
                 msgUri = persister.persist(retrieveConf, Inbox.CONTENT_URI, true,
-                        true, null);
+                        com.klinker.android.send_message.Transaction.settings.getGroup(), null);
 
                 // Use local time instead of PDU time
                 ContentValues values = new ContentValues(1);
@@ -163,10 +168,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
 
             // Delete the corresponding M-Notification.ind.
             SqliteWrapper.delete(mContext, mContext.getContentResolver(),
-                    mUri, null, null);
-
-            if (msgUri != null) {
-            }
+                                 mUri, null, null);
 
             // Send ACK to the Proxy-Relay to indicate we have fetched the
             // MM successfully.
@@ -189,13 +191,13 @@ public class RetrieveTransaction extends Transaction implements Runnable {
         if (rawMessageId != null) {
             String messageId = new String(rawMessageId);
             String selection = "(" + Mms.MESSAGE_ID + " = ? AND "
-                    + Mms.MESSAGE_TYPE + " = ?)";
-            String[] selectionArgs = new String[]{messageId,
-                    String.valueOf(PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF)};
+                                   + Mms.MESSAGE_TYPE + " = ?)";
+            String[] selectionArgs = new String[] { messageId,
+                    String.valueOf(PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF) };
 
             Cursor cursor = SqliteWrapper.query(
                     context, context.getContentResolver(),
-                    Mms.CONTENT_URI, new String[]{Mms._ID, Mms.SUBJECT, Mms.SUBJECT_CHARSET},
+                    Mms.CONTENT_URI, new String[] { Mms._ID, Mms.SUBJECT, Mms.SUBJECT_CHARSET },
                     selection, selectionArgs, null);
 
             if (cursor != null) {
@@ -264,11 +266,11 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                     PduHeaders.CURRENT_MMS_VERSION, tranId);
 
             // insert the 'from' address per spec
-            String lineNumber = getMyPhoneNumber();
+            String lineNumber = Utils.getMyPhoneNumber(mContext);
             acknowledgeInd.setFrom(new EncodedStringValue(lineNumber));
 
             // Pack M-Acknowledge.ind and send it
-            if (MmsConfig.getNotifyWapMMSC()) {
+            if(MmsConfig.getNotifyWapMMSC()) {
                 sendPdu(new PduComposer(mContext, acknowledgeInd).make(), mContentLocation);
             } else {
                 sendPdu(new PduComposer(mContext, acknowledgeInd).make());
@@ -283,18 +285,11 @@ public class RetrieveTransaction extends Transaction implements Runnable {
         values.put(Mms.CONTENT_LOCATION, contentLocation);
         values.put(Mms.LOCKED, locked);     // preserve the state of the M-Notification.ind lock.
         SqliteWrapper.update(context, context.getContentResolver(),
-                uri, values, null, null);
+                             uri, values, null, null);
     }
 
     @Override
     public int getType() {
         return RETRIEVE_TRANSACTION;
-    }
-
-    public String getMyPhoneNumber() {
-        TelephonyManager mTelephonyMgr;
-        mTelephonyMgr = (TelephonyManager)
-                mContext.getSystemService(Context.TELEPHONY_SERVICE);
-        return mTelephonyMgr.getLine1Number();
     }
 }

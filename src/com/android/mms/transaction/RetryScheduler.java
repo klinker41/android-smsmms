@@ -17,9 +17,14 @@
 
 package com.android.mms.transaction;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.*;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
@@ -29,6 +34,7 @@ import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.MmsSms.PendingMessages;
 import android.util.Log;
+
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduPersister;
@@ -36,6 +42,7 @@ import com.klinker.android.send_message.R;
 
 public class RetryScheduler implements Observer {
     private static final String TAG = "RetryScheduler";
+    private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
     private final Context mContext;
@@ -47,7 +54,6 @@ public class RetryScheduler implements Observer {
     }
 
     private static RetryScheduler sInstance;
-
     public static RetryScheduler getInstance(Context context) {
         if (sInstance == null) {
             sInstance = new RetryScheduler(context);
@@ -65,6 +71,8 @@ public class RetryScheduler implements Observer {
     public void update(Observable observable) {
         try {
             Transaction t = (Transaction) observable;
+
+                Log.v(TAG, "[RetryScheduler] update " + observable);
 
             // We are only supposed to handle M-Notification.ind, M-Send.req
             // and M-ReadRec.ind.
@@ -126,18 +134,18 @@ public class RetryScheduler implements Observer {
                         // Send Transaction case
                         switch (respStatus) {
                             case PduHeaders.RESPONSE_STATUS_ERROR_SENDING_ADDRESS_UNRESOLVED:
-                                errorString = R.string.error;
+                                errorString = R.string.invalid_destination;
                                 break;
                             case PduHeaders.RESPONSE_STATUS_ERROR_SERVICE_DENIED:
                             case PduHeaders.RESPONSE_STATUS_ERROR_PERMANENT_SERVICE_DENIED:
-                                errorString = R.string.error;
+                                errorString = R.string.service_not_activated;
                                 break;
                             case PduHeaders.RESPONSE_STATUS_ERROR_NETWORK_PROBLEM:
-                                errorString = R.string.error;
+                                errorString = R.string.service_network_problem;
                                 break;
                             case PduHeaders.RESPONSE_STATUS_ERROR_TRANSIENT_MESSAGE_NOT_FOUND:
                             case PduHeaders.RESPONSE_STATUS_ERROR_PERMANENT_MESSAGE_NOT_FOUND:
-                                errorString = R.string.error;
+                                errorString = R.string.service_message_not_found;
                                 break;
                         }
                         if (errorString != 0) {
@@ -151,7 +159,7 @@ public class RetryScheduler implements Observer {
                         if (respStatus ==
                                 PduHeaders.RESPONSE_STATUS_ERROR_PERMANENT_MESSAGE_NOT_FOUND) {
                             DownloadManager.getInstance().showErrorCodeToast(
-                                    R.string.error);
+                                    R.string.service_message_not_found);
                             SqliteWrapper.delete(mContext, mContext.getContentResolver(), uri,
                                     null, null);
                             retry = false;
@@ -160,6 +168,9 @@ public class RetryScheduler implements Observer {
                     }
                     if ((retryIndex < scheme.getRetryLimit()) && retry) {
                         long retryAt = current + scheme.getWaitingInterval();
+
+                            Log.v(TAG, "scheduleRetry: retry for " + uri + " is scheduled at "
+                                    + (retryAt - System.currentTimeMillis()) + "ms from now");
 
                         values.put(PendingMessages.DUE_TIME, retryAt);
 
@@ -172,7 +183,7 @@ public class RetryScheduler implements Observer {
                         errorType = MmsSms.ERR_TYPE_GENERIC_PERMANENT;
                         if (isRetryDownloading) {
                             Cursor c = SqliteWrapper.query(mContext, mContext.getContentResolver(), uri,
-                                    new String[]{Mms.THREAD_ID}, null, null, null);
+                                    new String[] { Mms.THREAD_ID }, null, null, null);
 
                             long threadId = -1;
                             if (c != null) {
@@ -187,6 +198,7 @@ public class RetryScheduler implements Observer {
 
                             if (threadId != -1) {
                                 // Downloading process is permanently failed.
+                                markMmsFailed(mContext);
                             }
 
                             DownloadManager.getInstance().markState(
@@ -197,12 +209,13 @@ public class RetryScheduler implements Observer {
                             readValues.put(Mms.READ, 0);
                             SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                     uri, readValues, null, null);
+                            markMmsFailed(mContext);
                         }
                     }
 
-                    values.put(PendingMessages.ERROR_TYPE, errorType);
+                    values.put(PendingMessages.ERROR_TYPE,  errorType);
                     values.put(PendingMessages.RETRY_INDEX, retryIndex);
-                    values.put(PendingMessages.LAST_TRY, current);
+                    values.put(PendingMessages.LAST_TRY,    current);
 
                     int columnIndex = cursor.getColumnIndexOrThrow(
                             PendingMessages._ID);
@@ -217,6 +230,33 @@ public class RetryScheduler implements Observer {
                 cursor.close();
             }
         }
+    }
+
+    private void markMmsFailed(final Context context) {
+            Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
+            query.moveToFirst();
+            String id = query.getString(query.getColumnIndex("_id"));
+            query.close();
+
+            // mark message as failed
+            ContentValues values = new ContentValues();
+            values.put("msg_box", 5);
+            String where = "_id" + " = '" + id + "'";
+            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+
+        ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
+
+            @Override
+            public void run() {
+                context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.REFRESH));
+                context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_SMS_FAILURE));
+
+                // broadcast that mms has failed and you can notify user from there if you would like
+                context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.MMS_ERROR));
+
+            }
+
+        });
     }
 
     private int getResponseStatus(long msgID) {
@@ -244,12 +284,13 @@ public class RetryScheduler implements Observer {
         try {
             if (cursor.moveToFirst()) {
                 retrieveStatus = cursor.getInt(cursor.getColumnIndexOrThrow(
-                        Mms.RESPONSE_STATUS));
+                            Mms.RESPONSE_STATUS));
             }
         } finally {
             cursor.close();
         }
         if (retrieveStatus != 0) {
+                Log.v(TAG, "Retrieve status is: " + retrieveStatus);
         }
         return retrieveStatus;
     }
@@ -265,12 +306,15 @@ public class RetryScheduler implements Observer {
                             PendingMessages.DUE_TIME));
 
                     Intent service = new Intent(TransactionService.ACTION_ONALARM,
-                            null, context, TransactionService.class);
+                                        null, context, TransactionService.class);
                     PendingIntent operation = PendingIntent.getService(
                             context, 0, service, PendingIntent.FLAG_ONE_SHOT);
                     AlarmManager am = (AlarmManager) context.getSystemService(
                             Context.ALARM_SERVICE);
                     am.set(AlarmManager.RTC, retryAt, operation);
+
+                        Log.v(TAG, "Next retry is scheduled at"
+                                + (retryAt - System.currentTimeMillis()) + "ms from now");
                 }
             } finally {
                 cursor.close();

@@ -172,7 +172,7 @@ public class SmilDocumentImpl extends DocumentImpl implements SMILDocument, Docu
         } else if (tagName.equals("par")) {
             return new SmilParElementImpl(this, tagName);
         } else if (tagName.equals("vcard")) {
-           return new SmilRegionMediaElementImpl(this, tagName);
+            return new SmilRegionMediaElementImpl(this, tagName);
         } else {
             // This includes also the structural nodes SMIL,
             // HEAD, BODY, for which no specific types are defined.

@@ -24,6 +24,7 @@ import android.net.NetworkUtils;
 import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
+import com.klinker.android.send_message.Transaction;
 
 /**
  * Container of transaction settings. Instances of this class are contained
@@ -32,6 +33,9 @@ import android.util.Log;
  */
 public class TransactionSettings {
     private static final String TAG = "TransactionSettings";
+    private static final boolean DEBUG = true;
+    private static final boolean LOCAL_LOGV = false;
+
     private String mServiceCenter;
     private String mProxyAddress;
     private int mProxyPort = -1;
@@ -42,10 +46,10 @@ public class TransactionSettings {
             Telephony.Carriers.MMSPROXY,        // 2
             Telephony.Carriers.MMSPORT          // 3
     };
-    private static final int COLUMN_TYPE = 0;
-    private static final int COLUMN_MMSC = 1;
-    private static final int COLUMN_MMSPROXY = 2;
-    private static final int COLUMN_MMSPORT = 3;
+    private static final int COLUMN_TYPE         = 0;
+    private static final int COLUMN_MMSC         = 1;
+    private static final int COLUMN_MMSPROXY     = 2;
+    private static final int COLUMN_MMSPORT      = 3;
 
     /**
      * Constructor that uses the default settings of the MMS Client.
@@ -53,21 +57,29 @@ public class TransactionSettings {
      * @param context The context of the MMS Client
      */
     public TransactionSettings(Context context, String apnName) {
-
+            Log.v(TAG, "TransactionSettings: apnName: " + apnName);
         String selection = Telephony.Carriers.CURRENT + " IS NOT NULL";
         String[] selectionArgs = null;
         if (!TextUtils.isEmpty(apnName)) {
             selection += " AND " + Telephony.Carriers.APN + "=?";
-            selectionArgs = new String[]{apnName.trim()};
+            selectionArgs = new String[]{ apnName.trim() };
         }
 
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                Telephony.Carriers.CONTENT_URI,
-                APN_PROJECTION, selection, selectionArgs, null);
+                            Telephony.Carriers.CONTENT_URI,
+                            APN_PROJECTION, selection, selectionArgs, null);
 
+            Log.v(TAG, "TransactionSettings looking for apn: " + selection + " returned: " +
+                    (cursor == null ? "null cursor" : (cursor.getCount() + " hits")));
 
         if (cursor == null) {
             Log.e(TAG, "Apn is not found in Database!");
+            mServiceCenter = NetworkUtils.trimV4AddrZeros(Transaction.settings.getMmsc());
+            mProxyAddress = NetworkUtils.trimV4AddrZeros(Transaction.settings.getProxy());
+
+            if (isProxySet()) {
+                mProxyPort = Integer.parseInt(Transaction.settings.getProxy());
+            }
             return;
         }
 
@@ -77,8 +89,13 @@ public class TransactionSettings {
                 // Read values from APN settings
                 if (isValidApnType(cursor.getString(COLUMN_TYPE), "mms")) {
                     sawValidApn = true;
-                    mServiceCenter = NetworkUtils.trimV4AddrZeros(
-                            cursor.getString(COLUMN_MMSC).trim());
+
+                    String mmsc = cursor.getString(COLUMN_MMSC);
+                    if (mmsc == null) {
+                        continue;
+                    }
+
+                    mServiceCenter = NetworkUtils.trimV4AddrZeros(mmsc.trim());
                     mProxyAddress = NetworkUtils.trimV4AddrZeros(
                             cursor.getString(COLUMN_MMSPROXY));
                     if (isProxySet()) {
@@ -109,17 +126,21 @@ public class TransactionSettings {
     /**
      * Constructor that overrides the default settings of the MMS Client.
      *
-     * @param mmscUrl   The MMSC URL
+     * @param mmscUrl The MMSC URL
      * @param proxyAddr The proxy address
      * @param proxyPort The port used by the proxy address
-     *                  immediately start a Transaction upon completion of a NotificationTransaction,
-     *                  false otherwise.
+     * immediately start a SendTransaction upon completion of a NotificationTransaction,
+     * false otherwise.
      */
     public TransactionSettings(String mmscUrl, String proxyAddr, int proxyPort) {
         mServiceCenter = mmscUrl != null ? mmscUrl.trim() : null;
         mProxyAddress = proxyAddr;
         mProxyPort = proxyPort;
-    }
+
+            Log.v(TAG, "TransactionSettings: " + mServiceCenter +
+                    " proxyAddress: " + mProxyAddress +
+                    " proxyPort: " + mProxyPort);
+   }
 
     public String getMmscUrl() {
         return mServiceCenter;

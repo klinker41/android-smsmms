@@ -17,39 +17,43 @@
 
 package com.android.mms.transaction;
 
+import java.io.IOException;
+
 import android.content.Context;
 import android.net.Uri;
 import android.provider.Telephony.Mms.Sent;
 import android.util.Log;
+
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.EncodedStringValue;
 import com.google.android.mms.pdu_alt.PduComposer;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadRecInd;
-
-import java.io.IOException;
+import com.klinker.android.send_message.Utils;
 
 /**
  * The ReadRecTransaction is responsible for sending read report
  * notifications (M-read-rec.ind) to clients that have requested them.
  * It:
- * <p/>
+ *
  * <ul>
  * <li>Loads the read report indication from storage (Outbox).
  * <li>Packs M-read-rec.ind and sends it.
  * <li>Notifies the TransactionService about succesful completion.
  * </ul>
  */
-public class ReadRecTransaction extends Transaction {
+public class ReadRecTransaction extends Transaction implements Runnable{
     private static final String TAG = "ReadRecTransaction";
+    private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
+    private Thread mThread;
     private final Uri mReadReportURI;
 
     public ReadRecTransaction(Context context,
-                              int transId,
-                              TransactionSettings connectionSettings,
-                              String uri) {
+            int transId,
+            TransactionSettings connectionSettings,
+            String uri) {
         super(context, transId, connectionSettings);
         mReadReportURI = Uri.parse(uri);
         mId = uri;
@@ -64,6 +68,11 @@ public class ReadRecTransaction extends Transaction {
      */
     @Override
     public void process() {
+        mThread = new Thread(this, "ReadRecTransaction");
+        mThread.start();
+    }
+
+    public void run() {
         PduPersister persister = PduPersister.getPduPersister(mContext);
 
         try {
@@ -71,7 +80,7 @@ public class ReadRecTransaction extends Transaction {
             ReadRecInd readRecInd = (ReadRecInd) persister.load(mReadReportURI);
 
             // insert the 'from' address per spec
-            String lineNumber = "1111111111";
+            String lineNumber = Utils.getMyPhoneNumber(mContext);
             readRecInd.setFrom(new EncodedStringValue(lineNumber));
 
             // Pack M-read-rec.ind and send it
