@@ -303,8 +303,9 @@ public class Transaction {
             data.add(part);
         }
 
+        MessageInfo info = getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
+
         try {
-            MessageInfo info = getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
             MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
             sender.sendMessage(4444L);
 
@@ -323,32 +324,8 @@ public class Transaction {
                     context.sendBroadcast(progressIntent);
 
                     if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
-                        if (saveMessage) {
-                            Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
-                            query.moveToFirst();
-                            String id = query.getString(query.getColumnIndex("_id"));
-                            query.close();
-
-                            // move to the sent box
-                            ContentValues values = new ContentValues();
-                            values.put("msg_box", 2);
-                            String where = "_id" + " = '" + id + "'";
-                            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
-                        }
-
                         context.sendBroadcast(new Intent(REFRESH));
                         context.unregisterReceiver(this);
-
-                        // give everything time to finish up, may help the abort being shown after the progress is already 100
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                mConnMgr.stopUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE_MMS, "enableMMS");
-                                if (settings.getWifiMmsFix()) {
-                                    reinstateWifi();
-                                }
-                            }
-                        }, 1000);
                     } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
                         // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
                         Log.v("sending_mms_library", "sending aborted for some reason...");
@@ -362,9 +339,9 @@ public class Transaction {
             e.printStackTrace();
             // insert the pdu into the database and return the bytes to send
             if (settings.getWifiMmsFix()) {
-                sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject).bytes);
+                sendMMS(info.bytes);
             } else {
-                sendMMSWiFi(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject).bytes);
+                sendMMSWiFi(info.bytes);
             }
         }
     }
