@@ -69,6 +69,12 @@ sendTransaction.sendNewMessage(message, threadId)
 
 Note: threadId can be nullified, but this sometimes results in a new thread being created instead of the message being added to an existing thread
 
+If you want to send MMS messages, be sure to add this to your manifest:
+
+``` xml
+<service android:name="com.android.mms.transaction.TransactionService"/>
+```
+
 That's it, you're done sending :)
 
 You'll also need to register a few receivers for when the messages have been sent and for delivery reports to mark them as read... In your manifest, add these lines:
