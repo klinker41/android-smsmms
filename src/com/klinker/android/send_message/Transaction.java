@@ -37,7 +37,10 @@ import android.util.Log;
 import android.widget.Toast;
 import com.android.mms.dom.smil.parser.SmilXmlSerializer;
 import com.android.mms.transaction.HttpUtils;
+import com.android.mms.transaction.MmsMessageSender;
 import com.android.mms.transaction.ProgressCallbackEntity;
+import com.android.mms.util.DownloadManager;
+import com.android.mms.util.RateController;
 import com.google.android.mms.APN;
 import com.google.android.mms.APNHelper;
 import com.google.android.mms.ContentType;
@@ -130,6 +133,8 @@ public class Transaction {
         //
         // then, send as MMS, else send as Voice or SMS
         if (checkMMS(message)) {
+            RateController.init(context);
+            DownloadManager.init(context);
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getMedia(), message.getMediaMimeType(), message.getSubject());
         } else {
             if (settings.getPreferVoice()) {
@@ -297,15 +302,22 @@ public class Transaction {
             data.add(part);
         }
 
-        // insert the pdu into the database and return the bytes to send
-        if (settings.getWifiMmsFix()) {
-            sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject));
-        } else {
-            sendMMSWiFi(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject));
+        try {
+            MessageInfo info = getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
+            MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
+            sender.sendMessage(4444L);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // insert the pdu into the database and return the bytes to send
+            if (settings.getWifiMmsFix()) {
+                sendMMS(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject).bytes);
+            } else {
+                sendMMSWiFi(getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject).bytes);
+            }
         }
     }
 
-    private byte[] getBytes(String[] recipients, MMSPart[] parts, String subject) {
+    private MessageInfo getBytes(String[] recipients, MMSPart[] parts, String subject) {
         final SendReq sendRequest = new SendReq();
 
         // create send request addresses
@@ -370,10 +382,13 @@ public class Transaction {
         final PduComposer composer = new PduComposer(context, sendRequest);
         final byte[] bytesToSend = composer.make();
 
+        MessageInfo info = new MessageInfo();
+        info.bytes = bytesToSend;
+
         if (saveMessage) {
             try {
                 PduPersister persister = PduPersister.getPduPersister(context);
-                persister.persist(sendRequest, Telephony.Mms.Outbox.CONTENT_URI, true, settings.getGroup(), null);
+                info.location = persister.persist(sendRequest, Telephony.Mms.Outbox.CONTENT_URI, true, settings.getGroup(), null);
             } catch (Exception e) {
                 Log.v("sending_mms_library", "error saving mms message");
                 e.printStackTrace();
@@ -383,7 +398,12 @@ public class Transaction {
             }
         }
 
-        return bytesToSend;
+        return info;
+    }
+
+    private class MessageInfo {
+        public Uri location;
+        public byte[] bytes;
     }
 
     private void sendVoiceMessage(String text, String[] addresses, long threadId) {

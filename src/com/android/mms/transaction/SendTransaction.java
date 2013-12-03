@@ -81,6 +81,7 @@ public class SendTransaction extends Transaction implements Runnable {
 
     public void run() {
         try {
+            RateController.init(mContext);
             RateController rateCtlr = RateController.getInstance();
             if (rateCtlr.isLimitSurpassed() && !rateCtlr.isAllowedByUser()) {
                 Log.e(TAG, "Sending rate limit surpassed.");

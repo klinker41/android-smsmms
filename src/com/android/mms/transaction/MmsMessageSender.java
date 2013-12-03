@@ -64,7 +64,7 @@ public class MmsMessageSender implements MessageSender {
         }
     }
 
-    public boolean sendMessage(long token) throws MmsException {
+    public boolean sendMessage(long token) throws Exception {
         // Load the MMS from the message uri
         PduPersister p = PduPersister.getPduPersister(mContext);
         GenericPdu pdu = p.load(mMessageUri);
@@ -114,8 +114,12 @@ public class MmsMessageSender implements MessageSender {
         }
 
         // Start MMS transaction service
-        SendingProgressTokenManager.put(messageId, token);
-        mContext.startService(new Intent(mContext, TransactionService.class));
+        try {
+            SendingProgressTokenManager.put(messageId, token);
+            mContext.startService(new Intent(mContext, TransactionService.class));
+        } catch (Exception e) {
+            throw new Exception("transaction service not registered in manifest");
+        }
 
         return true;
     }

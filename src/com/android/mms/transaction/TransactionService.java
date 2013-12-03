@@ -197,17 +197,14 @@ public class TransactionService extends Service implements Observer {
     }
 
     public void onNewIntent(Intent intent, int serviceId) {
-        boolean mobileDataEnabled = false; // Assume disabled
+        boolean mobileDataEnabled = false;
         mConnMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         try {
             Class cmClass = Class.forName(mConnMgr.getClass().getName());
             Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
-            method.setAccessible(true); // Make the method callable
-            // get the setting for "mobile data"
+            method.setAccessible(true);
             mobileDataEnabled = (Boolean)method.invoke(mConnMgr);
         } catch (Exception e) {
-            // Some problem accessible private API
-            // TODO do whatever error handling you want here
         }
         if (mConnMgr == null || !mobileDataEnabled) {
             endMmsConnectivity();
@@ -264,6 +261,7 @@ public class TransactionService extends Service implements Observer {
                                 int failureType = cursor.getInt(
                                         cursor.getColumnIndexOrThrow(
                                                 PendingMessages.ERROR_TYPE));
+                                DownloadManager.init(this);
                                 DownloadManager downloadManager = DownloadManager.getInstance();
                                 boolean autoDownload = downloadManager.isAuto();
                                     Log.v(TAG, "onNewIntent: failureType=" + failureType +
