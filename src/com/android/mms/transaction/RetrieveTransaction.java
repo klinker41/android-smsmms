@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
@@ -184,6 +185,8 @@ public class RetrieveTransaction extends Transaction implements Runnable {
             }
             notifyObservers();
         }
+
+        mContext.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS));
     }
 
     private static boolean isDuplicateMessage(Context context, RetrieveConf rc) {
