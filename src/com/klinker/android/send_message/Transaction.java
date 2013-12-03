@@ -307,6 +307,57 @@ public class Transaction {
             MessageInfo info = getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
             MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
             sender.sendMessage(4444L);
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ProgressCallbackEntity.PROGRESS_STATUS_ACTION);
+            BroadcastReceiver receiver = new BroadcastReceiver() {
+
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    int progress = intent.getIntExtra("progress", -3);
+                    Log.v("sending_mms_library", "progress: " + progress);
+
+                    // send progress broadcast to update ui if desired...
+                    Intent progressIntent = new Intent(MMS_PROGRESS);
+                    progressIntent.putExtra("progress", progress);
+                    context.sendBroadcast(progressIntent);
+
+                    if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
+                        if (saveMessage) {
+                            Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
+                            query.moveToFirst();
+                            String id = query.getString(query.getColumnIndex("_id"));
+                            query.close();
+
+                            // move to the sent box
+                            ContentValues values = new ContentValues();
+                            values.put("msg_box", 2);
+                            String where = "_id" + " = '" + id + "'";
+                            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+                        }
+
+                        context.sendBroadcast(new Intent(REFRESH));
+                        context.unregisterReceiver(this);
+
+                        // give everything time to finish up, may help the abort being shown after the progress is already 100
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                mConnMgr.stopUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE_MMS, "enableMMS");
+                                if (settings.getWifiMmsFix()) {
+                                    reinstateWifi();
+                                }
+                            }
+                        }, 1000);
+                    } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
+                        // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
+                        Log.v("sending_mms_library", "sending aborted for some reason...");
+                    }
+                }
+
+            };
+
+            context.registerReceiver(receiver, filter);
         } catch (Exception e) {
             e.printStackTrace();
             // insert the pdu into the database and return the bytes to send
