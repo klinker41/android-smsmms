@@ -32,6 +32,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
+import android.os.Looper;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Threads;
 import android.provider.Telephony.Mms.Inbox;
@@ -141,6 +142,13 @@ public class NotificationTransaction extends Transaction implements Runnable {
     }
 
     public void run() {
+        try {
+            Looper.prepare();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        DownloadManager.init(mContext);
         DownloadManager downloadManager = DownloadManager.getInstance();
         boolean autoDownload = allowAutoDownload(mContext);
         try {
