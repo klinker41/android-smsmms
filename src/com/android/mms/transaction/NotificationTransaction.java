@@ -30,6 +30,7 @@ import java.io.IOException;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.Looper;
@@ -213,6 +214,8 @@ public class NotificationTransaction extends Transaction implements Runnable {
                     // Notify observers with newly received MM.
                     mUri = uri;
                     status = STATUS_RETRIEVED;
+
+                    mContext.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS));
                 }
             }
 
