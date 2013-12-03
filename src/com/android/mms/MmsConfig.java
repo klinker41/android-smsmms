@@ -123,37 +123,6 @@ public class MmsConfig {
         loadMmsSettings(context);
     }
 
-    public static boolean isSmsEnabled(Context context) {
-        String defaultSmsApplication = Telephony.Sms.getDefaultSmsPackage(context);
-
-        if (defaultSmsApplication != null && defaultSmsApplication.equals(MMS_APP_PACKAGE)) {
-            return true;
-        }
-        return false;
-    }
-
-    public static boolean isSmsPromoDismissed(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return preferences.getBoolean(SMS_PROMO_DISMISSED_KEY, false);
-    }
-
-    public static void setSmsPromoDismissed(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean(SMS_PROMO_DISMISSED_KEY, true);
-        editor.apply();
-    }
-
-    public static Intent getRequestDefaultSmsAppActivity() {
-        final Intent intent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
-        intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, MMS_APP_PACKAGE);
-        return intent;
-    }
-
-    public static int getSmsToMmsTextThreshold() {
-        return mSmsToMmsTextThreshold;
-    }
-
     public static boolean getMmsEnabled() {
         return mMmsEnabled;
     }
@@ -194,104 +163,12 @@ public class MmsConfig {
         return mHttpParamsLine1Key;
     }
 
-    public static String getEmailGateway() {
-        return mEmailGateway;
-    }
-
-    public static int getMaxImageHeight() {
-        return mMaxImageHeight;
-    }
-
-    public static int getMaxImageWidth() {
-        return mMaxImageWidth;
-    }
-
-    public static int getRecipientLimit() {
-        return mRecipientLimit;
-    }
-
-    public static int getMaxTextLimit() {
-        return mMaxTextLength > -1 ? mMaxTextLength : MAX_TEXT_LENGTH;
-    }
-
-    public static int getDefaultSMSMessagesPerThread() {
-        return mDefaultSMSMessagesPerThread;
-    }
-
-    public static int getDefaultMMSMessagesPerThread() {
-        return mDefaultMMSMessagesPerThread;
-    }
-
-    public static int getMinMessageCountPerThread() {
-        return mMinMessageCountPerThread;
-    }
-
-    public static int getMaxMessageCountPerThread() {
-        return mMaxMessageCountPerThread;
-    }
-
     public static int getHttpSocketTimeout() {
         return mHttpSocketTimeout;
     }
 
-    public static int getMinimumSlideElementDuration() {
-        return mMinimumSlideElementDuration;
-    }
-
-    public static boolean getMultipartSmsEnabled() {
-        return mEnableMultipartSMS;
-    }
-
-    public static boolean getSplitSmsEnabled() {
-        return mEnableSplitSMS;
-    }
-
-    public static boolean getSlideDurationEnabled() {
-        return mEnableSlideDuration;
-    }
-
-    public static boolean getMMSReadReportsEnabled() {
-        return mEnableMMSReadReports;
-    }
-
-    public static boolean getSMSDeliveryReportsEnabled() {
-        return mEnableSMSDeliveryReports;
-    }
-
-    public static boolean getMMSDeliveryReportsEnabled() {
-        return mEnableMMSDeliveryReports;
-    }
-
     public static boolean getNotifyWapMMSC() {
         return mNotifyWapMMSC;
-    }
-
-    public static int getMaxSizeScaleForPendingMmsAllowed() {
-        return mMaxSizeScaleForPendingMmsAllowed;
-    }
-
-    public static boolean isAliasEnabled() {
-        return mAliasEnabled;
-    }
-
-    public static int getAliasMinChars() {
-        return mAliasRuleMinChars;
-    }
-
-    public static int getAliasMaxChars() {
-        return mAliasRuleMaxChars;
-    }
-
-    public static boolean getAllowAttachAudio() {
-        return mAllowAttachAudio;
-    }
-
-    public static int getMaxSubjectLength() {
-        return mMaxSubjectLength;
-    }
-
-    public static boolean getGroupMmsEnabled() {
-        return mEnableGroupMms;
     }
 
     public static final void beginDocument(XmlPullParser parser, String firstElementName) throws XmlPullParserException, IOException
