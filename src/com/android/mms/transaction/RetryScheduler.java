@@ -176,6 +176,7 @@ public class RetryScheduler implements Observer {
 
                         if (isRetryDownloading) {
                             // Downloading process is transiently failed.
+                            DownloadManager.init(mContext);
                             DownloadManager.getInstance().markState(
                                     uri, DownloadManager.STATE_TRANSIENT_FAILURE);
                         }
