@@ -41,10 +41,10 @@ public class TransactionSettings {
     private int mProxyPort = -1;
 
     private static final String[] APN_PROJECTION = {
-            Telephony.Carriers.TYPE,            // 0
-            Telephony.Carriers.MMSC,            // 1
-            Telephony.Carriers.MMSPROXY,        // 2
-            Telephony.Carriers.MMSPORT          // 3
+            "type",            // 0
+            "mmsc",            // 1
+            "mmsproxy",        // 2
+            "mmsport"          // 3
     };
     private static final int COLUMN_TYPE         = 0;
     private static final int COLUMN_MMSC         = 1;
@@ -58,10 +58,10 @@ public class TransactionSettings {
      */
     public TransactionSettings(Context context, String apnName) {
             Log.v(TAG, "TransactionSettings: apnName: " + apnName);
-        String selection = Telephony.Carriers.CURRENT + " IS NOT NULL";
+        String selection = "current" + " IS NOT NULL";
         String[] selectionArgs = null;
         if (!TextUtils.isEmpty(apnName)) {
-            selection += " AND " + Telephony.Carriers.APN + "=?";
+            selection += " AND " + "apn" + "=?";
             selectionArgs = new String[]{ apnName.trim() };
         }
 

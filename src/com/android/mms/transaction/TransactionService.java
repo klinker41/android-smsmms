@@ -324,7 +324,8 @@ public class TransactionService extends Service implements Observer {
     }
 
     private static boolean isTransientFailure(int type) {
-        return type > MmsSms.NO_ERROR && type < MmsSms.ERR_TYPE_GENERIC_PERMANENT;
+        // TODO don't use the sdk > 19 apis here
+        return type > 0 && type < 10;
     }
 
     private int getTransactionType(int msgType) {

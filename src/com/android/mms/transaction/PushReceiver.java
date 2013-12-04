@@ -213,7 +213,8 @@ public class PushReceiver extends BroadcastReceiver {
         byte[] rawLocation = nInd.getContentLocation();
         if (rawLocation != null) {
             String location = new String(rawLocation);
-            String selection = Mms.CONTENT_LOCATION + " = ?";
+            // TODO do not use the sdk > 19 sms apis for this
+            String selection = "ct_l = ?";
             String[] selectionArgs = new String[] { location };
             Cursor cursor = SqliteWrapper.query(
                     context, context.getContentResolver(),

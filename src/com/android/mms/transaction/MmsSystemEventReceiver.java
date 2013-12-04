@@ -54,7 +54,7 @@ public class MmsSystemEventReceiver extends BroadcastReceiver {
             Log.v(TAG, "Intent received: " + intent);
 
         String action = intent.getAction();
-        if (action.equals(Mms.Intents.CONTENT_CHANGED_ACTION)) {
+        if (action.equals("android.intent.action.CONTENT_CHANGED")) {
             Uri changed = (Uri) intent.getParcelableExtra(Mms.Intents.DELETED_CONTENTS);
         } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             if (mConnMgr == null) {
@@ -65,12 +65,9 @@ public class MmsSystemEventReceiver extends BroadcastReceiver {
             try {
                 Class cmClass = Class.forName(mConnMgr.getClass().getName());
                 Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
-                method.setAccessible(true); // Make the method callable
-                // get the setting for "mobile data"
+                method.setAccessible(true);
                 mobileDataEnabled = (Boolean)method.invoke(mConnMgr);
             } catch (Exception e) {
-                // Some problem accessible private API
-                // TODO do whatever error handling you want here
             }
             if (!mobileDataEnabled) {
                     Log.v(TAG, "mobile data turned off, bailing");

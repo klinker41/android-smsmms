@@ -64,9 +64,10 @@ public class RetrieveTransaction extends Transaction implements Runnable {
     private final String mContentLocation;
     private boolean mLocked;
 
+    // TODO dont use the sdk > 19 apis here
     static final String[] PROJECTION = new String[] {
-        Mms.CONTENT_LOCATION,
-        Mms.LOCKED
+        "ct_l",
+        "locked"
     };
 
     // The indexes of the columns which must be consistent with above PROJECTION.
@@ -193,8 +194,9 @@ public class RetrieveTransaction extends Transaction implements Runnable {
         byte[] rawMessageId = rc.getMessageId();
         if (rawMessageId != null) {
             String messageId = new String(rawMessageId);
-            String selection = "(" + Mms.MESSAGE_ID + " = ? AND "
-                                   + Mms.MESSAGE_TYPE + " = ?)";
+            // TODO dont use the sdk > 19 apis here
+            String selection = "(" + "m_id" + " = ? AND "
+                                   + "m_type" + " = ?)";
             String[] selectionArgs = new String[] { messageId,
                     String.valueOf(PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF) };
 

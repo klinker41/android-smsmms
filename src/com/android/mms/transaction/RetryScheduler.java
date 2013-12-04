@@ -119,7 +119,8 @@ public class RetryScheduler implements Observer {
                             PendingMessages.RETRY_INDEX)) + 1; // Count this time.
 
                     // TODO Should exactly understand what was happened.
-                    int errorType = MmsSms.ERR_TYPE_GENERIC;
+                    // TODO don't use the sdk > 19 apis here
+                    int errorType = 1;
 
                     DefaultRetryScheme scheme = new DefaultRetryScheme(mContext, retryIndex);
 
@@ -181,7 +182,8 @@ public class RetryScheduler implements Observer {
                                     uri, DownloadManager.STATE_TRANSIENT_FAILURE);
                         }
                     } else {
-                        errorType = MmsSms.ERR_TYPE_GENERIC_PERMANENT;
+                        // TODO don't use the sdk > 19 apis here
+                        errorType = 10;
                         if (isRetryDownloading) {
                             Cursor c = SqliteWrapper.query(mContext, mContext.getContentResolver(), uri,
                                     new String[] { Mms.THREAD_ID }, null, null, null);
