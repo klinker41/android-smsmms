@@ -24,12 +24,12 @@ import com.google.android.mms.InvalidHeaderValueException;
  */
 public class AcknowledgeInd extends GenericPdu {
     /**
-     * Constructor, used when composing a M-Acknowledge.ind pdu_alt.
+     * Constructor, used when composing a M-Acknowledge.ind pdu.
      *
-     * @param mmsVersion    current viersion of mms
+     * @param mmsVersion current viersion of mms
      * @param transactionId the transaction-id value
      * @throws InvalidHeaderValueException if parameters are invalid.
-     *                                     NullPointerException if transactionId is null.
+     *         NullPointerException if transactionId is null.
      */
     public AcknowledgeInd(int mmsVersion, byte[] transactionId)
             throws InvalidHeaderValueException {

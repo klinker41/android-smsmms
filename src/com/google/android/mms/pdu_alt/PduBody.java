@@ -36,7 +36,7 @@ public class PduBody {
         mParts = new Vector<PduPart>();
 
         mPartMapByContentId = new HashMap<String, PduPart>();
-        mPartMapByContentLocation = new HashMap<String, PduPart>();
+        mPartMapByContentLocation  = new HashMap<String, PduPart>();
         mPartMapByName = new HashMap<String, PduPart>();
         mPartMapByFileName = new HashMap<String, PduPart>();
     }
@@ -44,27 +44,27 @@ public class PduBody {
     private void putPartToMaps(PduPart part) {
         // Put part to mPartMapByContentId.
         byte[] contentId = part.getContentId();
-        if (null != contentId) {
+        if(null != contentId) {
             mPartMapByContentId.put(new String(contentId), part);
         }
 
         // Put part to mPartMapByContentLocation.
         byte[] contentLocation = part.getContentLocation();
-        if (null != contentLocation) {
+        if(null != contentLocation) {
             String clc = new String(contentLocation);
             mPartMapByContentLocation.put(clc, part);
         }
 
         // Put part to mPartMapByName.
         byte[] name = part.getName();
-        if (null != name) {
+        if(null != name) {
             String clc = new String(name);
             mPartMapByName.put(clc, part);
         }
 
         // Put part to mPartMapByFileName.
         byte[] fileName = part.getFilename();
-        if (null != fileName) {
+        if(null != fileName) {
             String clc = new String(fileName);
             mPartMapByFileName.put(clc, part);
         }
@@ -78,7 +78,7 @@ public class PduBody {
      * @throws NullPointerException when part is null
      */
     public boolean addPart(PduPart part) {
-        if (null == part) {
+        if(null == part) {
             throw new NullPointerException();
         }
 
@@ -90,11 +90,11 @@ public class PduBody {
      * Inserts the specified part at the specified position.
      *
      * @param index index at which the specified part is to be inserted
-     * @param part  part to be inserted
+     * @param part part to be inserted
      * @throws NullPointerException when part is null
      */
     public void addPart(int index, PduPart part) {
-        if (null == part) {
+        if(null == part) {
             throw new NullPointerException();
         }
 
@@ -149,41 +149,41 @@ public class PduBody {
     }
 
     /**
-     * Get pdu_alt part by content id.
+     * Get pdu part by content id.
      *
      * @param cid the value of content id.
-     * @return the pdu_alt part.
+     * @return the pdu part.
      */
     public PduPart getPartByContentId(String cid) {
         return mPartMapByContentId.get(cid);
     }
 
     /**
-     * Get pdu_alt part by Content-Location. Content-Location of part is
+     * Get pdu part by Content-Location. Content-Location of part is
      * the same as filename and name(param of content-type).
      *
      * @param fileName the value of filename.
-     * @return the pdu_alt part.
+     * @return the pdu part.
      */
     public PduPart getPartByContentLocation(String contentLocation) {
         return mPartMapByContentLocation.get(contentLocation);
     }
 
     /**
-     * Get pdu_alt part by name.
+     * Get pdu part by name.
      *
      * @param fileName the value of filename.
-     * @return the pdu_alt part.
+     * @return the pdu part.
      */
     public PduPart getPartByName(String name) {
         return mPartMapByName.get(name);
     }
 
     /**
-     * Get pdu_alt part by filename.
+     * Get pdu part by filename.
      *
      * @param fileName the value of filename.
-     * @return the pdu_alt part.
+     * @return the pdu part.
      */
     public PduPart getPartByFileName(String filename) {
         return mPartMapByFileName.get(filename);

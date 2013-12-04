@@ -30,6 +30,7 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Looper;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.MmsSms.PendingMessages;
@@ -177,6 +178,7 @@ public class RetryScheduler implements Observer {
 
                         if (isRetryDownloading) {
                             // Downloading process is transiently failed.
+                            try { Looper.prepare(); } catch (Exception e) { }
                             DownloadManager.init(mContext);
                             DownloadManager.getInstance().markState(
                                     uri, DownloadManager.STATE_TRANSIENT_FAILURE);

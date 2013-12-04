@@ -25,7 +25,7 @@ public class QuotedPrintable {
     /**
      * Decodes an array quoted-printable characters into an array of original bytes.
      * Escaped characters are converted back to their original representation.
-     * <p/>
+     *
      * <p>
      * This function implements a subset of
      * quoted-printable encoding specification (rule #1 and rule #2)
@@ -34,7 +34,7 @@ public class QuotedPrintable {
      *
      * @param bytes array of quoted-printable characters
      * @return array of original bytes,
-     * null if quoted-printable decoding is unsuccessful.
+     *         null if quoted-printable decoding is unsuccessful.
      */
     public static final byte[] decodeQuotedPrintable(byte[] bytes) {
         if (bytes == null) {
@@ -45,8 +45,8 @@ public class QuotedPrintable {
             int b = bytes[i];
             if (b == ESCAPE_CHAR) {
                 try {
-                    if ('\r' == (char) bytes[i + 1] &&
-                            '\n' == (char) bytes[i + 2]) {
+                    if('\r' == (char)bytes[i + 1] &&
+                            '\n' == (char)bytes[i + 2]) {
                         i += 2;
                         continue;
                     }
