@@ -135,6 +135,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
     }
 
     public static boolean allowAutoDownload(Context context) {
+        DownloadManager.init(context);
         DownloadManager downloadManager = DownloadManager.getInstance();
         boolean autoDownload = downloadManager.isAuto();
         boolean dataSuspended = (((TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE)).getDataState() ==
