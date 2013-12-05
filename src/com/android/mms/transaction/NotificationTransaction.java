@@ -135,6 +135,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
     }
 
     public static boolean allowAutoDownload(Context context) {
+        try { Looper.prepare(); } catch (Exception e) { }
         DownloadManager.init(context);
         DownloadManager downloadManager = DownloadManager.getInstance();
         boolean autoDownload = downloadManager.isAuto();
