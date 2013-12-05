@@ -20,17 +20,16 @@ package com.android.mms.transaction;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
+
+import android.content.*;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
 import android.util.Log;
@@ -162,13 +161,23 @@ public class PushReceiver extends BroadcastReceiver {
                 Log.v(TAG, "Received PUSH Intent: " + intent);
             }
 
-            // Hold a wake lock for 5 seconds, enough to give any
-            // services we start time to take their own wake locks.
-            PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
-            PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                                            "MMS PushReceiver");
-            wl.acquire(5000);
-            new ReceivePushTask(context).execute(intent);
+            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+            if (!sharedPrefs.getBoolean("receive_with_stock", false) && Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT && sharedPrefs.getBoolean("override", true)) {
+                // Hold a wake lock for 5 seconds, enough to give any
+                // services we start time to take their own wake locks.
+                PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+                PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                        "MMS PushReceiver");
+                wl.acquire(5000);
+                new ReceivePushTask(context).execute(intent);
+
+                abortBroadcast();
+            } else {
+                clearAbortBroadcast();
+                Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
+                notificationBroadcast.putExtra("receive_through_stock", true);
+                context.sendBroadcast(notificationBroadcast);
+            }
         }
     }
 
