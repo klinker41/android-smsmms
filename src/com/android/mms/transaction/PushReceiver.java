@@ -162,7 +162,8 @@ public class PushReceiver extends BroadcastReceiver {
             }
 
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-            if (!sharedPrefs.getBoolean("receive_with_stock", false) && Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT && sharedPrefs.getBoolean("override", true)) {
+            if ((!sharedPrefs.getBoolean("receive_with_stock", false) && Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && sharedPrefs.getBoolean("override", true))
+                    || Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 // Hold a wake lock for 5 seconds, enough to give any
                 // services we start time to take their own wake locks.
                 PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
@@ -171,12 +172,16 @@ public class PushReceiver extends BroadcastReceiver {
                 wl.acquire(5000);
                 new ReceivePushTask(context).execute(intent);
 
+                Log.v("mms_receiver", context.getPackageName() + " received and aborted");
+
                 abortBroadcast();
             } else {
                 clearAbortBroadcast();
                 Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
                 notificationBroadcast.putExtra("receive_through_stock", true);
                 context.sendBroadcast(notificationBroadcast);
+
+                Log.v("mms_receiver", context.getPackageName() + " received and not aborted");
             }
         }
     }
