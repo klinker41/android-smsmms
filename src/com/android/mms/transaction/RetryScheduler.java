@@ -238,30 +238,22 @@ public class RetryScheduler implements Observer {
     }
 
     private void markMmsFailed(final Context context) {
-            Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
-            query.moveToFirst();
-            String id = query.getString(query.getColumnIndex("_id"));
-            query.close();
+        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
+        query.moveToFirst();
+        String id = query.getString(query.getColumnIndex("_id"));
+        query.close();
 
-            // mark message as failed
-            ContentValues values = new ContentValues();
-            values.put("msg_box", 5);
-            String where = "_id" + " = '" + id + "'";
-            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+        // mark message as failed
+        ContentValues values = new ContentValues();
+        values.put("msg_box", 5);
+        String where = "_id" + " = '" + id + "'";
+        context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
 
-        ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
+        context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.REFRESH));
+        context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_SMS_FAILURE));
 
-            @Override
-            public void run() {
-                context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.REFRESH));
-                context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_SMS_FAILURE));
-
-                // broadcast that mms has failed and you can notify user from there if you would like
-                context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.MMS_ERROR));
-
-            }
-
-        });
+        // broadcast that mms has failed and you can notify user from there if you would like
+        context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.MMS_ERROR));
     }
 
     private int getResponseStatus(long msgID) {
