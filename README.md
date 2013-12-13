@@ -21,7 +21,6 @@ sendSettings.setMmsc("http://mmsc.cingular.com");
 sendSettings.setProxy("66.209.11.33");
 sendSettings.setPort("80");
 sendSettings.setGroup(true);
-sendSettings.setPreferVoice(false);
 sendSettings.setDeliveryReports(false);
 sendSettings.setSplit(false);
 sendSettings.setSplitCounter(false);
@@ -37,7 +36,6 @@ sendSettings.setRnrSe(null);
 * Proxy - more mms information that needs to be set for more providers to send
 * Port - again, more mms stuff
 * Group - whether you want to send message to multiple senders as an MMS group message or separate SMS/Voice messages
-* Prefer Voice - send through Google Voice instead of SMS
 * Delivery Reports - request reports for when SMS has been delivered
 * Split - splits SMS messages when sent if they are longer than 160 characters
 * Split Counter - attaches a split counter to message, ex. (1/3) in front of each message
@@ -59,6 +57,7 @@ Now, create the Message you want to send
 ``` java
 Message mMessage = new Message(textToSend, addressToSendTo);
 mMessage.setImage(mBitmap);   // not necessary for voice or sms messages
+mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE
 ```
 
 And then all you have to do is send the message

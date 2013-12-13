@@ -139,10 +139,12 @@ public class Transaction {
             DownloadManager.init(context);
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getMedia(), message.getMediaMimeType(), message.getSubject());
         } else {
-            if (settings.getPreferVoice()) {
+            if (message.getType() == Message.TYPE_VOICE) {
                 sendVoiceMessage(message.getText(), message.getAddresses(), threadId);
-            } else {
+            } else if (message.getType() == Message.TYPE_SMSMMS) {
                 sendSmsMessage(message.getText(), message.getAddresses(), threadId);
+            } else {
+                Log.v("send_transaction", "error with message type, aborting...");
             }
         }
 
@@ -1098,7 +1100,7 @@ public class Transaction {
     public boolean checkMMS(Message message) {
         return message.getImages().length != 0 ||
                 (message.getMedia().length != 0 && message.getMediaMimeType() != null) ||
-                (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && !settings.getPreferVoice()) ||
+                (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && message.getType() != Message.TYPE_VOICE) ||
                 (message.getAddresses().length > 1 && settings.getGroup()) ||
                 message.getSubject() != null;
     }

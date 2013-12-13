@@ -31,9 +31,6 @@ public class Settings {
     private String port;
     private boolean group;
 
-    // Google Voice options
-    private boolean preferVoice;
-
     // SMS options
     private boolean deliveryReports;
     private boolean split;
@@ -52,7 +49,7 @@ public class Settings {
      * Default constructor to set everything to default values
      */
     public Settings() {
-        this("", "", "0", true, true, false, false, false, false, false, "", "", true, 3, "", null);
+        this("", "", "0", true, false, false, false, false, false, "", "", true, 3, "", null);
     }
 
     /**
@@ -65,7 +62,6 @@ public class Settings {
         this.port = s.getPort();
         this.group = s.getGroup();
         this.wifiMmsFix = s.getWifiMmsFix();
-        this.preferVoice = s.getPreferVoice();
         this.deliveryReports = s.getDeliveryReports();
         this.split = s.getSplit();
         this.splitCounter = s.getSplitCounter();
@@ -84,7 +80,6 @@ public class Settings {
      * @param port               is the port from the apn to send MMS through
      * @param group              is a boolean specifying whether or not to send messages with multiple recipients as a group MMS message
      * @param wifiMmsFix         is a boolean to toggle on and off wifi when sending MMS (MMS will not work currently when WiFi is enabled)
-     * @param preferVoice        is a boolean to say whether you want to send through Google Voice or SMS
      * @param deliveryReports    is a boolean to retrieve delivery reports from SMS messages
      * @param split              is a boolean to manually split messages (shouldn't be necessary, but some carriers do not split on their own)
      * @param splitCounter       adds a split counter to the front of all split messages
@@ -96,13 +91,12 @@ public class Settings {
      * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
      * @deprecated Construtor to create object of all values
      */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
+    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
         this.mmsc = mmsc;
         this.proxy = proxy;
         this.port = port;
         this.group = group;
         this.wifiMmsFix = wifiMmsFix;
-        this.preferVoice = preferVoice;
         this.deliveryReports = deliveryReports;
         this.split = split;
         this.splitCounter = splitCounter;
@@ -120,7 +114,6 @@ public class Settings {
      * @param proxy              is the proxy address in the apn to send MMS through
      * @param port               is the port from the apn to send MMS through
      * @param group              is a boolean specifying whether or not to send messages with multiple recipients as a group MMS message
-     * @param preferVoice        is a boolean to say whether you want to send through Google Voice or SMS
      * @param deliveryReports    is a boolean to retrieve delivery reports from SMS messages
      * @param split              is a boolean to manually split messages (shouldn't be necessary, but some carriers do not split on their own)
      * @param splitCounter       adds a split counter to the front of all split messages
@@ -132,8 +125,8 @@ public class Settings {
      * @param account            is the google account to send Google Voice messages through
      * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
      */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean preferVoice, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
-        this(mmsc, proxy, port, group, false, preferVoice, deliveryReports, split, splitCounter, stripUnicode, signature, preText, sendLongAsMms, sendLongAsMmsAfter, account, rnrSe);
+    public Settings(String mmsc, String proxy, String port, boolean group, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
+        this(mmsc, proxy, port, group, false, deliveryReports, split, splitCounter, stripUnicode, signature, preText, sendLongAsMms, sendLongAsMmsAfter, account, rnrSe);
     }
 
     /**
@@ -170,15 +163,6 @@ public class Settings {
      */
     public void setGroup(boolean group) {
         this.group = group;
-    }
-
-    /**
-     * Sets whether to use Voice or SMS for non MMS messages
-     *
-     * @param preferVoice is a boolean to say whether you want to send through Google Voice or SMS
-     */
-    public void setPreferVoice(boolean preferVoice) {
-        this.preferVoice = preferVoice;
     }
 
     /**
@@ -297,13 +281,6 @@ public class Settings {
      */
     public boolean getGroup() {
         return this.group;
-    }
-
-    /**
-     * @return whether or not to send SMS or Voice messages
-     */
-    public boolean getPreferVoice() {
-        return this.preferVoice;
     }
 
     /**
