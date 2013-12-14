@@ -164,7 +164,7 @@ public class Utils {
         Log.v("sending_mms_library", "ensuring route to host");
 
         int inetAddr;
-        if (!proxy.equals("")) {
+        if (proxy != null && !proxy.equals("")) {
             String proxyAddr = proxy;
             inetAddr = lookupHost(proxyAddr);
             if (inetAddr == -1) {
