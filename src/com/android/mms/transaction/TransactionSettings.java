@@ -65,12 +65,19 @@ public class TransactionSettings {
             selectionArgs = new String[]{ apnName.trim() };
         }
 
-        Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                            Telephony.Carriers.CONTENT_URI,
-                            APN_PROJECTION, selection, selectionArgs, null);
+        Cursor cursor;
 
-            Log.v(TAG, "TransactionSettings looking for apn: " + selection + " returned: " +
-                    (cursor == null ? "null cursor" : (cursor.getCount() + " hits")));
+        try {
+            cursor = SqliteWrapper.query(context, context.getContentResolver(),
+                                Telephony.Carriers.CONTENT_URI,
+                                APN_PROJECTION, selection, selectionArgs, null);
+
+                Log.v(TAG, "TransactionSettings looking for apn: " + selection + " returned: " +
+                        (cursor == null ? "null cursor" : (cursor.getCount() + " hits")));
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            cursor = null;
+        }
 
         if (cursor == null) {
             Log.e(TAG, "Apn is not found in Database!");
