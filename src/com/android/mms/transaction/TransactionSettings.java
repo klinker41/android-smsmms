@@ -58,76 +58,75 @@ public class TransactionSettings {
      */
     public TransactionSettings(Context context, String apnName) {
             Log.v(TAG, "TransactionSettings: apnName: " + apnName);
-        String selection = "current" + " IS NOT NULL";
-        String[] selectionArgs = null;
-        if (!TextUtils.isEmpty(apnName)) {
-            selection += " AND " + "apn" + "=?";
-            selectionArgs = new String[]{ apnName.trim() };
-        }
-
-        Cursor cursor;
-
-        try {
-            cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                                Telephony.Carriers.CONTENT_URI,
-                                APN_PROJECTION, selection, selectionArgs, null);
-
-                Log.v(TAG, "TransactionSettings looking for apn: " + selection + " returned: " +
-                        (cursor == null ? "null cursor" : (cursor.getCount() + " hits")));
-        } catch (SecurityException e) {
-            e.printStackTrace();
-            cursor = null;
-        }
-
-        if (cursor == null) {
-            Log.e(TAG, "Apn is not found in Database!");
+//        String selection = "current" + " IS NOT NULL";
+//        String[] selectionArgs = null;
+//        if (!TextUtils.isEmpty(apnName)) {
+//            selection += " AND " + "apn" + "=?";
+//            selectionArgs = new String[]{ apnName.trim() };
+//        }
+//
+//        Cursor cursor;
+//
+//        try {
+//            cursor = SqliteWrapper.query(context, context.getContentResolver(),
+//                                Telephony.Carriers.CONTENT_URI,
+//                                APN_PROJECTION, selection, selectionArgs, null);
+//
+//                Log.v(TAG, "TransactionSettings looking for apn: " + selection + " returned: " +
+//                        (cursor == null ? "null cursor" : (cursor.getCount() + " hits")));
+//        } catch (SecurityException e) {
+//            e.printStackTrace();
+//            cursor = null;
+//        }
+//
+//        if (cursor == null) {
+//            Log.e(TAG, "Apn is not found in Database!");
             mServiceCenter = NetworkUtils.trimV4AddrZeros(Transaction.settings.getMmsc());
             mProxyAddress = NetworkUtils.trimV4AddrZeros(Transaction.settings.getProxy());
 
             if (isProxySet()) {
-                mProxyPort = Integer.parseInt(Transaction.settings.getProxy());
+                mProxyPort = Integer.parseInt(Transaction.settings.getPort());
             }
-            return;
-        }
+//        }
 
-        boolean sawValidApn = false;
-        try {
-            while (cursor.moveToNext() && TextUtils.isEmpty(mServiceCenter)) {
-                // Read values from APN settings
-                if (isValidApnType(cursor.getString(COLUMN_TYPE), "mms")) {
-                    sawValidApn = true;
-
-                    String mmsc = cursor.getString(COLUMN_MMSC);
-                    if (mmsc == null) {
-                        continue;
-                    }
-
-                    mServiceCenter = NetworkUtils.trimV4AddrZeros(mmsc.trim());
-                    mProxyAddress = NetworkUtils.trimV4AddrZeros(
-                            cursor.getString(COLUMN_MMSPROXY));
-                    if (isProxySet()) {
-                        String portString = cursor.getString(COLUMN_MMSPORT);
-                        try {
-                            mProxyPort = Integer.parseInt(portString);
-                        } catch (NumberFormatException e) {
-                            if (TextUtils.isEmpty(portString)) {
-                                Log.w(TAG, "mms port not set!");
-                            } else {
-                                Log.e(TAG, "Bad port number format: " + portString, e);
-                            }
-                        }
-                    }
-                }
-            }
-        } finally {
-            cursor.close();
-        }
-
-        Log.v(TAG, "APN setting: MMSC: " + mServiceCenter + " looked for: " + selection);
-
-        if (sawValidApn && TextUtils.isEmpty(mServiceCenter)) {
-            Log.e(TAG, "Invalid APN setting: MMSC is empty");
-        }
+//        boolean sawValidApn = false;
+//        try {
+//            while (cursor.moveToNext() && TextUtils.isEmpty(mServiceCenter)) {
+//                // Read values from APN settings
+//                if (isValidApnType(cursor.getString(COLUMN_TYPE), "mms")) {
+//                    sawValidApn = true;
+//
+//                    String mmsc = cursor.getString(COLUMN_MMSC);
+//                    if (mmsc == null) {
+//                        continue;
+//                    }
+//
+//                    mServiceCenter = NetworkUtils.trimV4AddrZeros(mmsc.trim());
+//                    mProxyAddress = NetworkUtils.trimV4AddrZeros(
+//                            cursor.getString(COLUMN_MMSPROXY));
+//                    if (isProxySet()) {
+//                        String portString = cursor.getString(COLUMN_MMSPORT);
+//                        try {
+//                            mProxyPort = Integer.parseInt(portString);
+//                        } catch (NumberFormatException e) {
+//                            if (TextUtils.isEmpty(portString)) {
+//                                Log.w(TAG, "mms port not set!");
+//                            } else {
+//                                Log.e(TAG, "Bad port number format: " + portString, e);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } finally {
+//            cursor.close();
+//        }
+//
+//        Log.v(TAG, "APN setting: MMSC: " + mServiceCenter + " looked for: " + selection);
+//
+//        if (sawValidApn && TextUtils.isEmpty(mServiceCenter)) {
+//            Log.e(TAG, "Invalid APN setting: MMSC is empty");
+//        }
     }
 
     /**
