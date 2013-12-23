@@ -1176,7 +1176,8 @@ public class PduPersister {
             for (int i = 0; i < partsNum; i++) {
                 PduPart part = body.getPart(i);
                 Uri partUri = part.getDataUri();
-                if ((partUri == null) || !partUri.getAuthority().startsWith("mms")) {
+                if ((partUri == null) || TextUtils.isEmpty(partUri.getAuthority())
+                        || !partUri.getAuthority().startsWith("mms")) {
                     toBeCreated.add(part);
                 } else {
                     toBeUpdated.put(partUri, part);
