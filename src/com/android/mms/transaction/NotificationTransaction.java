@@ -34,6 +34,7 @@ import android.content.Intent;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Threads;
 import android.provider.Telephony.Mms.Inbox;
@@ -113,9 +114,17 @@ public class NotificationTransaction extends Transaction implements Runnable {
         try {
             // Save the pdu. If we can start downloading the real pdu immediately, don't allow
             // persist() to create a thread for the notificationInd because it causes UI jank.
+            boolean group;
+
+            try {
+                group = com.klinker.android.send_message.Transaction.settings.getGroup();
+            } catch (Exception e) {
+                group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
+            }
+
             mUri = PduPersister.getPduPersister(context).persist(
                         ind, Inbox.CONTENT_URI, !allowAutoDownload(context),
-                    com.klinker.android.send_message.Transaction.settings.getGroup(), null);
+                        group, null);
         } catch (MmsException e) {
             Log.e(TAG, "Failed to save NotificationInd in constructor.", e);
             throw new IllegalArgumentException();

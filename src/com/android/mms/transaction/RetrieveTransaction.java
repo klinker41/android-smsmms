@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
 import android.text.TextUtils;
@@ -147,10 +148,18 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                 mTransactionState.setState(TransactionState.FAILED);
                 mTransactionState.setContentUri(mUri);
             } else {
+                boolean group;
+
+                try {
+                    group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                } catch (Exception e) {
+                    group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
+                }
+
                 // Store M-Retrieve.conf into Inbox
                 PduPersister persister = PduPersister.getPduPersister(mContext);
                 msgUri = persister.persist(retrieveConf, Inbox.CONTENT_URI, true,
-                        com.klinker.android.send_message.Transaction.settings.getGroup(), null);
+                        group, null);
 
                 // Use local time instead of PDU time
                 ContentValues values = new ContentValues(1);

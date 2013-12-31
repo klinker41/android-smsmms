@@ -90,8 +90,16 @@ public class PushReceiver extends BroadcastReceiver {
                             break;
                         }
 
+                        boolean group;
+
+                        try {
+                            group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                        } catch (Exception e) {
+                            group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
+                        }
+
                         Uri uri = p.persist(pdu, Inbox.CONTENT_URI, true,
-                                com.klinker.android.send_message.Transaction.settings.getGroup(), null);
+                                group, null);
                         // Update thread ID for ReadOrigInd & DeliveryInd.
                         ContentValues values = new ContentValues(1);
                         values.put(Mms.THREAD_ID, threadId);
@@ -115,25 +123,28 @@ public class PushReceiver extends BroadcastReceiver {
                             }
                         }
 
-                        if (!isDuplicateNotification(mContext, nInd)) {
-                            // Save the pdu. If we can start downloading the real pdu immediately,
-                            // don't allow persist() to create a thread for the notificationInd
-                            // because it causes UI jank.
-                            Uri uri = p.persist(pdu, Inbox.CONTENT_URI,
-                                    !NotificationTransaction.allowAutoDownload(mContext),
-                                    com.klinker.android.send_message.Transaction.settings.getGroup(),
-                                    null);
+                        boolean group;
 
-                            // Start service to finish the notification transaction.
-                            Intent svc = new Intent(mContext, TransactionService.class);
-                            svc.putExtra(TransactionBundle.URI, uri.toString());
-                            svc.putExtra(TransactionBundle.TRANSACTION_TYPE,
-                                    Transaction.NOTIFICATION_TRANSACTION);
-                            mContext.startService(svc);
-                        } else if (LOCAL_LOGV) {
-                            Log.v(TAG, "Skip downloading duplicate message: "
-                                    + new String(nInd.getContentLocation()));
+                        try {
+                            group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                        } catch (Exception e) {
+                            group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
                         }
+
+                        // Save the pdu. If we can start downloading the real pdu immediately,
+                        // don't allow persist() to create a thread for the notificationInd
+                        // because it causes UI jank.
+                        Uri uri = p.persist(pdu, Inbox.CONTENT_URI,
+                                !NotificationTransaction.allowAutoDownload(mContext),
+                                group,
+                                null);
+
+                        // Start service to finish the notification transaction.
+                        Intent svc = new Intent(mContext, TransactionService.class);
+                        svc.putExtra(TransactionBundle.URI, uri.toString());
+                        svc.putExtra(TransactionBundle.TRANSACTION_TYPE,
+                                Transaction.NOTIFICATION_TRANSACTION);
+                        mContext.startService(svc);
                         break;
                     }
                     default:
