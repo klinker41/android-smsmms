@@ -26,8 +26,6 @@ import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.preference.PreferenceManager;
-import android.provider.Telephony.Mms;
-import android.provider.Telephony.Mms.Inbox;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -158,12 +156,12 @@ public class RetrieveTransaction extends Transaction implements Runnable {
 
                 // Store M-Retrieve.conf into Inbox
                 PduPersister persister = PduPersister.getPduPersister(mContext);
-                msgUri = persister.persist(retrieveConf, Inbox.CONTENT_URI, true,
+                msgUri = persister.persist(retrieveConf, Uri.parse("content://mms/inbox"), true,
                         group, null);
 
                 // Use local time instead of PDU time
                 ContentValues values = new ContentValues(1);
-                values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
+                values.put("date", System.currentTimeMillis() / 1000L);
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
                         msgUri, values, null, null);
 
@@ -211,7 +209,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
 
             Cursor cursor = SqliteWrapper.query(
                     context, context.getContentResolver(),
-                    Mms.CONTENT_URI, new String[] { Mms._ID, Mms.SUBJECT, Mms.SUBJECT_CHARSET },
+                    Uri.parse("content://mms"), new String[] { "_id", "sub", "sub_cs" },
                     selection, selectionArgs, null);
 
             if (cursor != null) {
@@ -243,8 +241,8 @@ public class RetrieveTransaction extends Transaction implements Runnable {
         }
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            int subjectIdx = cursor.getColumnIndex(Mms.SUBJECT);
-            int charsetIdx = cursor.getColumnIndex(Mms.SUBJECT_CHARSET);
+            int subjectIdx = cursor.getColumnIndex("sub");
+            int charsetIdx = cursor.getColumnIndex("sub_cs");
             subject = cursor.getString(subjectIdx);
             int charset = cursor.getInt(charsetIdx);
             if (subject != null) {
@@ -296,8 +294,8 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                                               String contentLocation,
                                               boolean locked) {
         ContentValues values = new ContentValues(2);
-        values.put(Mms.CONTENT_LOCATION, contentLocation);
-        values.put(Mms.LOCKED, locked);     // preserve the state of the M-Notification.ind lock.
+        values.put("ct_l", contentLocation);
+        values.put("locked", locked);     // preserve the state of the M-Notification.ind lock.
         SqliteWrapper.update(context, context.getContentResolver(),
                              uri, values, null, null);
     }

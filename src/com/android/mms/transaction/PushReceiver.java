@@ -30,8 +30,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
-import android.provider.Telephony.Mms;
-import android.provider.Telephony.Mms.Inbox;
 import android.util.Log;
 
 import com.android.mms.MmsConfig;
@@ -98,11 +96,11 @@ public class PushReceiver extends BroadcastReceiver {
                             group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
                         }
 
-                        Uri uri = p.persist(pdu, Inbox.CONTENT_URI, true,
+                        Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"), true,
                                 group, null);
                         // Update thread ID for ReadOrigInd & DeliveryInd.
                         ContentValues values = new ContentValues(1);
-                        values.put(Mms.THREAD_ID, threadId);
+                        values.put("thread_id", threadId);
                         SqliteWrapper.update(mContext, cr, uri, values, null, null);
                         break;
                     }
@@ -134,7 +132,7 @@ public class PushReceiver extends BroadcastReceiver {
                         // Save the pdu. If we can start downloading the real pdu immediately,
                         // don't allow persist() to create a thread for the notificationInd
                         // because it causes UI jank.
-                        Uri uri = p.persist(pdu, Inbox.CONTENT_URI,
+                        Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"),
                                 !NotificationTransaction.allowAutoDownload(mContext),
                                 group,
                                 null);
@@ -207,18 +205,18 @@ public class PushReceiver extends BroadcastReceiver {
         }
 
         StringBuilder sb = new StringBuilder('(');
-        sb.append(Mms.MESSAGE_ID);
+        sb.append("m_id");
         sb.append('=');
         sb.append(DatabaseUtils.sqlEscapeString(messageId));
         sb.append(" AND ");
-        sb.append(Mms.MESSAGE_TYPE);
+        sb.append("m_type");
         sb.append('=');
         sb.append(PduHeaders.MESSAGE_TYPE_SEND_REQ);
         // TODO ContentResolver.query() appends closing ')' to the selection argument
         // sb.append(')');
 
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                            Mms.CONTENT_URI, new String[] { Mms.THREAD_ID },
+                            Uri.parse("content://mms"), new String[] { "thread_id" },
                             sb.toString(), null, null);
         if (cursor != null) {
             try {
@@ -243,7 +241,7 @@ public class PushReceiver extends BroadcastReceiver {
             String[] selectionArgs = new String[] { location };
             Cursor cursor = SqliteWrapper.query(
                     context, context.getContentResolver(),
-                    Mms.CONTENT_URI, new String[] { Mms._ID },
+                    Uri.parse("content://mms"), new String[] { "_id" },
                     selection, selectionArgs, null);
             if (cursor != null) {
                 try {

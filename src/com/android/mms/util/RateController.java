@@ -24,7 +24,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
-import android.provider.Telephony.Mms.Rate;
+import android.net.Uri;
+import android.provider.Telephony;
 import android.util.Log;
 
 public class RateController {
@@ -92,16 +93,18 @@ public class RateController {
 
     public final void update() {
         ContentValues values = new ContentValues(1);
-        values.put(Rate.SENT_TIME, System.currentTimeMillis());
+        values.put("sent_time", System.currentTimeMillis());
         SqliteWrapper.insert(mContext, mContext.getContentResolver(),
-                             Rate.CONTENT_URI, values);
+                Uri.withAppendedPath(
+                        Uri.parse("content://mms"), "rate"), values);
     }
 
     public final boolean isLimitSurpassed() {
         long oneHourAgo = System.currentTimeMillis() - ONE_HOUR;
         Cursor c = SqliteWrapper.query(mContext, mContext.getContentResolver(),
-                Rate.CONTENT_URI, new String[] { "COUNT(*) AS rate" },
-                Rate.SENT_TIME + ">" + oneHourAgo, null, null);
+                Uri.withAppendedPath(
+                        Uri.parse("content://mms"), "rate"), new String[] { "COUNT(*) AS rate" },
+                "sent_time" + ">" + oneHourAgo, null, null);
         if (c != null) {
             try {
                 if (c.moveToFirst()) {

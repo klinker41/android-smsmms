@@ -24,8 +24,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
-import android.provider.Telephony.Mms;
-import android.provider.Telephony.Mms.Sent;
+import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -98,7 +97,7 @@ public class SendTransaction extends Transaction implements Runnable {
 
             // Persist the new date value into database.
             ContentValues values = new ContentValues(1);
-            values.put(Mms.DATE, date);
+            values.put("date", date);
             SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                  mSendReqURI, values, null, null);
 
@@ -137,7 +136,7 @@ public class SendTransaction extends Transaction implements Runnable {
             // into the related M-Send.req.
             values = new ContentValues(2);
             int respStatus = conf.getResponseStatus();
-            values.put(Mms.RESPONSE_STATUS, respStatus);
+            values.put("resp_st", respStatus);
 
             if (respStatus != PduHeaders.RESPONSE_STATUS_OK) {
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
@@ -147,12 +146,12 @@ public class SendTransaction extends Transaction implements Runnable {
             }
 
             String messageId = PduPersister.toIsoString(conf.getMessageId());
-            values.put(Mms.MESSAGE_ID, messageId);
+            values.put("m_id", messageId);
             SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                  mSendReqURI, values, null, null);
 
             // Move M-Send.req from Outbox into Sent.
-            Uri uri = persister.move(mSendReqURI, Sent.CONTENT_URI);
+            Uri uri = persister.move(mSendReqURI, Uri.parse("content://mms/sent"));
 
             mTransactionState.setState(TransactionState.SUCCESS);
             mTransactionState.setContentUri(uri);

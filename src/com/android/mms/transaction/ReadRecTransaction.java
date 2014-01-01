@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import android.content.Context;
 import android.net.Uri;
-import android.provider.Telephony.Mms.Sent;
 import android.util.Log;
 
 import com.google.android.mms.MmsException;
@@ -87,7 +86,7 @@ public class ReadRecTransaction extends Transaction implements Runnable{
             byte[] postingData = new PduComposer(mContext, readRecInd).make();
             sendPdu(postingData);
 
-            Uri uri = persister.move(mReadReportURI, Sent.CONTENT_URI);
+            Uri uri = persister.move(mReadReportURI, Uri.parse("content://mms/sent"));
             mTransactionState.setState(TransactionState.SUCCESS);
             mTransactionState.setContentUri(uri);
         } catch (IOException e) {

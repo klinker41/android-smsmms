@@ -17,6 +17,7 @@
 
 package com.google.android.mms.pdu_alt;
 
+import android.provider.Telephony;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.InvalidHeaderValueException;
 import com.google.android.mms.MmsException;
@@ -36,13 +37,6 @@ import android.database.sqlite.SQLiteException;
 import android.drm.DrmManagerClient;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.provider.Telephony;
-import android.provider.Telephony.Mms;
-import android.provider.Telephony.MmsSms;
-import android.provider.Telephony.Threads;
-import android.provider.Telephony.Mms.Addr;
-import android.provider.Telephony.Mms.Part;
-import android.provider.Telephony.MmsSms.PendingMessages;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -198,18 +192,18 @@ public class PduPersister {
 
     static {
         MESSAGE_BOX_MAP = new HashMap<Uri, Integer>();
-        MESSAGE_BOX_MAP.put(Mms.Inbox.CONTENT_URI,  Mms.MESSAGE_BOX_INBOX);
-        MESSAGE_BOX_MAP.put(Mms.Sent.CONTENT_URI,   Mms.MESSAGE_BOX_SENT);
-        MESSAGE_BOX_MAP.put(Mms.Draft.CONTENT_URI,  Mms.MESSAGE_BOX_DRAFTS);
-        MESSAGE_BOX_MAP.put(Mms.Outbox.CONTENT_URI, Mms.MESSAGE_BOX_OUTBOX);
+        MESSAGE_BOX_MAP.put(Uri.parse("content://mms/inbox"),  1);
+        MESSAGE_BOX_MAP.put(Uri.parse("content://mms/sent"),   2);
+        MESSAGE_BOX_MAP.put(Uri.parse("content://mms/drafts"),  3);
+        MESSAGE_BOX_MAP.put(Uri.parse("content://mms/outbox"), 4);
 
         CHARSET_COLUMN_INDEX_MAP = new HashMap<Integer, Integer>();
         CHARSET_COLUMN_INDEX_MAP.put(PduHeaders.SUBJECT, PDU_COLUMN_SUBJECT_CHARSET);
         CHARSET_COLUMN_INDEX_MAP.put(PduHeaders.RETRIEVE_TEXT, PDU_COLUMN_RETRIEVE_TEXT_CHARSET);
 
         CHARSET_COLUMN_NAME_MAP = new HashMap<Integer, String>();
-        CHARSET_COLUMN_NAME_MAP.put(PduHeaders.SUBJECT, Mms.SUBJECT_CHARSET);
-        CHARSET_COLUMN_NAME_MAP.put(PduHeaders.RETRIEVE_TEXT, Mms.RETRIEVE_TEXT_CHARSET);
+        CHARSET_COLUMN_NAME_MAP.put(PduHeaders.SUBJECT, "sub_cs");
+        CHARSET_COLUMN_NAME_MAP.put(PduHeaders.RETRIEVE_TEXT, "retr_txt_cs");
 
         // Encoded string field code -> column index/name map.
         ENCODED_STRING_COLUMN_INDEX_MAP = new HashMap<Integer, Integer>();
@@ -217,8 +211,8 @@ public class PduPersister {
         ENCODED_STRING_COLUMN_INDEX_MAP.put(PduHeaders.SUBJECT, PDU_COLUMN_SUBJECT);
 
         ENCODED_STRING_COLUMN_NAME_MAP = new HashMap<Integer, String>();
-        ENCODED_STRING_COLUMN_NAME_MAP.put(PduHeaders.RETRIEVE_TEXT, Mms.RETRIEVE_TEXT);
-        ENCODED_STRING_COLUMN_NAME_MAP.put(PduHeaders.SUBJECT, Mms.SUBJECT);
+        ENCODED_STRING_COLUMN_NAME_MAP.put(PduHeaders.RETRIEVE_TEXT, "retr_txt");
+        ENCODED_STRING_COLUMN_NAME_MAP.put(PduHeaders.SUBJECT, "sub");
 
         // Text string field code -> column index/name map.
         TEXT_STRING_COLUMN_INDEX_MAP = new HashMap<Integer, Integer>();
@@ -230,12 +224,12 @@ public class PduPersister {
         TEXT_STRING_COLUMN_INDEX_MAP.put(PduHeaders.TRANSACTION_ID, PDU_COLUMN_TRANSACTION_ID);
 
         TEXT_STRING_COLUMN_NAME_MAP = new HashMap<Integer, String>();
-        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.CONTENT_LOCATION, Mms.CONTENT_LOCATION);
-        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.CONTENT_TYPE, Mms.CONTENT_TYPE);
-        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.MESSAGE_CLASS, Mms.MESSAGE_CLASS);
-        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.MESSAGE_ID, Mms.MESSAGE_ID);
-        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.RESPONSE_TEXT, Mms.RESPONSE_TEXT);
-        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.TRANSACTION_ID, Mms.TRANSACTION_ID);
+        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.CONTENT_LOCATION, "ct_l");
+        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.CONTENT_TYPE, "ct_t");
+        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.MESSAGE_CLASS, "m_cls");
+        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.MESSAGE_ID, "m_id");
+        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.RESPONSE_TEXT, "resp_txt");
+        TEXT_STRING_COLUMN_NAME_MAP.put(PduHeaders.TRANSACTION_ID, "tr_id");
 
         // Octet field code -> column index/name map.
         OCTET_COLUMN_INDEX_MAP = new HashMap<Integer, Integer>();
@@ -251,16 +245,16 @@ public class PduPersister {
         OCTET_COLUMN_INDEX_MAP.put(PduHeaders.STATUS, PDU_COLUMN_STATUS);
 
         OCTET_COLUMN_NAME_MAP = new HashMap<Integer, String>();
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.CONTENT_CLASS, Mms.CONTENT_CLASS);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.DELIVERY_REPORT, Mms.DELIVERY_REPORT);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.MESSAGE_TYPE, Mms.MESSAGE_TYPE);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.MMS_VERSION, Mms.MMS_VERSION);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.PRIORITY, Mms.PRIORITY);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.READ_REPORT, Mms.READ_REPORT);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.READ_STATUS, Mms.READ_STATUS);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.REPORT_ALLOWED, Mms.REPORT_ALLOWED);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.RETRIEVE_STATUS, Mms.RETRIEVE_STATUS);
-        OCTET_COLUMN_NAME_MAP.put(PduHeaders.STATUS, Mms.STATUS);
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.CONTENT_CLASS, "ct_cls");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.DELIVERY_REPORT, "d_rpt");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.MESSAGE_TYPE, "m_type");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.MMS_VERSION, "v");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.PRIORITY, "pri");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.READ_REPORT, "rr");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.READ_STATUS, "read_status");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.REPORT_ALLOWED, "rpt_a");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.RETRIEVE_STATUS, "retr_st");
+        OCTET_COLUMN_NAME_MAP.put(PduHeaders.STATUS, "st");
 
         // Long field code -> column index/name map.
         LONG_COLUMN_INDEX_MAP = new HashMap<Integer, Integer>();
@@ -270,10 +264,10 @@ public class PduPersister {
         LONG_COLUMN_INDEX_MAP.put(PduHeaders.MESSAGE_SIZE, PDU_COLUMN_MESSAGE_SIZE);
 
         LONG_COLUMN_NAME_MAP = new HashMap<Integer, String>();
-        LONG_COLUMN_NAME_MAP.put(PduHeaders.DATE, Mms.DATE);
-        LONG_COLUMN_NAME_MAP.put(PduHeaders.DELIVERY_TIME, Mms.DELIVERY_TIME);
-        LONG_COLUMN_NAME_MAP.put(PduHeaders.EXPIRY, Mms.EXPIRY);
-        LONG_COLUMN_NAME_MAP.put(PduHeaders.MESSAGE_SIZE, Mms.MESSAGE_SIZE);
+        LONG_COLUMN_NAME_MAP.put(PduHeaders.DATE, "date");
+        LONG_COLUMN_NAME_MAP.put(PduHeaders.DELIVERY_TIME, "d_tm");
+        LONG_COLUMN_NAME_MAP.put(PduHeaders.EXPIRY, "exp");
+        LONG_COLUMN_NAME_MAP.put(PduHeaders.MESSAGE_SIZE, "m_size");
 
         PDU_CACHE_INSTANCE = PduCache.getInstance();
      }
@@ -482,7 +476,7 @@ public class PduPersister {
     private void loadAddress(long msgId, PduHeaders headers) {
         Cursor c = SqliteWrapper.query(mContext, mContentResolver,
                 Uri.parse("content://mms/" + msgId + "/addr"),
-                new String[] { Addr.ADDRESS, Addr.CHARSET, Addr.TYPE },
+                new String[] { "address", "charset", "type" },
                 null, null, null);
 
         if (c != null) {
@@ -685,9 +679,9 @@ public class PduPersister {
 
         for (EncodedStringValue addr : array) {
             values.clear(); // Clear all values first.
-            values.put(Addr.ADDRESS, toIsoString(addr.getTextString()));
-            values.put(Addr.CHARSET, addr.getCharacterSet());
-            values.put(Addr.TYPE, type);
+            values.put("address", toIsoString(addr.getTextString()));
+            values.put("charset", addr.getCharacterSet());
+            values.put("type", type);
 
             Uri uri = Uri.parse("content://mms/" + msgId + "/addr");
             SqliteWrapper.insert(mContext, mContentResolver, uri, values);
@@ -705,7 +699,7 @@ public class PduPersister {
 
         int charset = part.getCharset();
         if (charset != 0 ) {
-            values.put(Part.CHARSET, charset);
+            values.put("chset", charset);
         }
 
         String contentType = getPartContentType(part);
@@ -716,10 +710,10 @@ public class PduPersister {
                 contentType = ContentType.IMAGE_JPEG;
             }
 
-            values.put(Part.CONTENT_TYPE, contentType);
+            values.put("ct", contentType);
             // To ensure the SMIL part is always the first part.
             if (ContentType.APP_SMIL.equals(contentType)) {
-                values.put(Part.SEQ, -1);
+                values.put("seq", -1);
             }
         } else {
             throw new MmsException("MIME type of the part must be set.");
@@ -727,28 +721,28 @@ public class PduPersister {
 
         if (part.getFilename() != null) {
             String fileName = new String(part.getFilename());
-            values.put(Part.FILENAME, fileName);
+            values.put("fn", fileName);
         }
 
         if (part.getName() != null) {
             String name = new String(part.getName());
-            values.put(Part.NAME, name);
+            values.put("name", name);
         }
 
         Object value = null;
         if (part.getContentDisposition() != null) {
             value = toIsoString(part.getContentDisposition());
-            values.put(Part.CONTENT_DISPOSITION, (String) value);
+            values.put("cd", (String) value);
         }
 
         if (part.getContentId() != null) {
             value = toIsoString(part.getContentId());
-            values.put(Part.CONTENT_ID, (String) value);
+            values.put("cid", (String) value);
         }
 
         if (part.getContentLocation() != null) {
             value = toIsoString(part.getContentLocation());
-            values.put(Part.CONTENT_LOCATION, (String) value);
+            values.put("cl", (String) value);
         }
 
         Uri res = SqliteWrapper.insert(mContext, mContentResolver, uri, values);
@@ -966,7 +960,7 @@ public class PduPersister {
         // Delete old address information and then insert new ones.
         SqliteWrapper.delete(mContext, mContentResolver,
                 Uri.parse("content://mms/" + msgId + "/addr"),
-                Addr.TYPE + "=" + type, null);
+                "type" + "=" + type, null);
 
         persistAddress(msgId, type, array);
     }
@@ -998,55 +992,55 @@ public class PduPersister {
         ContentValues values = new ContentValues(10);
         byte[] contentType = sendReq.getContentType();
         if (contentType != null) {
-            values.put(Mms.CONTENT_TYPE, toIsoString(contentType));
+            values.put("ct_t", toIsoString(contentType));
         }
 
         long date = sendReq.getDate();
         if (date != -1) {
-            values.put(Mms.DATE, date);
+            values.put("date", date);
         }
 
         int deliveryReport = sendReq.getDeliveryReport();
         if (deliveryReport != 0) {
-            values.put(Mms.DELIVERY_REPORT, deliveryReport);
+            values.put("d_rpt", deliveryReport);
         }
 
         long expiry = sendReq.getExpiry();
         if (expiry != -1) {
-            values.put(Mms.EXPIRY, expiry);
+            values.put("exp", expiry);
         }
 
         byte[] msgClass = sendReq.getMessageClass();
         if (msgClass != null) {
-            values.put(Mms.MESSAGE_CLASS, toIsoString(msgClass));
+            values.put("m_cls", toIsoString(msgClass));
         }
 
         int priority = sendReq.getPriority();
         if (priority != 0) {
-            values.put(Mms.PRIORITY, priority);
+            values.put("pri", priority);
         }
 
         int readReport = sendReq.getReadReport();
         if (readReport != 0) {
-            values.put(Mms.READ_REPORT, readReport);
+            values.put("rr", readReport);
         }
 
         byte[] transId = sendReq.getTransactionId();
         if (transId != null) {
-            values.put(Mms.TRANSACTION_ID, toIsoString(transId));
+            values.put("tr_id", toIsoString(transId));
         }
 
         EncodedStringValue subject = sendReq.getSubject();
         if (subject != null) {
-            values.put(Mms.SUBJECT, toIsoString(subject.getTextString()));
-            values.put(Mms.SUBJECT_CHARSET, subject.getCharacterSet());
+            values.put("sub", toIsoString(subject.getTextString()));
+            values.put("sub_cs", subject.getCharacterSet());
         } else {
-            values.put(Mms.SUBJECT, "");
+            values.put("sub", "");
         }
 
         long messageSize = sendReq.getMessageSize();
         if (messageSize > 0) {
-            values.put(Mms.MESSAGE_SIZE, messageSize);
+            values.put("m_size", messageSize);
         }
 
         PduHeaders headers = sendReq.getPduHeaders();
@@ -1077,7 +1071,7 @@ public class PduPersister {
         }
         if (!recipients.isEmpty()) {
             long threadId = Utils.getOrCreateThreadId(mContext, recipients);
-            values.put(Mms.THREAD_ID, threadId);
+            values.put("thread_id", threadId);
         }
 
         SqliteWrapper.update(mContext, mContentResolver, uri, values, null, null);
@@ -1089,41 +1083,41 @@ public class PduPersister {
 
         int charset = part.getCharset();
         if (charset != 0 ) {
-            values.put(Part.CHARSET, charset);
+            values.put("chset", charset);
         }
 
         String contentType = null;
         if (part.getContentType() != null) {
             contentType = toIsoString(part.getContentType());
-            values.put(Part.CONTENT_TYPE, contentType);
+            values.put("ct", contentType);
         } else {
             throw new MmsException("MIME type of the part must be set.");
         }
 
         if (part.getFilename() != null) {
             String fileName = new String(part.getFilename());
-            values.put(Part.FILENAME, fileName);
+            values.put("fn", fileName);
         }
 
         if (part.getName() != null) {
             String name = new String(part.getName());
-            values.put(Part.NAME, name);
+            values.put("name", name);
         }
 
         Object value = null;
         if (part.getContentDisposition() != null) {
             value = toIsoString(part.getContentDisposition());
-            values.put(Part.CONTENT_DISPOSITION, (String) value);
+            values.put("cd", (String) value);
         }
 
         if (part.getContentId() != null) {
             value = toIsoString(part.getContentId());
-            values.put(Part.CONTENT_ID, (String) value);
+            values.put("cid", (String) value);
         }
 
         if (part.getContentLocation() != null) {
             value = toIsoString(part.getContentLocation());
-            values.put(Part.CONTENT_LOCATION, (String) value);
+            values.put("cl", (String) value);
         }
 
         SqliteWrapper.update(mContext, mContentResolver, uri, values, null, null);
@@ -1188,7 +1182,7 @@ public class PduPersister {
                         filter.append(" AND ");
                     }
 
-                    filter.append(Part._ID);
+                    filter.append("_id");
                     filter.append("!=");
                     DatabaseUtils.appendEscapedSQLString(filter, partUri.getLastPathSegment());
                 }
@@ -1199,7 +1193,7 @@ public class PduPersister {
 
             // Remove the parts which doesn't exist anymore.
             SqliteWrapper.delete(mContext, mContentResolver,
-                    Uri.parse(Mms.CONTENT_URI + "/" + msgId + "/part"),
+                    Uri.parse(Uri.parse("content://mms") + "/" + msgId + "/part"),
                     filter.length() > 2 ? filter.toString() : null, null);
 
             // Create new parts which didn't exist before.
@@ -1361,7 +1355,7 @@ public class PduPersister {
                 // correct thread.
                 threadId = Utils.getOrCreateThreadId(mContext, recipients);
             }
-            values.put(Mms.THREAD_ID, threadId);
+            values.put("thread_id", threadId);
         }
 
         // Save parts first to avoid inconsistent message is loaded
@@ -1417,7 +1411,7 @@ public class PduPersister {
         }
 
         values = new ContentValues(1);
-        values.put(Part.MSG_ID, msgId);
+        values.put("mid", msgId);
         SqliteWrapper.update(mContext, mContentResolver,
                              Uri.parse("content://mms/" + dummyId + "/part"),
                              values, null, null);
@@ -1502,7 +1496,7 @@ public class PduPersister {
         }
 
         ContentValues values = new ContentValues(1);
-        values.put(Mms.MESSAGE_BOX, msgBox);
+        values.put("msg_box", msgBox);
         SqliteWrapper.update(mContext, mContentResolver, from, values, null, null);
         return ContentUris.withAppendedId(to, msgId);
     }
@@ -1545,19 +1539,20 @@ public class PduPersister {
      * Find all messages to be sent or downloaded before certain time.
      */
     public Cursor getPendingMessages(long dueTime) {
-        Uri.Builder uriBuilder = PendingMessages.CONTENT_URI.buildUpon();
+        Uri.Builder uriBuilder = Uri.withAppendedPath(
+                Uri.parse("content://mms-sms/"), "pending").buildUpon();
         uriBuilder.appendQueryParameter("protocol", "mms");
 
         String selection = "err_type" + " < ?"
                 + " AND " + "due_time" + " <= ?";
 
         String[] selectionArgs = new String[] {
-                String.valueOf(MmsSms.ERR_TYPE_GENERIC_PERMANENT),
+                String.valueOf(10),
                 String.valueOf(dueTime)
         };
 
         return SqliteWrapper.query(mContext, mContentResolver,
                 uriBuilder.build(), null, selection, selectionArgs,
-                PendingMessages.DUE_TIME);
+                "due_time");
     }
 }
