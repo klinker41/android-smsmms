@@ -18,10 +18,7 @@
 package com.android.mms.transaction;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SqliteWrapper;
 import android.net.NetworkUtils;
-import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
 import com.klinker.android.send_message.Transaction;

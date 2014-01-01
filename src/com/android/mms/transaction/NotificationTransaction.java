@@ -35,9 +35,7 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.provider.Telephony.Mms;
-import android.provider.Telephony.Threads;
-import android.provider.Telephony.Mms.Inbox;
+import android.provider.Telephony;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -123,7 +121,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
             }
 
             mUri = PduPersister.getPduPersister(context).persist(
-                        ind, Inbox.CONTENT_URI, !allowAutoDownload(context),
+                        ind, Uri.parse("content://mms/inbox"), !allowAutoDownload(context),
                         group, null);
         } catch (MmsException e) {
             Log.e(TAG, "Failed to save NotificationInd in constructor.", e);
@@ -204,12 +202,12 @@ public class NotificationTransaction extends Transaction implements Runnable {
                 } else {
                     // Save the received PDU (must be a M-RETRIEVE.CONF).
                     PduPersister p = PduPersister.getPduPersister(mContext);
-                    Uri uri = p.persist(pdu, Inbox.CONTENT_URI, true,
+                    Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"), true,
                             com.klinker.android.send_message.Transaction.settings.getGroup(), null);
 
                     // Use local time instead of PDU time
                     ContentValues values = new ContentValues(1);
-                    values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
+                    values.put("date", System.currentTimeMillis() / 1000L);
                     SqliteWrapper.update(mContext, mContext.getContentResolver(),
                             uri, values, null, null);
 
@@ -220,7 +218,9 @@ public class NotificationTransaction extends Transaction implements Runnable {
                     Log.v(TAG, "NotificationTransaction received new mms message: " + uri);
                     // Delete obsolete threads
                     SqliteWrapper.delete(mContext, mContext.getContentResolver(),
-                            Threads.OBSOLETE_THREADS_URI, null, null);
+                            Uri.withAppendedPath(
+                                    Uri.withAppendedPath(
+                                            Uri.parse("content://mms-sms/"), "conversations"), "obsolete"), null, null);
 
                     // Notify observers with newly received MM.
                     mUri = uri;

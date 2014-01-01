@@ -24,8 +24,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
-import android.provider.Telephony.Sms;
-import android.provider.Telephony.Sms.Inbox;
+import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
@@ -34,7 +33,7 @@ import android.util.Log;
  * received.
  */
 public class MessageStatusService extends IntentService {
-    private static final String[] ID_PROJECTION = new String[] { Sms._ID };
+    private static final String[] ID_PROJECTION = new String[] { "_id" };
     private static final String LOG_TAG = "MessageStatusReceiver";
     private static final Uri STATUS_URI = Uri.parse("content://sms/status");
 
@@ -80,8 +79,8 @@ public class MessageStatusService extends IntentService {
                     log("updateMessageStatus: msgUrl=" + messageUri + ", status=" + status +
                             ", isStatusReport=" + isStatusReport);
 
-                contentValues.put(Sms.STATUS, status);
-                contentValues.put(Inbox.DATE_SENT, System.currentTimeMillis());
+                contentValues.put("status", status);
+                contentValues.put("date_sent", System.currentTimeMillis());
                 SqliteWrapper.update(context, context.getContentResolver(),
                                     updateUri, contentValues, null, null);
             } else {

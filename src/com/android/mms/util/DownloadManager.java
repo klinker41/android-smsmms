@@ -29,7 +29,7 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.provider.Telephony.Mms;
+import android.provider.Telephony;
 import android.telephony.ServiceState;
 import android.util.Log;
 import android.widget.Toast;
@@ -165,7 +165,7 @@ public class DownloadManager {
         // Use the STATUS field to store the state of downloading process
         // because it's useless for M-Notification.ind.
         ContentValues values = new ContentValues(1);
-        values.put(Mms.STATUS, state);
+        values.put("st", state);
         SqliteWrapper.update(mContext, mContext.getContentResolver(),
                     uri, values, null, null);
     }
@@ -198,7 +198,7 @@ public class DownloadManager {
 
     public int getState(Uri uri) {
         Cursor cursor = SqliteWrapper.query(mContext, mContext.getContentResolver(),
-                            uri, new String[] {Mms.STATUS}, null, null, null);
+                            uri, new String[] {"st"}, null, null, null);
 
         if (cursor != null) {
             try {

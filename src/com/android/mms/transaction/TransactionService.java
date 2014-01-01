@@ -39,10 +39,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
-import android.provider.Telephony.Mms;
-import android.provider.Telephony.MmsSms;
-import android.provider.Telephony.Mms.Sent;
-import android.provider.Telephony.MmsSms.PendingMessages;
+import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -237,9 +234,9 @@ public class TransactionService extends Service implements Observer {
                         return;
                     }
 
-                    int columnIndexOfMsgId = cursor.getColumnIndexOrThrow(PendingMessages.MSG_ID);
+                    int columnIndexOfMsgId = cursor.getColumnIndexOrThrow("msg_id");
                     int columnIndexOfMsgType = cursor.getColumnIndexOrThrow(
-                            PendingMessages.MSG_TYPE);
+                            "msg_type");
 
                     while (cursor.moveToNext()) {
                         int msgType = cursor.getInt(columnIndexOfMsgType);
@@ -260,7 +257,7 @@ public class TransactionService extends Service implements Observer {
                                 // option, we also retry those messages that don't have any errors.
                                 int failureType = cursor.getInt(
                                         cursor.getColumnIndexOrThrow(
-                                                PendingMessages.ERROR_TYPE));
+                                                "err_type"));
                                 DownloadManager.init(this);
                                 DownloadManager downloadManager = DownloadManager.getInstance();
                                 boolean autoDownload = downloadManager.isAuto();
@@ -278,7 +275,7 @@ public class TransactionService extends Service implements Observer {
                                 // Logic is twisty. If there's no failure or the failure
                                 // is a non-permanent failure, we want to process the transaction.
                                 // Otherwise, break out and skip processing this transaction.
-                                if (!(failureType == MmsSms.NO_ERROR ||
+                                if (!(failureType == 0 ||
                                         isTransientFailure(failureType))) {
                                         Log.v(TAG, "onNewIntent: skipping - permanent error");
                                     break;
@@ -287,7 +284,7 @@ public class TransactionService extends Service implements Observer {
                                // fall-through
                             default:
                                 Uri uri = ContentUris.withAppendedId(
-                                        Mms.CONTENT_URI,
+                                        Uri.parse("content://mms"),
                                         cursor.getLong(columnIndexOfMsgId));
                                 TransactionBundle args = new TransactionBundle(
                                         transactionType, uri.toString());
@@ -721,7 +718,7 @@ public class TransactionService extends Service implements Observer {
                         transaction.mTransactionState.setContentUri(uri);
                         int respStatus = PduHeaders.RESPONSE_STATUS_ERROR_NETWORK_PROBLEM;
                         ContentValues values = new ContentValues(1);
-                        values.put(Mms.RESPONSE_STATUS, respStatus);
+                        values.put("resp_st", respStatus);
 
                         SqliteWrapper.update(TransactionService.this,
                                 TransactionService.this.getContentResolver(),
