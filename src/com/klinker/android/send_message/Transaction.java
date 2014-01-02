@@ -415,7 +415,7 @@ public class Transaction {
         if (saveMessage) {
             try {
                 PduPersister persister = PduPersister.getPduPersister(context);
-                info.location = persister.persist(sendRequest, Telephony.Mms.Outbox.CONTENT_URI, true, settings.getGroup(), null);
+                info.location = persister.persist(sendRequest, Uri.parse("content://mms/outbox"), true, settings.getGroup(), null);
             } catch (Exception e) {
                 Log.v("sending_mms_library", "error saving mms message");
                 e.printStackTrace();
@@ -773,15 +773,16 @@ public class Transaction {
 
         if (saveMessage) {
             Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
-            query.moveToFirst();
-            String id = query.getString(query.getColumnIndex("_id"));
-            query.close();
+            if (query != null && query.moveToFirst()) {
+                String id = query.getString(query.getColumnIndex("_id"));
+                query.close();
 
-            // mark message as failed
-            ContentValues values = new ContentValues();
-            values.put("msg_box", 5);
-            String where = "_id" + " = '" + id + "'";
-            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+                // mark message as failed
+                ContentValues values = new ContentValues();
+                values.put("msg_box", 5);
+                String where = "_id" + " = '" + id + "'";
+                context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+            }
         }
 
         ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
