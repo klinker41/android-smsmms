@@ -269,7 +269,7 @@ public class TransactionService extends Service implements Observer {
                                     // If autodownload is turned off, don't process the
                                     // transaction.
                                         Log.v(TAG, "onNewIntent: skipping - autodownload off");
-                                        sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS));
+                                        //sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS));
                                     break;
                                 }
                                 // Logic is twisty. If there's no failure or the failure

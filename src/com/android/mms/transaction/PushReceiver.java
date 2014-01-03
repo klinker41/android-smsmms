@@ -186,9 +186,9 @@ public class PushReceiver extends BroadcastReceiver {
                 abortBroadcast();
             } else {
                 clearAbortBroadcast();
-                Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
-                notificationBroadcast.putExtra("receive_through_stock", true);
-                context.sendBroadcast(notificationBroadcast);
+//                Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
+//                notificationBroadcast.putExtra("receive_through_stock", true);
+//                context.sendBroadcast(notificationBroadcast);
 
                 Log.v("mms_receiver", context.getPackageName() + " received and not aborted");
             }
