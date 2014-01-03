@@ -22,6 +22,7 @@ import android.net.NetworkUtils;
 import android.text.TextUtils;
 import android.util.Log;
 import com.klinker.android.send_message.Transaction;
+import com.klinker.android.send_message.Utils;
 
 /**
  * Container of transaction settings. Instances of this class are contained
@@ -78,6 +79,10 @@ public class TransactionSettings {
 //
 //        if (cursor == null) {
 //            Log.e(TAG, "Apn is not found in Database!");
+            if (Transaction.settings == null) {
+                Transaction.settings = Utils.getDefaultSendSettings(context);
+            }
+
             mServiceCenter = NetworkUtils.trimV4AddrZeros(Transaction.settings.getMmsc());
             mProxyAddress = NetworkUtils.trimV4AddrZeros(Transaction.settings.getProxy());
 
