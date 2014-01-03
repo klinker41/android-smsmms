@@ -5,10 +5,12 @@ import android.accounts.AccountManager;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -329,5 +331,31 @@ public class Utils {
             return match.group(2);
         }
         return address;
+    }
+
+    /**
+     * Gets the default settings from a shared preferences file associated with your app
+     * @param context is the context of the activity or service
+     * @return the settings object to send with
+     */
+    public static Settings getDefaultSendSettings(Context context) {
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Settings sendSettings = new Settings();
+
+        sendSettings.setMmsc(sharedPrefs.getString("mmsc_url", ""));
+        sendSettings.setProxy(sharedPrefs.getString("mms_proxy", ""));
+        sendSettings.setPort(sharedPrefs.getString("mms_port", ""));
+        sendSettings.setGroup(sharedPrefs.getBoolean("group_message", true));
+        sendSettings.setDeliveryReports(sharedPrefs.getBoolean("delivery_reports", false));
+        sendSettings.setSplit(sharedPrefs.getBoolean("split_sms", false));
+        sendSettings.setSplitCounter(sharedPrefs.getBoolean("split_counter", false));
+        sendSettings.setStripUnicode(sharedPrefs.getBoolean("strip_unicode", false));
+        sendSettings.setSignature(sharedPrefs.getString("signature", ""));
+        sendSettings.setSendLongAsMms(true);
+        sendSettings.setSendLongAsMmsAfter(3);
+        sendSettings.setAccount(null);
+        sendSettings.setRnrSe(null);
+
+        return sendSettings;
     }
 }
