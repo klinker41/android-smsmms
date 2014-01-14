@@ -440,6 +440,10 @@ public class Message {
      * @return a byte array of the image data
      */
     public static byte[] bitmapToByteArray(Bitmap image) {
+        if (image == null) {
+            return new byte[0];
+        }
+        
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
         return stream.toByteArray();
