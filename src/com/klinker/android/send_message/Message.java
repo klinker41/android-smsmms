@@ -443,7 +443,7 @@ public class Message {
         if (image == null) {
             return new byte[0];
         }
-        
+
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
         return stream.toByteArray();

@@ -25,7 +25,7 @@ limitations under the License.
     <string name="service_network_problem">Couldn\'t send due to network problem.</string>
     <string name="message_queued">Currently can\'t send your message. It will be sent when the service becomes available.</string>
     <string name="download_later">Can\'t download right now. Try again later.</string>
-    <string name="no_apn">No APN specified on the device.</string>
+    <string name="no_apn">No APN specified for the app, you need to set it up in settings!</string>
     <string name="no_subject">(No subject)</string>
     <string name="unknown_sender">Unknown sender</string>
     <string name="dl_failure_notification">Couldn\'t download message <xliff:g id="subject">%1$s</xliff:g> from <xliff:g id="from">%2$s</xliff:g>.</string>
