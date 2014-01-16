@@ -104,9 +104,13 @@ public class MmsMessageSender implements MessageSender {
             values.put("retry_index", 0);
             values.put("due_time", 0);
 
-            SqliteWrapper.insert(mContext, mContext.getContentResolver(),
-                    Uri.withAppendedPath(
-                            Uri.parse("content://mms-sms/"), "pending"), values);
+            try {
+                SqliteWrapper.insert(mContext, mContext.getContentResolver(),
+                        Uri.parse("content://mms-sms/outbox"), values);
+            } catch (Exception e) {
+                SqliteWrapper.insert(mContext, mContext.getContentResolver(),
+                                Uri.parse("content://mms-sms/outbox"), values);
+            }
         } else {
             p.move(mMessageUri, Uri.parse("content://mms/outbox"));
         }
