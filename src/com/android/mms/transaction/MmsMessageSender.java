@@ -106,7 +106,8 @@ public class MmsMessageSender implements MessageSender {
 
             try {
                 SqliteWrapper.insert(mContext, mContext.getContentResolver(),
-                        Uri.parse("content://mms-sms/outbox"), values);
+                        Uri.withAppendedPath(
+                                Uri.parse("content://mms-sms/"), "pending"), values);
             } catch (Exception e) {
                 SqliteWrapper.insert(mContext, mContext.getContentResolver(),
                                 Uri.parse("content://mms-sms/outbox"), values);
