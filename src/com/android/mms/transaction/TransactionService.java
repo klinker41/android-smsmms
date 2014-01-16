@@ -896,9 +896,10 @@ public class TransactionService extends Service implements Observer {
                     // If this APN doesn't have an MMSC, mark everything as failed and bail.
                     if (TextUtils.isEmpty(settings.getMmscUrl())) {
                         Log.v(TAG, "   empty MMSC url, bail");
-                        mToastHandler.sendEmptyMessage(TOAST_NO_APN);
+                        sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.MMS_ERROR));
                         mServiceHandler.markAllPendingTransactionsAsFailed();
                         endMmsConnectivity();
+                        stopSelf();
                         return;
                     }
                     mServiceHandler.processPendingTransaction(null, settings);
