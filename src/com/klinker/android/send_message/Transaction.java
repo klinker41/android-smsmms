@@ -736,7 +736,8 @@ public class Transaction {
                         }
 
                         context.sendBroadcast(new Intent(REFRESH));
-                        context.unregisterReceiver(this);
+
+                        try { context.unregisterReceiver(this); } catch (Exception e) { /* Receiver not registered */ }
 
                         // give everything time to finish up, may help the abort being shown after the progress is already 100
                         new Handler().postDelayed(new Runnable() {
