@@ -47,6 +47,7 @@ import com.google.android.mms.ContentType;
 import com.google.android.mms.MMSPart;
 import com.google.android.mms.pdu_alt.*;
 import com.google.android.mms.smil.SmilHelper;
+import org.w3c.dom.smil.ElementExclusiveTimeContainer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -702,7 +703,8 @@ public class Transaction {
                         }
 
                         context.sendBroadcast(new Intent(REFRESH));
-                        context.unregisterReceiver(this);
+
+                        try { context.unregisterReceiver(this); } catch (Exception e) { /* Receiver not registered */ }
 
                         // give everything time to finish up, may help the abort being shown after the progress is already 100
                         new Handler().postDelayed(new Runnable() {
