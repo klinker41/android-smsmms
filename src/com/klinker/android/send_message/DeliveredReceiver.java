@@ -24,6 +24,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 
+import java.util.Calendar;
+
 public class DeliveredReceiver extends BroadcastReceiver {
 
     @Override
@@ -42,6 +44,7 @@ public class DeliveredReceiver extends BroadcastReceiver {
                     String id = query.getString(query.getColumnIndex("_id"));
                     ContentValues values = new ContentValues();
                     values.put("status", "0");
+                    values.put("date_sent", Calendar.getInstance().getTimeInMillis());
                     values.put("read", true);
                     context.getContentResolver().update(Uri.parse("content://sms/sent"), values, "_id=" + id, null);
                 }
