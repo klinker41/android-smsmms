@@ -147,9 +147,41 @@ public class Transaction {
     }
 
     private void sendSmsMessage(String text, String[] addresses, long threadId) {
+        Uri messageUri = null;
+        int messageId = 0;
+        if (saveMessage) {
+            // add signature to original text to be saved in database (does not strip unicode for saving though)
+            if (!settings.getSignature().equals("")) {
+                text += "\n" + settings.getSignature();
+            }
+
+            // save the message for each of the addresses
+            for (int i = 0; i < addresses.length; i++) {
+                Calendar cal = Calendar.getInstance();
+                ContentValues values = new ContentValues();
+                values.put("address", addresses[i]);
+                values.put("body", settings.getStripUnicode() ? StripAccents.stripAccents(text) : text);
+                values.put("date", cal.getTimeInMillis() + "");
+                values.put("read", 1);
+
+                // attempt to create correct thread id if one is not supplied
+                if (threadId == NO_THREAD_ID || addresses.length > 1) {
+                    threadId = Utils.getOrCreateThreadId(context, addresses[i]);
+                }
+
+                values.put("thread_id", threadId);
+                messageUri = context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
+
+                Cursor query = context.getContentResolver().query(messageUri, new String[] {"_id"}, null, null, null);
+                if (query != null && query.moveToFirst()) {
+                    messageId = query.getInt(0);
+                }
+            }
+        }
+
         // set up sent and delivered pending intents to be used with message request
-        PendingIntent sentPI = PendingIntent.getBroadcast(context, 0, new Intent(SMS_SENT), 0);
-        PendingIntent deliveredPI = PendingIntent.getBroadcast(context, 0, new Intent(SMS_DELIVERED), 0);
+        PendingIntent sentPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_SENT).putExtra("message_uri", messageUri == null ? "" : messageUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent deliveredPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_DELIVERED).putExtra("message_uri", messageUri == null ? "" : messageUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
 
         ArrayList<PendingIntent> sPI = new ArrayList<PendingIntent>();
         ArrayList<PendingIntent> dPI = new ArrayList<PendingIntent>();
@@ -230,31 +262,6 @@ public class Transaction {
                 } catch (Exception f) {
 
                 }
-            }
-        }
-
-        if (saveMessage) {
-            // add signature to original text to be saved in database (does not strip unicode for saving though)
-            if (!settings.getSignature().equals("")) {
-                text += "\n" + settings.getSignature();
-            }
-
-            // save the message for each of the addresses
-            for (int i = 0; i < addresses.length; i++) {
-                Calendar cal = Calendar.getInstance();
-                ContentValues values = new ContentValues();
-                values.put("address", addresses[i]);
-                values.put("body", settings.getStripUnicode() ? StripAccents.stripAccents(text) : text);
-                values.put("date", cal.getTimeInMillis() + "");
-                values.put("read", 1);
-
-                // attempt to create correct thread id if one is not supplied
-                if (threadId == NO_THREAD_ID || addresses.length > 1) {
-                    threadId = Utils.getOrCreateThreadId(context, addresses[i]);
-                }
-
-                values.put("thread_id", threadId);
-                context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
             }
         }
     }
