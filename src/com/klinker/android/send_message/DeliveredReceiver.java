@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 import java.util.Calendar;
 
@@ -30,6 +31,19 @@ public class DeliveredReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.v("delivery_receiver", "marking message as delivered");
+        Uri uri;
+
+        try {
+            uri = Uri.parse(intent.getStringExtra("message_uri"));
+
+            if (uri.equals("")) {
+                uri = null;
+            }
+        } catch (Exception e) {
+            uri = null;
+        }
+
         switch (getResultCode()) {
             case Activity.RESULT_OK:
                 // notify user that message was delivered
@@ -37,19 +51,28 @@ public class DeliveredReceiver extends BroadcastReceiver {
                 delivered.putExtra("result", true);
                 context.sendBroadcast(delivered);
 
-                Cursor query = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
-
-                // mark message as delivered in database
-                if (query.moveToFirst()) {
-                    String id = query.getString(query.getColumnIndex("_id"));
+                if (uri != null) {
                     ContentValues values = new ContentValues();
                     values.put("status", "0");
                     values.put("date_sent", Calendar.getInstance().getTimeInMillis());
                     values.put("read", true);
-                    context.getContentResolver().update(Uri.parse("content://sms/sent"), values, "_id=" + id, null);
+                    context.getContentResolver().update(uri, values, null, null);
+                } else {
+                    Cursor query = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
+
+                    // mark message as delivered in database
+                    if (query.moveToFirst()) {
+                        String id = query.getString(query.getColumnIndex("_id"));
+                        ContentValues values = new ContentValues();
+                        values.put("status", "0");
+                        values.put("date_sent", Calendar.getInstance().getTimeInMillis());
+                        values.put("read", true);
+                        context.getContentResolver().update(Uri.parse("content://sms/sent"), values, "_id=" + id, null);
+                    }
+
+                    query.close();
                 }
 
-                query.close();
                 break;
             case Activity.RESULT_CANCELED:
                 // notify user that message failed to be delivered
@@ -57,18 +80,26 @@ public class DeliveredReceiver extends BroadcastReceiver {
                 notDelivered.putExtra("result", false);
                 context.sendBroadcast(notDelivered);
 
-                Cursor query2 = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
-
-                // mark failed in database
-                if (query2.moveToFirst()) {
-                    String id = query2.getString(query2.getColumnIndex("_id"));
+                if (uri != null) {
                     ContentValues values = new ContentValues();
                     values.put("status", "64");
+                    values.put("date_sent", Calendar.getInstance().getTimeInMillis());
                     values.put("read", true);
-                    context.getContentResolver().update(Uri.parse("content://sms/sent"), values, "_id=" + id, null);
-                }
+                    context.getContentResolver().update(uri, values, null, null);
+                } else {
+                    Cursor query2 = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
 
-                query2.close();
+                    // mark failed in database
+                    if (query2.moveToFirst()) {
+                        String id = query2.getString(query2.getColumnIndex("_id"));
+                        ContentValues values = new ContentValues();
+                        values.put("status", "64");
+                        values.put("read", true);
+                        context.getContentResolver().update(Uri.parse("content://sms/sent"), values, "_id=" + id, null);
+                    }
+
+                    query2.close();
+                }
                 break;
         }
 
