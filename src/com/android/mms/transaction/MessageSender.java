@@ -30,5 +30,5 @@ public interface MessageSender {
      *         sent through SMS.
      * @throws MmsException Error occurred while sending the message.
      */
-    boolean sendMessage(long token) throws Exception;
+    boolean sendMessage(long token) throws Throwable;
 }
