@@ -77,6 +77,7 @@ public class SentReceiver extends BroadcastReceiver {
                     ContentValues values = new ContentValues();
                     values.put("type", "5");
                     values.put("read", true);
+                    values.put("error_code", getResultCode());
                     context.getContentResolver().update(uri, values, null, null);
                 } else {
                     Log.v("sent_receiver", "using first message");
@@ -88,6 +89,7 @@ public class SentReceiver extends BroadcastReceiver {
                         ContentValues values = new ContentValues();
                         values.put("type", "5");
                         values.put("read", true);
+                        values.put("error_code", getResultCode());
                         context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
                     }
 
