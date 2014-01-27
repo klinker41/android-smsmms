@@ -49,7 +49,7 @@ public class DeliveredReceiver extends BroadcastReceiver {
                 // notify user that message was delivered
                 Intent delivered = new Intent(Transaction.NOTIFY_OF_DELIVERY);
                 delivered.putExtra("result", true);
-                delivered.setData(uri);
+                delivered.putExtra("message_uri", uri.toString());
                 context.sendBroadcast(delivered);
 
                 if (uri != null) {
@@ -79,7 +79,7 @@ public class DeliveredReceiver extends BroadcastReceiver {
                 // notify user that message failed to be delivered
                 Intent notDelivered = new Intent(Transaction.NOTIFY_OF_DELIVERY);
                 notDelivered.putExtra("result", false);
-                notDelivered.setData(uri);
+                notDelivered.putExtra("message_uri", uri.toString());
                 context.sendBroadcast(notDelivered);
 
                 if (uri != null) {
