@@ -85,6 +85,7 @@ public class DeliveredReceiver extends BroadcastReceiver {
                     values.put("status", "64");
                     values.put("date_sent", Calendar.getInstance().getTimeInMillis());
                     values.put("read", true);
+                    values.put("error_code", getResultCode());
                     context.getContentResolver().update(uri, values, null, null);
                 } else {
                     Cursor query2 = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
@@ -95,6 +96,7 @@ public class DeliveredReceiver extends BroadcastReceiver {
                         ContentValues values = new ContentValues();
                         values.put("status", "64");
                         values.put("read", true);
+                        values.put("error_code", getResultCode());
                         context.getContentResolver().update(Uri.parse("content://sms/sent"), values, "_id=" + id, null);
                     }
 
