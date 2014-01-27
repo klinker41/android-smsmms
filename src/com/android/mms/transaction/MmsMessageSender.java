@@ -61,7 +61,7 @@ public class MmsMessageSender implements MessageSender {
         }
     }
 
-    public boolean sendMessage(long token) throws Exception {
+    public boolean sendMessage(long token) throws Throwable {
         // Load the MMS from the message uri
         PduPersister p = PduPersister.getPduPersister(mContext);
         GenericPdu pdu = p.load(mMessageUri);
@@ -104,13 +104,12 @@ public class MmsMessageSender implements MessageSender {
             values.put("retry_index", 0);
             values.put("due_time", 0);
 
-            try {
-                SqliteWrapper.insert(mContext, mContext.getContentResolver(),
+            Uri uri = SqliteWrapper.insert(mContext, mContext.getContentResolver(),
                         Uri.withAppendedPath(
                                 Uri.parse("content://mms-sms/"), "pending"), values);
-            } catch (Exception e) {
-                SqliteWrapper.insert(mContext, mContext.getContentResolver(),
-                                Uri.parse("content://mms-sms/outbox"), values);
+
+            if (uri == null) {
+                throw new Throwable("Cannot insert into correct database, fall back to old method");
             }
         } else {
             p.move(mMessageUri, Uri.parse("content://mms/outbox"));

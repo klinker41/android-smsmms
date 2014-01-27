@@ -345,7 +345,7 @@ public class Transaction {
             };
 
             context.registerReceiver(receiver, filter);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             // insert the pdu into the database and return the bytes to send
             if (settings.getWifiMmsFix()) {
