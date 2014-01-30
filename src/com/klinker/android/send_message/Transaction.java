@@ -180,91 +180,87 @@ public class Transaction {
                 if (query != null && query.moveToFirst()) {
                     messageId = query.getInt(0);
                 }
-            }
-        }
 
-        // set up sent and delivered pending intents to be used with message request
-        PendingIntent sentPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_SENT).putExtra("message_uri", messageUri == null ? "" : messageUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
-        PendingIntent deliveredPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_DELIVERED).putExtra("message_uri", messageUri == null ? "" : messageUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
+                // set up sent and delivered pending intents to be used with message request
+                PendingIntent sentPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_SENT)
+                        .putExtra("message_uri", messageUri == null ? "" : messageUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent deliveredPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_DELIVERED)
+                        .putExtra("message_uri", messageUri == null ? "" : messageUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
 
-        ArrayList<PendingIntent> sPI = new ArrayList<PendingIntent>();
-        ArrayList<PendingIntent> dPI = new ArrayList<PendingIntent>();
+                ArrayList<PendingIntent> sPI = new ArrayList<PendingIntent>();
+                ArrayList<PendingIntent> dPI = new ArrayList<PendingIntent>();
 
-        String body = text;
+                String body = text;
 
-        // edit the body of the text if unicode needs to be stripped or signature needs to be added
-        if (settings.getStripUnicode()) {
-            body = StripAccents.stripAccents(body);
-        }
-
-        if (!settings.getSignature().equals("")) {
-            body += "\n" + settings.getSignature();
-        }
-
-        if (!settings.getPreText().equals("")) {
-            body = settings.getPreText() + " " + body;
-        }
-
-        SmsManager smsManager = SmsManager.getDefault();
-
-        if (settings.getSplit()) {
-            // figure out the length of supported message
-            int[] splitData = SmsMessage.calculateLength(body, false);
-
-            // we take the current length + the remaining length to get the total number of characters
-            // that message set can support, and then divide by the number of message that will require
-            // to get the length supported by a single message
-            int length = (body.length() + splitData[2]) / splitData[0];
-
-            boolean counter = false;
-            if (settings.getSplitCounter() && body.length() > length) {
-                counter = true;
-                length -= 6;
-            }
-
-            // get the split messages
-            String[] textToSend = splitByLength(body, length, counter);
-
-            // send each message part to each recipient attached to message
-            for (int i = 0; i < textToSend.length; i++) {
-                ArrayList<String> parts = smsManager.divideMessage(textToSend[i]);
-
-                for (int j = 0; j < parts.size(); j++) {
-                    sPI.add(saveMessage ? sentPI : null);
-                    dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
+                // edit the body of the text if unicode needs to be stripped or signature needs to be added
+                if (settings.getStripUnicode()) {
+                    body = StripAccents.stripAccents(body);
                 }
 
-                for (int j = 0; j < addresses.length; j++) {
-                    smsManager.sendMultipartTextMessage(addresses[j], null, parts, sPI, dPI);
+                if (!settings.getSignature().equals("")) {
+                    body += "\n" + settings.getSignature();
                 }
-            }
-        } else {
-            // send the message normally without forcing anything to be split
-            ArrayList<String> parts = smsManager.divideMessage(body);
 
-            for (int i = 0; i < parts.size(); i++) {
-                sPI.add(saveMessage ? sentPI : null);
-                dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
-            }
-
-            try {
-                for (int i = 0; i < addresses.length; i++) {
-                    smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
+                if (!settings.getPreText().equals("")) {
+                    body = settings.getPreText() + " " + body;
                 }
-            } catch (Exception e) {
-                // whoops...
-                e.printStackTrace();
 
-                try {
-                    ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
+                SmsManager smsManager = SmsManager.getDefault();
 
-                        @Override
-                        public void run() {
-                            Toast.makeText(context, "Message could not be sent", Toast.LENGTH_LONG).show();
+                if (settings.getSplit()) {
+                    // figure out the length of supported message
+                    int[] splitData = SmsMessage.calculateLength(body, false);
+
+                    // we take the current length + the remaining length to get the total number of characters
+                    // that message set can support, and then divide by the number of message that will require
+                    // to get the length supported by a single message
+                    int length = (body.length() + splitData[2]) / splitData[0];
+
+                    boolean counter = false;
+                    if (settings.getSplitCounter() && body.length() > length) {
+                        counter = true;
+                        length -= 6;
+                    }
+
+                    // get the split messages
+                    String[] textToSend = splitByLength(body, length, counter);
+
+                    // send each message part to each recipient attached to message
+                    for (int j = 0; j < textToSend.length; j++) {
+                        ArrayList<String> parts = smsManager.divideMessage(textToSend[j]);
+
+                        for (int k = 0; k < parts.size(); k++) {
+                            sPI.add(saveMessage ? sentPI : null);
+                            dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
                         }
-                    });
-                } catch (Exception f) {
 
+                        smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
+                    }
+                } else {
+                    // send the message normally without forcing anything to be split
+                    ArrayList<String> parts = smsManager.divideMessage(body);
+
+                    for (int j = 0; j < parts.size(); j++) {
+                        sPI.add(saveMessage ? sentPI : null);
+                        dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
+                    }
+
+                    try {
+                        smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
+                    } catch (Exception e) {
+                        // whoops...
+                        e.printStackTrace();
+
+                        try {
+                            ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "Message could not be sent", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        } catch (Exception f) { }
+                    }
                 }
             }
         }
