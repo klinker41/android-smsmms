@@ -163,6 +163,7 @@ public class Transaction {
                 values.put("body", settings.getStripUnicode() ? StripAccents.stripAccents(text) : text);
                 values.put("date", cal.getTimeInMillis() + "");
                 values.put("read", 1);
+                values.put("type", 4);
 
                 // attempt to create correct thread id if one is not supplied
                 if (threadId == NO_THREAD_ID || addresses.length > 1) {
@@ -170,7 +171,7 @@ public class Transaction {
                 }
 
                 values.put("thread_id", threadId);
-                messageUri = context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
+                messageUri = context.getContentResolver().insert(Uri.parse("content://sms/"), values);
 
                 Cursor query = context.getContentResolver().query(messageUri, new String[] {"_id"}, null, null, null);
                 if (query != null && query.moveToFirst()) {
