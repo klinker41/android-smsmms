@@ -21,6 +21,7 @@ import android.content.Context;
 import android.net.NetworkUtils;
 import android.text.TextUtils;
 import android.util.Log;
+import com.android.mms.MmsConfig;
 import com.klinker.android.send_message.Transaction;
 import com.klinker.android.send_message.Utils;
 
@@ -37,6 +38,8 @@ public class TransactionSettings {
     private String mServiceCenter;
     private String mProxyAddress;
     private int mProxyPort = -1;
+    private String mUserAgent;
+    private String mUserAgentProfileUrl;
 
     private static final String[] APN_PROJECTION = {
             "type",            // 0
@@ -85,6 +88,25 @@ public class TransactionSettings {
 
             mServiceCenter = NetworkUtils.trimV4AddrZeros(Transaction.settings.getMmsc());
             mProxyAddress = NetworkUtils.trimV4AddrZeros(Transaction.settings.getProxy());
+
+            // Set up the agent, profile url and tag name to be used in the mms request if they are attached in settings
+            String agent = Transaction.settings.getAgent();
+            if (agent != null && !agent.trim().equals("")) {
+                MmsConfig.setUserAgent(agent);
+                Log.v(TAG, "set user agent");
+            }
+
+            String uaProfUrl = Transaction.settings.getUserProfileUrl();
+            if (uaProfUrl != null && !uaProfUrl.trim().equals("")) {
+                MmsConfig.setUaProfUrl(uaProfUrl);
+                Log.v(TAG, "set user agent profile url");
+            }
+
+            String uaProfTagName = Transaction.settings.getUaProfTagName();
+            if (uaProfTagName != null && !uaProfTagName.trim().equals("")) {
+                MmsConfig.setUaProfTagName(uaProfTagName);
+                Log.v(TAG, "set user agent profile tag name");
+            }
 
             if (isProxySet()) {
                 mProxyPort = Integer.parseInt(Transaction.settings.getPort());
