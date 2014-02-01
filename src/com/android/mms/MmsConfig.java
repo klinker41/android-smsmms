@@ -47,7 +47,7 @@ public class MmsConfig {
      */
     private static boolean mTransIdEnabled = false;
     private static boolean mMmsEnabled = true;                  // default to true
-    private static int mMaxMessageSize = 300 * 1024;            // default to 300k max size
+    private static int mMaxMessageSize = 800 * 1024;            // default to 800k max size
     private static String mUserAgent = DEFAULT_USER_AGENT;
     private static String mUaProfTagName = DEFAULT_HTTP_KEY_X_WAP_PROFILE;
     private static String mUaProfUrl = null;
@@ -323,6 +323,18 @@ public class MmsConfig {
                         errorStr);
             Log.e(TAG, err);
         }
+    }
+
+    public static void setUserAgent(String userAgent) {
+        MmsConfig.mUserAgent = userAgent;
+    }
+
+    public static void setUaProfUrl(String url) {
+        MmsConfig.mUaProfUrl = url;
+    }
+
+    public static void setUaProfTagName(String tagName) {
+        MmsConfig.mUaProfTagName = tagName;
     }
 
 }

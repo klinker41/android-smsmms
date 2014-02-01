@@ -345,6 +345,9 @@ public class Utils {
         sendSettings.setMmsc(sharedPrefs.getString("mmsc_url", ""));
         sendSettings.setProxy(sharedPrefs.getString("mms_proxy", ""));
         sendSettings.setPort(sharedPrefs.getString("mms_port", ""));
+        sendSettings.setAgent(sharedPrefs.getString("mms_agent", ""));
+        sendSettings.setUserProfileUrl(sharedPrefs.getString("mms_user_agent_profile_url", ""));
+        sendSettings.setUaProfTagName(sharedPrefs.getString("mms_user_agent_tag_name", ""));
         sendSettings.setGroup(sharedPrefs.getBoolean("group_message", true));
         sendSettings.setDeliveryReports(sharedPrefs.getBoolean("delivery_reports", false));
         sendSettings.setSplit(sharedPrefs.getBoolean("split_sms", false));
