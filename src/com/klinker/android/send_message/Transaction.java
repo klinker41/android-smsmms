@@ -193,13 +193,9 @@ public class Transaction {
 
                 String body = text;
 
-                // edit the body of the text if unicode needs to be stripped or signature needs to be added
+                // edit the body of the text if unicode needs to be stripped
                 if (settings.getStripUnicode()) {
                     body = StripAccents.stripAccents(body);
-                }
-
-                if (!settings.getSignature().equals("")) {
-                    body += "\n" + settings.getSignature();
                 }
 
                 if (!settings.getPreText().equals("")) {
