@@ -41,10 +41,7 @@ import com.android.mms.transaction.MmsMessageSender;
 import com.android.mms.transaction.ProgressCallbackEntity;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;
-import com.google.android.mms.APN;
-import com.google.android.mms.APNHelper;
-import com.google.android.mms.ContentType;
-import com.google.android.mms.MMSPart;
+import com.google.android.mms.*;
 import com.google.android.mms.pdu_alt.*;
 import com.google.android.mms.smil.SmilHelper;
 import org.w3c.dom.smil.ElementExclusiveTimeContainer;
@@ -302,7 +299,14 @@ public class Transaction {
             data.add(part);
         }
 
-        MessageInfo info = getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
+        MessageInfo info;
+
+        try {
+            info = getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
+        } catch (MmsException e) {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         try {
             MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
@@ -345,7 +349,8 @@ public class Transaction {
         }
     }
 
-    private MessageInfo getBytes(String[] recipients, MMSPart[] parts, String subject) {
+    private MessageInfo getBytes(String[] recipients, MMSPart[] parts, String subject)
+                throws MmsException {
         final SendReq sendRequest = new SendReq();
 
         // create send request addresses
@@ -408,7 +413,13 @@ public class Transaction {
 
         // create byte array which will actually be sent
         final PduComposer composer = new PduComposer(context, sendRequest);
-        final byte[] bytesToSend = composer.make();
+        final byte[] bytesToSend;
+
+        try {
+            bytesToSend = composer.make();
+        } catch (OutOfMemoryError e) {
+            throw new MmsException("Out of memory!");
+        }
 
         MessageInfo info = new MessageInfo();
         info.bytes = bytesToSend;
@@ -691,15 +702,16 @@ public class Transaction {
                     if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
                         if (saveMessage) {
                             Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
-                            query.moveToFirst();
-                            String id = query.getString(query.getColumnIndex("_id"));
-                            query.close();
+                            if (query != null && query.moveToFirst()) {
+                                String id = query.getString(query.getColumnIndex("_id"));
+                                query.close();
 
-                            // move to the sent box
-                            ContentValues values = new ContentValues();
-                            values.put("msg_box", 2);
-                            String where = "_id" + " = '" + id + "'";
-                            context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+                                // move to the sent box
+                                ContentValues values = new ContentValues();
+                                values.put("msg_box", 2);
+                                String where = "_id" + " = '" + id + "'";
+                                context.getContentResolver().update(Uri.parse("content://mms"), values, where, null);
+                            }
                         }
 
                         context.sendBroadcast(new Intent(REFRESH));
