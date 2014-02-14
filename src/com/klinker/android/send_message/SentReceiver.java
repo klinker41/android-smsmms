@@ -46,25 +46,17 @@ public class SentReceiver extends BroadcastReceiver {
         switch (getResultCode()) {
             case Activity.RESULT_OK:
                 if (uri != null) {
-                    Log.v("sent_receiver", "using supplied uri");
-                    ContentValues values = new ContentValues();
-                    values.put("type", "2");
-                    values.put("read", true);
-                    context.getContentResolver().update(uri, values, null, null);
-                } else {
-                    Log.v("sent_receiver", "using first message");
-                    Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
-
-                    // mark message as sent successfully
-                    if (query != null && query.moveToFirst()) {
-                        String id = query.getString(query.getColumnIndex("_id"));
+                    try {
+                        Log.v("sent_receiver", "using supplied uri");
                         ContentValues values = new ContentValues();
-                        values.put("type", "2");
-                        values.put("read", true);
-                        context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+                        values.put("type", 2);
+                        values.put("read", 1);
+                        context.getContentResolver().update(uri, values, null, null);
+                    } catch (NullPointerException e) {
+                        markFirstAsSent(context);
                     }
-
-                    query.close();
+                } else {
+                    markFirstAsSent(context);
                 }
 
                 break;
@@ -75,7 +67,7 @@ public class SentReceiver extends BroadcastReceiver {
                 if (uri != null) {
                     Log.v("sent_receiver", "using supplied uri");
                     ContentValues values = new ContentValues();
-                    values.put("type", "5");
+                    values.put("type", 5);
                     values.put("read", true);
                     values.put("error_code", getResultCode());
                     context.getContentResolver().update(uri, values, null, null);
@@ -87,8 +79,8 @@ public class SentReceiver extends BroadcastReceiver {
                     if (query != null && query.moveToFirst()) {
                         String id = query.getString(query.getColumnIndex("_id"));
                         ContentValues values = new ContentValues();
-                        values.put("type", "5");
-                        values.put("read", true);
+                        values.put("type", 5);
+                        values.put("read", 1);
                         values.put("error_code", getResultCode());
                         context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
                     }
@@ -100,5 +92,21 @@ public class SentReceiver extends BroadcastReceiver {
         }
 
         context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+    }
+
+    private void markFirstAsSent(Context context) {
+        Log.v("sent_receiver", "using first message");
+        Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
+
+        // mark message as sent successfully
+        if (query != null && query.moveToFirst()) {
+            String id = query.getString(query.getColumnIndex("_id"));
+            ContentValues values = new ContentValues();
+            values.put("type", 2);
+            values.put("read", 1);
+            context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+        }
+
+        query.close();
     }
 }
