@@ -143,9 +143,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
 
     public static boolean allowAutoDownload(Context context) {
         try { Looper.prepare(); } catch (Exception e) { }
-        DownloadManager.init(context);
-        DownloadManager downloadManager = DownloadManager.getInstance();
-        boolean autoDownload = downloadManager.isAuto();
+        boolean autoDownload = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_download_mms", true);
         boolean dataSuspended = (((TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE)).getDataState() ==
                 TelephonyManager.DATA_SUSPENDED);
         return autoDownload && !dataSuspended;
