@@ -68,7 +68,7 @@ public class DownloadManager {
         mHandler = new Handler();
         mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        mAutoDownload = getAutoDownloadState(mPreferences);
+        mAutoDownload = getAutoDownloadState(context);
         if (LOCAL_LOGV) {
             Log.v(TAG, "mAutoDownload ------> " + mAutoDownload);
         }
@@ -96,8 +96,8 @@ public class DownloadManager {
         return sInstance;
     }
 
-    static boolean getAutoDownloadState(SharedPreferences prefs) {
-        return getAutoDownloadState(prefs, isRoaming());
+    static boolean getAutoDownloadState(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_download_mms", true);
     }
 
     static boolean getAutoDownloadState(SharedPreferences prefs, boolean roaming) {

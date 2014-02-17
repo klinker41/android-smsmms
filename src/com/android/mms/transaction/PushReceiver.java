@@ -137,12 +137,19 @@ public class PushReceiver extends BroadcastReceiver {
                                 group,
                                 null);
 
-                        // Start service to finish the notification transaction.
-                        Intent svc = new Intent(mContext, TransactionService.class);
-                        svc.putExtra(TransactionBundle.URI, uri.toString());
-                        svc.putExtra(TransactionBundle.TRANSACTION_TYPE,
-                                Transaction.NOTIFICATION_TRANSACTION);
-                        mContext.startService(svc);
+                        if (NotificationTransaction.allowAutoDownload(mContext)) {
+                            // Start service to finish the notification transaction.
+                            Intent svc = new Intent(mContext, TransactionService.class);
+                            svc.putExtra(TransactionBundle.URI, uri.toString());
+                            svc.putExtra(TransactionBundle.TRANSACTION_TYPE,
+                                    Transaction.NOTIFICATION_TRANSACTION);
+                            mContext.startService(svc);
+                        } else {
+                            Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
+                            notificationBroadcast.putExtra("receive_through_stock", true);
+                            mContext.sendBroadcast(notificationBroadcast);
+                        }
+
                         break;
                     }
                     default:
