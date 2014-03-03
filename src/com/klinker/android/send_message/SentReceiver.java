@@ -84,9 +84,9 @@ public class SentReceiver extends BroadcastReceiver {
                         values.put("error_code", getResultCode());
                         context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
                     }
-
-                    context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
                 }
+
+                context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
 
                 break;
         }
