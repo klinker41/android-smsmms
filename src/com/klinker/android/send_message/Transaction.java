@@ -314,7 +314,7 @@ public class Transaction {
 
         try {
             MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
-            sender.sendMessage(4444L);
+            sender.sendMessage(info.token);
 
             IntentFilter filter = new IntentFilter();
             filter.addAction(ProgressCallbackEntity.PROGRESS_STATUS_ACTION);
@@ -441,10 +441,19 @@ public class Transaction {
             }
         }
 
+        Cursor query = context.getContentResolver().query(info.location, new String[] {"thread_id"}, null, null, null);
+        if (query != null && query.moveToFirst()) {
+            info.token = query.getLong(query.getColumnIndex("thread_id"));
+        } else {
+            // just default sending token for what I had before
+            info.token = 4444L;
+        }
+
         return info;
     }
 
     private class MessageInfo {
+        public long token;
         public Uri location;
         public byte[] bytes;
     }
