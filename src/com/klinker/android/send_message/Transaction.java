@@ -88,7 +88,7 @@ public class Transaction {
      * @param context is the context of the activity or service
      */
     public Transaction(Context context) {
-
+        this.context = context;
         SMS_SENT = context.getPackageName() + SMS_SENT;
         SMS_DELIVERED = context.getPackageName() + SMS_DELIVERED;
 
