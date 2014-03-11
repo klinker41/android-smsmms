@@ -49,6 +49,7 @@ import com.google.android.mms.pdu_alt.PduComposer;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
+import com.klinker.android.send_message.Settings;
 
 /**
  * The NotificationTransaction is responsible for handling multimedia
@@ -112,15 +113,8 @@ public class NotificationTransaction extends Transaction implements Runnable {
         try {
             // Save the pdu. If we can start downloading the real pdu immediately, don't allow
             // persist() to create a thread for the notificationInd because it causes UI jank.
-            boolean group;
-
-            try {
-                group = com.klinker.android.send_message.Transaction.settings.getGroup();
-            } catch (Exception e) {
-                group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
-            }
-
-            mUri = PduPersister.getPduPersister(context).persist(
+            boolean group =  Settings.get().getGroup();
+             mUri = PduPersister.getPduPersister(context).persist(
                         ind, Uri.parse("content://mms/inbox"), !allowAutoDownload(context),
                         group, null);
         } catch (MmsException e) {
@@ -201,7 +195,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
                     // Save the received PDU (must be a M-RETRIEVE.CONF).
                     PduPersister p = PduPersister.getPduPersister(mContext);
                     Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"), true,
-                            com.klinker.android.send_message.Transaction.settings.getGroup(), null);
+                            Settings.get().getGroup(), null);
 
                     // Use local time instead of PDU time
                     ContentValues values = new ContentValues(1);

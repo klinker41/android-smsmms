@@ -16,14 +16,17 @@
 
 package com.klinker.android.send_message;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.wifi.WifiInfo;
+import android.preference.PreferenceManager;
 
 /**
  * Class to house all of the settings that can be used to send a message
  *
- * @author Jake Klinker
+ * @author Jake Klinker, Fabrice Darbas
  */
-public class Settings {
+public class Settings implements ISettingsConst {
 
     // MMS options
     private String mmsc;
@@ -48,94 +51,84 @@ public class Settings {
     private String account;
     private String rnrSe;
 
+    private static Settings instance = new Settings();
+
+    public static Settings get() {
+        return instance;
+    }
+
     /**
      * Default constructor to set everything to default values
      */
-    public Settings() {
-        this("", "", "0", true, false, false, false, false, false, "", "", true, 3, "", null);
+    private Settings() {
+        // singleton constructor
+        loadDefaultValues();
     }
 
     /**
-     * Copy constuctor
-     * @param s is the Settings object to copy from
+     * Loads settings from preferences
      */
-    public Settings(Settings s) {
-        this.mmsc = s.getMmsc();
-        this.proxy = s.getProxy();
-        this.port = s.getPort();
-        this.userAgent = s.getAgent();
-        this.uaProfUrl = s.getUserProfileUrl();
-        this.uaProfTagName = s.getUaProfTagName();
-        this.group = s.getGroup();
-        this.wifiMmsFix = s.getWifiMmsFix();
-        this.deliveryReports = s.getDeliveryReports();
-        this.split = s.getSplit();
-        this.splitCounter = s.getSplitCounter();
-        this.stripUnicode = s.getStripUnicode();
-        this.signature = s.getSignature();
-        this.preText = s.getPreText();
-        this.sendLongAsMms = s.getSendLongAsMms();
-        this.sendLongAsMmsAfter = s.getSendLongAsMmsAfter();
-        this.account = s.getAccount();
-        this.rnrSe = s.getRnrSe();
+    public void loadDefaultValues() {
+        setMmsc(DEFAULT_MMSC_URL);
+        setProxy(DEFAULT_MMS_PROXY);
+        setPort(DEFAULT_MMS_PORT);
+        setAgent(DEFAULT_MMS_AGENT);
+        setUserProfileUrl(DEFAULT_MMS_USER_AGENT_PROFILE_URL);
+        setUaProfTagName(DEFAULT_MMS_USER_AGENT_TAG_NAME);
+        setGroup(DEFAULT_GROUP_MESSAGE);
+        setDeliveryReports(DEFAULT_DELIVERY_REPORTS);
+        setSplit(DEFAULT_SPLIT_SMS);
+        setSplitCounter(DEFAULT_SPLIT_COUNTER);
+        setStripUnicode(DEFAULT_STRIP_UNICODE);
+        setSignature(DEFAULT_SIGNATURE);
+        setSendLongAsMms(true);
+        setSendLongAsMmsAfter(3);
+        setAccount(null);
+        setRnrSe(null);
     }
 
     /**
-     * @param mmsc               is the address contained by the apn to send MMS to
-     * @param proxy              is the proxy address in the apn to send MMS through
-     * @param port               is the port from the apn to send MMS through
-     * @param group              is a boolean specifying whether or not to send messages with multiple recipients as a group MMS message
-     * @param wifiMmsFix         is a boolean to toggle on and off wifi when sending MMS (MMS will not work currently when WiFi is enabled)
-     * @param deliveryReports    is a boolean to retrieve delivery reports from SMS messages
-     * @param split              is a boolean to manually split messages (shouldn't be necessary, but some carriers do not split on their own)
-     * @param splitCounter       adds a split counter to the front of all split messages
-     * @param stripUnicode       replaces many unicode characters with their gsm compatible equivalent to allow for sending 160 characters instead of 70
-     * @param signature          a signature to attach at the end of each message
-     * @param sendLongAsMms      if a message is too long to be multiple SMS, convert it to a single MMS
-     * @param sendLongAsMmsAfter is an int of how many pages long an SMS must be before it is split
-     * @param account            is the google account to send Google Voice messages through
-     * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
-     * @deprecated Construtor to create object of all values
+     * Write settings to preferences
      */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
-        this.mmsc = mmsc;
-        this.proxy = proxy;
-        this.port = port;
-        this.userAgent = "";
-        this.uaProfUrl = "";
-        this.uaProfTagName = "";
-        this.group = group;
-        this.wifiMmsFix = wifiMmsFix;
-        this.deliveryReports = deliveryReports;
-        this.split = split;
-        this.splitCounter = splitCounter;
-        this.stripUnicode = stripUnicode;
-        this.signature = signature;
-        this.preText = preText;
-        this.sendLongAsMms = sendLongAsMms;
-        this.sendLongAsMmsAfter = sendLongAsMmsAfter;
-        this.account = account;
-        this.rnrSe = rnrSe;
+    public void loadFromPreferences(Context context) {
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        setMmsc(sharedPrefs.getString(KEY_MMSC_URL, DEFAULT_MMSC_URL));
+        setProxy(sharedPrefs.getString(KEY_MMS_PROXY, DEFAULT_MMS_PROXY));
+        setPort(sharedPrefs.getString(KEY_MMS_PORT, DEFAULT_MMS_PORT));
+        setAgent(sharedPrefs.getString(KEY_MMS_AGENT, DEFAULT_MMS_AGENT));
+        setUserProfileUrl(sharedPrefs.getString(KEY_MMS_USER_AGENT_PROFILE_URL, DEFAULT_MMS_USER_AGENT_PROFILE_URL));
+        setUaProfTagName(sharedPrefs.getString(KEY_MMS_USER_AGENT_TAG_NAME, DEFAULT_MMS_USER_AGENT_TAG_NAME));
+        setGroup(sharedPrefs.getBoolean(KEY_GROUP_MESSAGE, DEFAULT_GROUP_MESSAGE));
+        setDeliveryReports(sharedPrefs.getBoolean(KEY_DELIVERY_REPORTS, DEFAULT_DELIVERY_REPORTS));
+        setSplit(sharedPrefs.getBoolean(KEY_SPLIT_SMS, DEFAULT_SPLIT_SMS));
+        setSplitCounter(sharedPrefs.getBoolean(KEY_SPLIT_COUNTER, DEFAULT_SPLIT_COUNTER));
+        setStripUnicode(sharedPrefs.getBoolean(KEY_STRIP_UNICODE, DEFAULT_STRIP_UNICODE));
+        setSignature(sharedPrefs.getString(KEY_SIGNATURE, DEFAULT_SIGNATURE));
+        setSendLongAsMms(sharedPrefs.getBoolean(KEY_SEND_LONG_AS_MMS, DEFAULT_SEND_LONG_AS_MMS));
+        setSendLongAsMmsAfter(sharedPrefs.getInt(KEY_SEND_LONG_AS_MMS_AFTER, DEFAULT_SEND_LONG_AS_MMS_AFTER));
+        setAccount(sharedPrefs.getString(KEY_ACCOUNT, DEFAULT_ACCOUNT));
+        setRnrSe(sharedPrefs.getString(KEY_RNRSE, DEFAULT_RNRSE));
     }
 
-    /**
-     * @param mmsc               is the address contained by the apn to send MMS to
-     * @param proxy              is the proxy address in the apn to send MMS through
-     * @param port               is the port from the apn to send MMS through
-     * @param group              is a boolean specifying whether or not to send messages with multiple recipients as a group MMS message
-     * @param deliveryReports    is a boolean to retrieve delivery reports from SMS messages
-     * @param split              is a boolean to manually split messages (shouldn't be necessary, but some carriers do not split on their own)
-     * @param splitCounter       adds a split counter to the front of all split messages
-     * @param stripUnicode       replaces many unicode characters with their gsm compatible equivalent to allow for sending 160 characters instead of 70
-     * @param signature          a signature to attach at the end of each message
-     * @param preText            text to be inserted before a message
-     * @param sendLongAsMms      if a message is too long to be multiple SMS, convert it to a single MMS
-     * @param sendLongAsMmsAfter is an int of how many pages long an SMS must be before it is split
-     * @param account            is the google account to send Google Voice messages through
-     * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
-     */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
-        this(mmsc, proxy, port, group, false, deliveryReports, split, splitCounter, stripUnicode, signature, preText, sendLongAsMms, sendLongAsMmsAfter, account, rnrSe);
+    public void writeToPreferences(Context context) {
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putString(KEY_MMSC_URL, getMmsc());
+        editor.putString(KEY_MMS_PROXY, getProxy());
+        editor.putString(KEY_MMS_PORT, getPort());
+        editor.putString(KEY_MMS_AGENT, getAgent());
+        editor.putString(KEY_MMS_USER_AGENT_PROFILE_URL, getUserProfileUrl());
+        editor.putString(KEY_MMS_USER_AGENT_TAG_NAME, getUserProfileUrl());
+        editor.putBoolean(KEY_GROUP_MESSAGE, getGroup());
+        editor.putBoolean(KEY_DELIVERY_REPORTS, getDeliveryReports());
+        editor.putBoolean(KEY_SPLIT_SMS, getSplit());
+        editor.putBoolean(KEY_SPLIT_COUNTER, getSplitCounter());
+        editor.putBoolean(KEY_STRIP_UNICODE, getStripUnicode());
+        editor.putString(KEY_SIGNATURE, getSignature());
+        editor.putBoolean(KEY_SEND_LONG_AS_MMS, getSendLongAsMms());
+        editor.putInt(KEY_SEND_LONG_AS_MMS_AFTER, getSendLongAsMmsAfter());
+        editor.putString(KEY_ACCOUNT, getAccount());
+        editor.putString(KEY_RNRSE, getRnrSe());
+        editor.commit();
     }
 
     /**
@@ -170,21 +163,27 @@ public class Settings {
      *
      * @param agent is the agent to send http request with
      */
-    public void setAgent(String agent) { this.userAgent = agent; }
+    public void setAgent(String agent) {
+        this.userAgent = agent;
+    }
 
     /**
      * Sets the user agent profile url
      *
      * @param userProfileUrl is the user agent profile url
      */
-    public void setUserProfileUrl(String userProfileUrl) { this.uaProfUrl = userProfileUrl; }
+    public void setUserProfileUrl(String userProfileUrl) {
+        this.uaProfUrl = userProfileUrl;
+    }
 
     /**
      * Sets the user agent profile tag name
      *
      * @param tagName the tag name to use
      */
-    public void setUaProfTagName(String tagName) { this.uaProfTagName = tagName; }
+    public void setUaProfTagName(String tagName) {
+        this.uaProfTagName = tagName;
+    }
 
     /**
      * Sets group MMS messages
@@ -309,17 +308,23 @@ public class Settings {
     /**
      * @return the user agent to send mms with
      */
-    public String getAgent() { return this.userAgent; }
+    public String getAgent() {
+        return this.userAgent;
+    }
 
     /**
      * @return the user agent profile url to send mms with
      */
-    public String getUserProfileUrl() { return this.uaProfUrl; }
+    public String getUserProfileUrl() {
+        return this.uaProfUrl;
+    }
 
     /**
      * @return the user agent profile tag name
      */
-    public String getUaProfTagName() { return this.uaProfTagName; }
+    public String getUaProfTagName() {
+        return this.uaProfTagName;
+    }
 
     /**
      * @return whether or not to send Group MMS or multiple SMS/Voice messages

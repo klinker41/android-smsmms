@@ -238,12 +238,11 @@ public class Utils {
     /**
      * Gets the number of pages in the SMS based on settings and the length of string
      *
-     * @param settings is the settings object to check against
      * @param text     is the text from the message object to be sent
      * @return the number of pages required to hold message
      */
-    public static int getNumPages(Settings settings, String text) {
-        if (settings.getStripUnicode()) {
+    public static int getNumPages(String text) {
+        if (Settings.get().getStripUnicode()) {
             text = StripAccents.stripAccents(text);
         }
 
@@ -333,32 +332,4 @@ public class Utils {
         return address;
     }
 
-    /**
-     * Gets the default settings from a shared preferences file associated with your app
-     * @param context is the context of the activity or service
-     * @return the settings object to send with
-     */
-    public static Settings getDefaultSendSettings(Context context) {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        Settings sendSettings = new Settings();
-
-        sendSettings.setMmsc(sharedPrefs.getString("mmsc_url", ""));
-        sendSettings.setProxy(sharedPrefs.getString("mms_proxy", ""));
-        sendSettings.setPort(sharedPrefs.getString("mms_port", ""));
-        sendSettings.setAgent(sharedPrefs.getString("mms_agent", ""));
-        sendSettings.setUserProfileUrl(sharedPrefs.getString("mms_user_agent_profile_url", ""));
-        sendSettings.setUaProfTagName(sharedPrefs.getString("mms_user_agent_tag_name", ""));
-        sendSettings.setGroup(sharedPrefs.getBoolean("group_message", true));
-        sendSettings.setDeliveryReports(sharedPrefs.getBoolean("delivery_reports", false));
-        sendSettings.setSplit(sharedPrefs.getBoolean("split_sms", false));
-        sendSettings.setSplitCounter(sharedPrefs.getBoolean("split_counter", false));
-        sendSettings.setStripUnicode(sharedPrefs.getBoolean("strip_unicode", false));
-        sendSettings.setSignature(sharedPrefs.getString("signature", ""));
-        sendSettings.setSendLongAsMms(true);
-        sendSettings.setSendLongAsMmsAfter(3);
-        sendSettings.setAccount(null);
-        sendSettings.setRnrSe(null);
-
-        return sendSettings;
-    }
 }

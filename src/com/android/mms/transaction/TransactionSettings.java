@@ -22,6 +22,7 @@ import android.net.NetworkUtils;
 import android.text.TextUtils;
 import android.util.Log;
 import com.android.mms.MmsConfig;
+import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Transaction;
 import com.klinker.android.send_message.Utils;
 
@@ -82,34 +83,32 @@ public class TransactionSettings {
 //
 //        if (cursor == null) {
 //            Log.e(TAG, "Apn is not found in Database!");
-            if (Transaction.settings == null) {
-                Transaction.settings = Utils.getDefaultSendSettings(context);
-            }
+            Settings.get().loadFromPreferences(context);
 
-            mServiceCenter = NetworkUtils.trimV4AddrZeros(Transaction.settings.getMmsc());
-            mProxyAddress = NetworkUtils.trimV4AddrZeros(Transaction.settings.getProxy());
+            mServiceCenter = NetworkUtils.trimV4AddrZeros( Settings.get().getMmsc());
+            mProxyAddress = NetworkUtils.trimV4AddrZeros( Settings.get().getProxy());
 
             // Set up the agent, profile url and tag name to be used in the mms request if they are attached in settings
-            String agent = Transaction.settings.getAgent();
+            String agent =  Settings.get().getAgent();
             if (agent != null && !agent.trim().equals("")) {
                 MmsConfig.setUserAgent(agent);
                 Log.v(TAG, "set user agent");
             }
 
-            String uaProfUrl = Transaction.settings.getUserProfileUrl();
+            String uaProfUrl =  Settings.get().getUserProfileUrl();
             if (uaProfUrl != null && !uaProfUrl.trim().equals("")) {
                 MmsConfig.setUaProfUrl(uaProfUrl);
                 Log.v(TAG, "set user agent profile url");
             }
 
-            String uaProfTagName = Transaction.settings.getUaProfTagName();
+            String uaProfTagName =  Settings.get().getUaProfTagName();
             if (uaProfTagName != null && !uaProfTagName.trim().equals("")) {
                 MmsConfig.setUaProfTagName(uaProfTagName);
                 Log.v(TAG, "set user agent profile tag name");
             }
 
             if (isProxySet()) {
-                mProxyPort = Integer.parseInt(Transaction.settings.getPort());
+                mProxyPort = Integer.parseInt( Settings.get().getPort());
             }
 //        }
 

@@ -35,6 +35,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
+
 import com.android.mms.dom.smil.parser.SmilXmlSerializer;
 import com.android.mms.transaction.HttpUtils;
 import com.android.mms.transaction.MmsMessageSender;
@@ -62,7 +63,6 @@ import java.util.concurrent.ExecutionException;
  */
 public class Transaction {
 
-    public static Settings settings;
     private Context context;
     private ConnectivityManager mConnMgr;
 
@@ -83,24 +83,12 @@ public class Transaction {
     public static final long NO_THREAD_ID = 0;
 
     /**
-     * Sets context and initializes settings to default values
+     * Sets context and settings
      *
      * @param context is the context of the activity or service
      */
     public Transaction(Context context) {
-        this(context, new Settings());
-    }
-
-    /**
-     * Sets context and settings
-     *
-     * @param context  is the context of the activity or service
-     * @param settings is the settings object to process send requests through
-     */
-    public Transaction(Context context, Settings settings) {
-        this.settings = settings;
         this.context = context;
-
         SMS_SENT = context.getPackageName() + SMS_SENT;
         SMS_DELIVERED = context.getPackageName() + SMS_DELIVERED;
 
@@ -131,7 +119,10 @@ public class Transaction {
         //
         // then, send as MMS, else send as Voice or SMS
         if (checkMMS(message)) {
-            try { Looper.prepare(); } catch (Exception e) { }
+            try {
+                Looper.prepare();
+            } catch (Exception e) {
+            }
             RateController.init(context);
             DownloadManager.init(context);
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getMedia(), message.getMediaMimeType(), message.getSubject());
@@ -152,8 +143,8 @@ public class Transaction {
         int messageId = 0;
         if (saveMessage) {
             // add signature to original text to be saved in database (does not strip unicode for saving though)
-            if (!settings.getSignature().equals("")) {
-                text += "\n" + settings.getSignature();
+            if (Settings.get().getSignature().length() > 0) {
+                text += "\n" + Settings.get().getSignature();
             }
 
             // save the message for each of the addresses
@@ -161,7 +152,7 @@ public class Transaction {
                 Calendar cal = Calendar.getInstance();
                 ContentValues values = new ContentValues();
                 values.put("address", addresses[i]);
-                values.put("body", settings.getStripUnicode() ? StripAccents.stripAccents(text) : text);
+                values.put("body", Settings.get().getStripUnicode() ? StripAccents.stripAccents(text) : text);
                 values.put("date", cal.getTimeInMillis() + "");
                 values.put("read", 1);
                 values.put("type", 4);
@@ -174,7 +165,7 @@ public class Transaction {
                 values.put("thread_id", threadId);
                 messageUri = context.getContentResolver().insert(Uri.parse("content://sms/"), values);
 
-                Cursor query = context.getContentResolver().query(messageUri, new String[] {"_id"}, null, null, null);
+                Cursor query = context.getContentResolver().query(messageUri, new String[]{"_id"}, null, null, null);
                 if (query != null && query.moveToFirst()) {
                     messageId = query.getInt(0);
                 }
@@ -191,17 +182,17 @@ public class Transaction {
                 String body = text;
 
                 // edit the body of the text if unicode needs to be stripped
-                if (settings.getStripUnicode()) {
+                if (Settings.get().getStripUnicode()) {
                     body = StripAccents.stripAccents(body);
                 }
 
-                if (!settings.getPreText().equals("")) {
-                    body = settings.getPreText() + " " + body;
+                if (!Settings.get().getPreText().equals("")) {
+                    body = Settings.get().getPreText() + " " + body;
                 }
 
                 SmsManager smsManager = SmsManager.getDefault();
 
-                if (settings.getSplit()) {
+                if (Settings.get().getSplit()) {
                     // figure out the length of supported message
                     int[] splitData = SmsMessage.calculateLength(body, false);
 
@@ -211,7 +202,7 @@ public class Transaction {
                     int length = (body.length() + splitData[2]) / splitData[0];
 
                     boolean counter = false;
-                    if (settings.getSplitCounter() && body.length() > length) {
+                    if (Settings.get().getSplitCounter() && body.length() > length) {
                         counter = true;
                         length -= 6;
                     }
@@ -225,7 +216,7 @@ public class Transaction {
 
                         for (int k = 0; k < parts.size(); k++) {
                             sPI.add(saveMessage ? sentPI : null);
-                            dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
+                            dPI.add(Settings.get().getDeliveryReports() && saveMessage ? deliveredPI : null);
                         }
 
                         smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
@@ -236,7 +227,7 @@ public class Transaction {
 
                     for (int j = 0; j < parts.size(); j++) {
                         sPI.add(saveMessage ? sentPI : null);
-                        dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
+                        dPI.add(Settings.get().getDeliveryReports() && saveMessage ? deliveredPI : null);
                     }
 
                     try {
@@ -253,7 +244,8 @@ public class Transaction {
                                     Toast.makeText(context, "Message could not be sent", Toast.LENGTH_LONG).show();
                                 }
                             });
-                        } catch (Exception f) { }
+                        } catch (Exception f) {
+                        }
                     }
                 }
             }
@@ -291,9 +283,9 @@ public class Transaction {
             part.MimeType = mimeType;
             part.Name = mimeType.split("/")[0];
             part.Data = media;
-            data.add(part);     	
+            data.add(part);
         }
-        
+
         if (!text.equals("")) {
             // add text to the end of the part and send
             MMSPart part = new MMSPart();
@@ -345,7 +337,7 @@ public class Transaction {
         } catch (Throwable e) {
             e.printStackTrace();
             // insert the pdu into the database and return the bytes to send
-            if (settings.getWifiMmsFix()) {
+            if (Settings.get().getWifiMmsFix()) {
                 sendMMS(info.bytes);
             } else {
                 sendMMSWiFi(info.bytes);
@@ -354,7 +346,7 @@ public class Transaction {
     }
 
     private MessageInfo getBytes(String[] recipients, MMSPart[] parts, String subject)
-                throws MmsException {
+            throws MmsException {
         final SendReq sendRequest = new SendReq();
 
         // create send request addresses
@@ -431,7 +423,7 @@ public class Transaction {
         if (saveMessage) {
             try {
                 PduPersister persister = PduPersister.getPduPersister(context);
-                info.location = persister.persist(sendRequest, Uri.parse("content://mms/outbox"), true, settings.getGroup(), null);
+                info.location = persister.persist(sendRequest, Uri.parse("content://mms/outbox"), true, Settings.get().getGroup(), null);
             } catch (Exception e) {
                 Log.v("sending_mms_library", "error saving mms message");
                 e.printStackTrace();
@@ -441,7 +433,7 @@ public class Transaction {
             }
         }
 
-        Cursor query = context.getContentResolver().query(info.location, new String[] {"thread_id"}, null, null, null);
+        Cursor query = context.getContentResolver().query(info.location, new String[]{"thread_id"}, null, null, null);
         if (query != null && query.moveToFirst()) {
             info.token = query.getLong(query.getColumnIndex("thread_id"));
         } else {
@@ -479,8 +471,8 @@ public class Transaction {
                 context.getContentResolver().insert(Uri.parse("content://sms/outbox"), values);
             }
 
-            if (!settings.getSignature().equals("")) {
-                text += "\n" + settings.getSignature();
+            if (!Settings.get().getSignature().equals("")) {
+                text += "\n" + Settings.get().getSignature();
             }
 
             sendVoiceMessage(addresses[i], text);
@@ -601,7 +593,7 @@ public class Transaction {
 
             if (resultInt == 0) {
                 try {
-                    Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
+                    Utils.ensureRouteToHost(context, Settings.get().getMmsc(), Settings.get().getProxy());
                     sendData(bytesToSend);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -632,7 +624,7 @@ public class Transaction {
                             alreadySending = true;
 
                             try {
-                                Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
+                                Utils.ensureRouteToHost(context, Settings.get().getMmsc(), Settings.get().getProxy());
                                 sendData(bytesToSend);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -666,7 +658,7 @@ public class Transaction {
                             }
 
                             try {
-                                Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
+                                Utils.ensureRouteToHost(context, Settings.get().getMmsc(), Settings.get().getProxy());
                                 sendData(bytesToSend);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -689,7 +681,7 @@ public class Transaction {
                 List<APN> apns = new ArrayList<APN>();
 
                 try {
-                    APN apn = new APN(settings.getMmsc(), settings.getPort(), settings.getProxy());
+                    APN apn = new APN(Settings.get().getMmsc(), Settings.get().getPort(), Settings.get().getProxy());
                     apns.add(apn);
 
                     String mmscUrl = apns.get(0).MMSCenterUrl != null ? apns.get(0).MMSCenterUrl.trim() : null;
@@ -758,14 +750,16 @@ public class Transaction {
 
                         context.sendBroadcast(new Intent(REFRESH));
 
-                        try { context.unregisterReceiver(this); } catch (Exception e) { /* Receiver not registered */ }
+                        try {
+                            context.unregisterReceiver(this);
+                        } catch (Exception e) { /* Receiver not registered */ }
 
                         // give everything time to finish up, may help the abort being shown after the progress is already 100
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
                                 mConnMgr.stopUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE_MMS, "enableMMS");
-                                if (settings.getWifiMmsFix()) {
+                                if (Settings.get().getWifiMmsFix()) {
                                     reinstateWifi();
                                 }
                             }
@@ -783,7 +777,7 @@ public class Transaction {
 
                             }
 
-                            if (settings.getWifiMmsFix()) {
+                            if (Settings.get().getWifiMmsFix()) {
                                 sendMMS(bytesToSend);
                             } else {
                                 sendMMSWiFi(bytesToSend);
@@ -823,7 +817,7 @@ public class Transaction {
 
     private void markMmsFailed() {
         // if it still fails, then mark message as failed
-        if (settings.getWifiMmsFix()) {
+        if (Settings.get().getWifiMmsFix()) {
             reinstateWifi();
         }
 
@@ -860,8 +854,8 @@ public class Transaction {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String rnrse = settings.getRnrSe();
-                String account = settings.getAccount();
+                String rnrse = Settings.get().getRnrSe();
+                String account = Settings.get().getAccount();
                 String authToken;
 
                 try {
@@ -1123,8 +1117,8 @@ public class Transaction {
     public boolean checkMMS(Message message) {
         return message.getImages().length != 0 ||
                 (message.getMedia().length != 0 && message.getMediaMimeType() != null) ||
-                (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && message.getType() != Message.TYPE_VOICE) ||
-                (message.getAddresses().length > 1 && settings.getGroup()) ||
+                (Settings.get().getSendLongAsMms() && Utils.getNumPages(message.getText()) > Settings.get().getSendLongAsMmsAfter() && message.getType() != Message.TYPE_VOICE) ||
+                (message.getAddresses().length > 1 && Settings.get().getGroup()) ||
                 message.getSubject() != null;
     }
 
@@ -1133,16 +1127,16 @@ public class Transaction {
      */
     private void reinstateWifi() {
         try {
-            context.unregisterReceiver(settings.discon);
+            context.unregisterReceiver(Settings.get().discon);
         } catch (Exception f) {
 
         }
 
         WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         wifi.setWifiEnabled(false);
-        wifi.setWifiEnabled(settings.currentWifiState);
+        wifi.setWifiEnabled(Settings.get().currentWifiState);
         wifi.reconnect();
-        Utils.setMobileDataEnabled(context, settings.currentDataState);
+        Utils.setMobileDataEnabled(context, Settings.get().currentDataState);
     }
 
     /**
@@ -1152,18 +1146,18 @@ public class Transaction {
         WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
         if (saveState) {
-            settings.currentWifi = wifi.getConnectionInfo();
-            settings.currentWifiState = wifi.isWifiEnabled();
+            Settings.get().currentWifi = wifi.getConnectionInfo();
+            Settings.get().currentWifiState = wifi.isWifiEnabled();
             wifi.disconnect();
-            settings.discon = new DisconnectWifi();
-            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
-            settings.currentDataState = Utils.isMobileDataEnabled(context);
+            Settings.get().discon = new DisconnectWifi();
+            context.registerReceiver(Settings.get().discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+            Settings.get().currentDataState = Utils.isMobileDataEnabled(context);
             Utils.setMobileDataEnabled(context, true);
         } else {
             wifi.disconnect();
             wifi.disconnect();
-            settings.discon = new DisconnectWifi();
-            context.registerReceiver(settings.discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+            Settings.get().discon = new DisconnectWifi();
+            context.registerReceiver(Settings.get().discon, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
             Utils.setMobileDataEnabled(context, true);
         }
     }
