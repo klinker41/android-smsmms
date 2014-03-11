@@ -36,6 +36,7 @@ import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadRecInd;
 import com.google.android.mms.pdu_alt.SendReq;
 import com.google.android.mms.util_alt.SqliteWrapper;
+import com.klinker.android.send_message.Settings;
 
 public class MmsMessageSender implements MessageSender {
     private static final String TAG = "MmsMessageSender";
@@ -159,13 +160,7 @@ public class MmsMessageSender implements MessageSender {
 
             readRec.setDate(System.currentTimeMillis() / 1000);
 
-            boolean group;
-
-            try {
-                group = com.klinker.android.send_message.Transaction.settings.getGroup();
-            } catch (Exception e) {
-                group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
-            }
+            boolean group = Settings.get().getGroup();
 
             PduPersister.getPduPersister(context).persist(readRec, Uri.parse("content://mms/outbox"), true,
                     group, null);

@@ -39,6 +39,7 @@ import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.RetrieveConf;
+import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Utils;
 
 /**
@@ -146,13 +147,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                 mTransactionState.setState(TransactionState.FAILED);
                 mTransactionState.setContentUri(mUri);
             } else {
-                boolean group;
-
-                try {
-                    group = com.klinker.android.send_message.Transaction.settings.getGroup();
-                } catch (Exception e) {
-                    group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
-                }
+                boolean group = Settings.get().getGroup();
 
                 // Store M-Retrieve.conf into Inbox
                 PduPersister persister = PduPersister.getPduPersister(mContext);

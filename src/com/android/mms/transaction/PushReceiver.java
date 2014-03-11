@@ -42,6 +42,7 @@ import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadOrigInd;
+import com.klinker.android.send_message.Settings;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
@@ -88,15 +89,9 @@ public class PushReceiver extends BroadcastReceiver {
                             break;
                         }
 
-                        boolean group;
+                        boolean group = Settings.get().getGroup();
 
-                        try {
-                            group = com.klinker.android.send_message.Transaction.settings.getGroup();
-                        } catch (Exception e) {
-                            group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
-                        }
-
-                        Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"), true,
+                          Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"), true,
                                 group, null);
                         // Update thread ID for ReadOrigInd & DeliveryInd.
                         ContentValues values = new ContentValues(1);
@@ -121,13 +116,7 @@ public class PushReceiver extends BroadcastReceiver {
                             }
                         }
 
-                        boolean group;
-
-                        try {
-                            group = com.klinker.android.send_message.Transaction.settings.getGroup();
-                        } catch (Exception e) {
-                            group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
-                        }
+                        boolean group = Settings.get().getGroup();
 
                         // Save the pdu. If we can start downloading the real pdu immediately,
                         // don't allow persist() to create a thread for the notificationInd
