@@ -22,6 +22,7 @@ import java.util.Arrays;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.provider.Telephony;
@@ -79,6 +80,7 @@ public class SendTransaction extends Transaction implements Runnable {
     }
 
     public void run() {
+        StringBuilder builder = new StringBuilder();
         try {
             RateController.init(mContext);
             RateController rateCtlr = RateController.getInstance();
@@ -114,11 +116,13 @@ public class SendTransaction extends Transaction implements Runnable {
             SendingProgressTokenManager.remove(tokenKey);
 
                 String respStr = new String(response);
+                builder.append("[SendTransaction] run: send mms msg (" + mId + "), resp=" + respStr);
                 Log.d(TAG, "[SendTransaction] run: send mms msg (" + mId + "), resp=" + respStr);
 
             SendConf conf = (SendConf) new PduParser(response).parse();
             if (conf == null) {
                 Log.e(TAG, "No M-Send.conf received.");
+                builder.append("No M-Send.conf received.\n");
             }
 
             // Check whether the responding Transaction-ID is consistent
@@ -128,6 +132,8 @@ public class SendTransaction extends Transaction implements Runnable {
             if (!Arrays.equals(reqId, confId)) {
                 Log.e(TAG, "Inconsistent Transaction-ID: req="
                         + new String(reqId) + ", conf=" + new String(confId));
+                builder.append("Inconsistent Transaction-ID: req="
+                        + new String(reqId) + ", conf=" + new String(confId) + "\n");
                 return;
             }
 
@@ -142,6 +148,7 @@ public class SendTransaction extends Transaction implements Runnable {
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                      mSendReqURI, values, null, null);
                 Log.e(TAG, "Server returned an error code: " + respStatus);
+                builder.append("Server returned an error code: " + respStatus + "\n");
                 return;
             }
 
@@ -162,6 +169,11 @@ public class SendTransaction extends Transaction implements Runnable {
                 mTransactionState.setState(TransactionState.FAILED);
                 mTransactionState.setContentUri(mSendReqURI);
                 Log.e(TAG, "Delivery failed.");
+                builder.append("Delivery failed\n");
+
+                Intent intent = new Intent(com.klinker.android.send_message.Transaction.MMS_ERROR);
+                intent.putExtra("stack", builder.toString());
+                mContext.sendBroadcast(intent);
             }
             notifyObservers();
         }
