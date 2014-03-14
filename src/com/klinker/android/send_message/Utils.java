@@ -9,8 +9,10 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -360,5 +362,26 @@ public class Utils {
         sendSettings.setRnrSe(null);
 
         return sendSettings;
+    }
+
+    /**
+     * Determines whether or not the user has Android 4.4 KitKat
+     * @return true if version code on device is >= kitkat
+     */
+    public static boolean hasKitKat() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+    }
+
+    /**
+     * Determines whether or not the app is the default SMS app on a device
+     * @param context
+     * @return true if app is default
+     */
+    public static boolean isDefaultSmsApp(Context context) {
+        if (hasKitKat()) {
+            return context.getPackageName().equals(Telephony.Sms.getDefaultSmsPackage(context));
+        }
+
+        return true;
     }
 }
