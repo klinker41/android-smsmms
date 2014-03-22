@@ -159,11 +159,6 @@ http://droidprism.blogspot.com/2013/07/java-library-for-retrieving-sms-email.htm
 
 ---
 
-Don't hesitate to contact me if you have any questions!
-Email: jklinker1@gmail.com
-
----
-
 ## License
 
     Copyright 2013 Jacob Klinker
