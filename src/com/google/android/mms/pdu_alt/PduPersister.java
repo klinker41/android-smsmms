@@ -521,7 +521,7 @@ public class PduPersister {
         GenericPdu pdu = null;
         PduCacheEntry cacheEntry = null;
         int msgBox = 0;
-        long threadId = -1;
+        long threadId = DUMMY_THREAD_ID;
         try {
             synchronized(PDU_CACHE_INSTANCE) {
                 if (PDU_CACHE_INSTANCE.isUpdating(uri)) {
@@ -1349,7 +1349,7 @@ public class PduPersister {
                     loadRecipients(PduHeaders.TO, recipients, addressMap, false);
                     break;
             }
-            long threadId = 0;
+            long threadId = DUMMY_THREAD_ID;
             if (createThreadId && !recipients.isEmpty()) {
                 // Given all the recipients associated with this message, find (or create) the
                 // correct thread.
