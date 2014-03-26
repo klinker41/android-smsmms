@@ -135,6 +135,7 @@ public class Transaction {
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getMedia(), message.getMediaMimeType(), message.getSubject());
         } else {
             if (message.getType() == Message.TYPE_SMSMMS) {
+                Log.v("send_transaction", "sending sms");
                 sendSmsMessage(message.getText(), message.getAddresses(), threadId);
             } else {
                 Log.v("send_transaction", "error with message type, aborting...");
@@ -144,9 +145,11 @@ public class Transaction {
     }
 
     private void sendSmsMessage(String text, String[] addresses, long threadId) {
+        Log.v("send_transaction", "message text: " + text);
         Uri messageUri = null;
         int messageId = 0;
         if (saveMessage) {
+            Log.v("send_transaction", "saving message");
             // add signature to original text to be saved in database (does not strip unicode for saving though)
             if (!settings.getSignature().equals("")) {
                 text += "\n" + settings.getSignature();
@@ -167,13 +170,19 @@ public class Transaction {
                     threadId = Utils.getOrCreateThreadId(context, addresses[i]);
                 }
 
+                Log.v("send_transaction", "saving message with thread id: " + threadId);
+
                 values.put("thread_id", threadId);
                 messageUri = context.getContentResolver().insert(Uri.parse("content://sms/"), values);
+
+                Log.v("send_transaction", "inserted to uri: " + messageUri);
 
                 Cursor query = context.getContentResolver().query(messageUri, new String[] {"_id"}, null, null, null);
                 if (query != null && query.moveToFirst()) {
                     messageId = query.getInt(0);
                 }
+
+                Log.v("send_transaction", "message id: " + messageId);
 
                 // set up sent and delivered pending intents to be used with message request
                 PendingIntent sentPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_SENT)
@@ -196,8 +205,10 @@ public class Transaction {
                 }
 
                 SmsManager smsManager = SmsManager.getDefault();
+                Log.v("send_transaction", "found sms manager");
 
                 if (settings.getSplit()) {
+                    Log.v("send_transaction", "splitting message");
                     // figure out the length of supported message
                     int[] splitData = SmsMessage.calculateLength(body, false);
 
@@ -205,6 +216,7 @@ public class Transaction {
                     // that message set can support, and then divide by the number of message that will require
                     // to get the length supported by a single message
                     int length = (body.length() + splitData[2]) / splitData[0];
+                    Log.v("send_transaction", "length: " + length);
 
                     boolean counter = false;
                     if (settings.getSplitCounter() && body.length() > length) {
@@ -224,9 +236,11 @@ public class Transaction {
                             dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
                         }
 
+                        Log.v("send_transaction", "sending split message");
                         smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
                     }
                 } else {
+                    Log.v("send_transaction", "sending without splitting");
                     // send the message normally without forcing anything to be split
                     ArrayList<String> parts = smsManager.divideMessage(body);
 
@@ -236,9 +250,11 @@ public class Transaction {
                     }
 
                     try {
+                        Log.v("send_transaction", "sent message");
                         smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
                     } catch (Exception e) {
                         // whoops...
+                        Log.v("send_transaction", "error sending message");
                         e.printStackTrace();
 
                         try {
@@ -437,11 +453,16 @@ public class Transaction {
             }
         }
 
-        Cursor query = context.getContentResolver().query(info.location, new String[] {"thread_id"}, null, null, null);
-        if (query != null && query.moveToFirst()) {
-            info.token = query.getLong(query.getColumnIndex("thread_id"));
-        } else {
-            // just default sending token for what I had before
+        try {
+            Cursor query = context.getContentResolver().query(info.location, new String[] {"thread_id"}, null, null, null);
+            if (query != null && query.moveToFirst()) {
+                info.token = query.getLong(query.getColumnIndex("thread_id"));
+            } else {
+                // just default sending token for what I had before
+                info.token = 4444L;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
             info.token = 4444L;
         }
 
