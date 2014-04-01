@@ -344,7 +344,13 @@ public class Transaction {
 
                     if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
                         context.sendBroadcast(new Intent(REFRESH));
-                        context.unregisterReceiver(this);
+
+                        try {
+                            context.unregisterReceiver(this);
+                        } catch (Exception e) {
+                            // TODO fix me
+                            // receiver is not registered force close error... hmm.
+                        }
                     } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
                         // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
                         Log.v("sending_mms_library", "sending aborted for some reason...");
