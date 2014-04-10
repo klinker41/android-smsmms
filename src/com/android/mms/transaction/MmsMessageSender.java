@@ -51,6 +51,9 @@ public class MmsMessageSender implements MessageSender {
     private static final int     DEFAULT_PRIORITY        = PduHeaders.PRIORITY_NORMAL;
     private static final String  DEFAULT_MESSAGE_CLASS   = PduHeaders.MESSAGE_CLASS_PERSONAL_STR;
 
+    private static final String DELIVERY_REPORT_PREFERENCE = "delivery_reports";
+    private static final String READ_REPORT_PREFERENCE = "read_reports";
+
     public MmsMessageSender(Context context, Uri location, long messageSize) {
         mContext = context;
         mMessageUri = location;
@@ -137,11 +140,15 @@ public class MmsMessageSender implements MessageSender {
         sendReq.setPriority(DEFAULT_PRIORITY);
 
         // Delivery report.
-        boolean dr = DEFAULT_DELIVERY_REPORT_MODE;
+        boolean dr = prefs.getBoolean(DELIVERY_REPORT_PREFERENCE,
+                        DEFAULT_DELIVERY_REPORT_MODE);
         sendReq.setDeliveryReport(dr?PduHeaders.VALUE_YES:PduHeaders.VALUE_NO);
 
         // Read report.
-        boolean rr = DEFAULT_READ_REPORT_MODE;
+        boolean rr = prefs.getBoolean(READ_REPORT_PREFERENCE,
+                // default to delivery report value if read report not available
+                prefs.getBoolean(DELIVERY_REPORT_PREFERENCE,
+                        DEFAULT_READ_REPORT_MODE));
         sendReq.setReadReport(rr?PduHeaders.VALUE_YES:PduHeaders.VALUE_NO);
     }
 
