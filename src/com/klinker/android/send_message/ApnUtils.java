@@ -206,14 +206,18 @@ public class ApnUtils {
             mnc = context.getResources().getConfiguration().mnc + "";
         }
 
-        if (mcc.equals("")) {
-            mcc = new ServiceState().getOperatorNumeric().substring(0, 3);
-        }
+        try {
+            if (mcc.equals("")) {
+                mcc = new ServiceState().getOperatorNumeric().substring(0, 3);
+            }
 
-        if (mnc.equals("")) {
-            TelephonyManager tm  = (TelephonyManager) context.getSystemService
-                    (Context.TELEPHONY_SERVICE);
-            mnc = ((CdmaCellLocation) tm.getCellLocation()).getSystemId() + "";
+            if (mnc.equals("")) {
+                TelephonyManager tm  = (TelephonyManager) context.getSystemService
+                        (Context.TELEPHONY_SERVICE);
+                mnc = ((CdmaCellLocation) tm.getCellLocation()).getSystemId() + "";
+            }
+        } catch (Exception e) {
+            
         }
 
         if (mcc.trim().equals("") || mnc.trim().equals("")) {
