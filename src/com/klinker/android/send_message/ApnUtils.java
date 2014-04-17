@@ -186,7 +186,7 @@ public class ApnUtils {
 
         if (mcc.equals("") || mnc.equals("")) {
             Log.v(TAG, "mcc or mnc is null");
-            return null;
+            return apns;
         }
 
         Log.v(TAG, "mcc: " + mcc + " mnc: " + mnc);
