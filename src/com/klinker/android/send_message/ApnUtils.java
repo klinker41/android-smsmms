@@ -6,7 +6,9 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.XmlResourceParser;
 import android.preference.PreferenceManager;
+import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
+import android.telephony.cdma.CdmaCellLocation;
 import android.util.Log;
 import android.widget.Toast;
 import org.xmlpull.v1.XmlPullParser;
@@ -16,7 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ApnUtils {
-    
+
     private static final String TAG = "ApnUtils";
 
     public static void initDefaultApns(final Context context, final OnApnFinishedListener listener) {
@@ -24,7 +26,7 @@ public class ApnUtils {
         final ArrayList<APN> apns = loadApns(context);
 
         if (apns.size() == 0) {
-            Log.v(TAG, "Found no APNs :(");
+            Log.v(TAG, "Found no APNs :( Damn CDMA network probably.");
         } else if (apns.size() == 1) {
             setApns(context, apns.get(0));
             if (listener != null) {
@@ -204,9 +206,19 @@ public class ApnUtils {
             mnc = context.getResources().getConfiguration().mnc + "";
         }
 
-        if (mcc.equals("") || mnc.equals("")) {
-            Log.v(TAG, "mcc or mnc is null");
-            return apns;
+        if (mcc.equals("")) {
+            mcc = new ServiceState().getOperatorNumeric().substring(0, 3);
+        }
+
+        if (mnc.equals("")) {
+            TelephonyManager tm  = (TelephonyManager) context.getSystemService
+                    (Context.TELEPHONY_SERVICE);
+            mnc = ((CdmaCellLocation) tm.getCellLocation()).getSystemId() + "";
+        }
+
+        if (mcc.trim().equals("") || mnc.trim().equals("")) {
+            Log.v(TAG, "couldn't find both mcc and mnc. mcc = " + mcc + ", mnc = " + mnc);
+            return null;
         }
 
         Log.v(TAG, "mcc: " + mcc + " mnc: " + mnc);
