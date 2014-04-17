@@ -92,7 +92,7 @@ public class ApnUtils {
     private static final String TAG = "SendUtils";
     private static void loadMmsSettings(Context context) {
         XmlResourceParser parser = context.getResources().getXml(R.xml.mms_config);
-        int maxMessageSize = 1000000;
+        String maxMessageSize = 1000000 + "";
         int maxImageHeight = 800;
         int maxImageWidth = 800;
         String userAgent = "Android-Mms/2.0";
@@ -120,7 +120,7 @@ public class ApnUtils {
                     if ("int".equals(tag)) {
                         // int config tags go here
                         if ("maxMessageSize".equalsIgnoreCase(value)) {
-                            maxMessageSize = Integer.parseInt(text);
+                            maxMessageSize = text;
                         } else if ("maxImageHeight".equalsIgnoreCase(value)) {
                             maxImageHeight = Integer.parseInt(text);
                         } else if ("maxImageWidth".equalsIgnoreCase(value)) {
@@ -159,7 +159,7 @@ public class ApnUtils {
                 .edit()
                 .putInt("mms_max_width", maxImageWidth)
                 .putInt("mms_max_height", maxImageHeight)
-                .putInt("mms_max_size", maxMessageSize)
+                .putString("mms_max_size", maxMessageSize)
                 .putString("mms_agent", userAgent)
                 .putString("mms_user_agent_profile_url", uaProfUrl)
                 .commit();
