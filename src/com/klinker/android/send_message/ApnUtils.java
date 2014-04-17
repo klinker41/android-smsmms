@@ -8,6 +8,7 @@ import android.content.res.XmlResourceParser;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -22,6 +23,7 @@ public class ApnUtils {
 
         if (apns.size() == 0) {
             Log.v(TAG, "Found no APNs :(");
+            Toast.makeText(context, context.getString(R.string.no_apns_found), Toast.LENGTH_SHORT).show();
         } else if (apns.size() == 1) {
             setApns(context, apns.get(0));
             if (listener != null) {
