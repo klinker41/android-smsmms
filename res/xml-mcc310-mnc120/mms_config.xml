@@ -16,5 +16,8 @@
     <string name="naiSuffix">:pcs</string>
     <string name="userAgent">Nexus5</string>
     <string name="uaProfUrl">http://gsm.lge.com/html/gsm/Nexus5-M20.xml</string>
+    <string name="mmsc">http://mms.sprintpcs.com</string>
+    <string name="mmsproxy">68.28.31.7</string>
+    <string name="mmsport">80</string>
     <bool name="supportMmsContentDisposition">false</bool>
 </mms_config>

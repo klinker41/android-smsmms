@@ -75,6 +75,11 @@
     <!-- Hide Sprint VVM text messages. -->
     <bool name="enableSprintVVM">false</bool>
 
+    <!-- Default apn settings -->
+    <string name="mmsc"> </string>
+    <string name="mmsproxy"> </string>
+    <string name="mmsport"> </string>
+
     <!-- User-Agent parameter used in MMS http request -->
     <!-- this is default to "Android-Mms/0.1". Override if necessary. Optional -->
     <!--
