@@ -16,6 +16,7 @@ limitations under the License.
 -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
     <string name="message_delivered">Message Delivered</string>
     <string name="message_not_delivered">Message Not Delivered</string>
     <string name="error">Error</string>
@@ -29,4 +30,12 @@ limitations under the License.
     <string name="no_subject">(No subject)</string>
     <string name="unknown_sender">Unknown sender</string>
     <string name="dl_failure_notification">Couldn\'t download message <xliff:g id="subject">%1$s</xliff:g> from <xliff:g id="from">%2$s</xliff:g>.</string>
+
+    <string name="auto_select_multiple_apns">Multiple different APNs were found for your carrier, which
+        will be listed after clicking the message below. If one of the following doesn\'t work for you, try another
+        and one of them should work correctly!\n\nRemember you can always get to this APN selection by going into
+        Settings, going to the MMS Settings page, and then selecting the \"Automatically Select APNs\" option.</string>
+    <string name="ok">OK</string>
+    <string name="auto_select_apn">Automatically Select APNs</string>
+
 </resources>

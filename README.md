@@ -154,9 +154,6 @@ That code will then save the RnrSe value so that I don't have to fetch it every 
 
 This library relies on Ion by Koush. That library is packaged into here making it easier to use. Please note that there are also a few jars that are in the ion/libs folder that need to be set as dependencies for both this library and Ion to get it compiling.
 
-Also, to be able to send MMS messages, you need access to the devices APNs, which Google took away beginning in Android 4.0. For Sliding Messaging, I use a library called "Droid Prism" which works for many carriers to find APNs for each carrier, you can get to it here:
-http://droidprism.blogspot.com/2013/07/java-library-for-retrieving-sms-email.html
-
 ---
 
 ## License
