@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ApnUtils {
+    
+    private static final String TAG = "ApnUtils";
 
     public static void initDefaultApns(final Context context, final OnApnFinishedListener listener) {
         loadMmsSettings(context);
@@ -23,7 +25,6 @@ public class ApnUtils {
 
         if (apns.size() == 0) {
             Log.v(TAG, "Found no APNs :(");
-            Toast.makeText(context, context.getString(R.string.no_apns_found), Toast.LENGTH_SHORT).show();
         } else if (apns.size() == 1) {
             setApns(context, apns.get(0));
             if (listener != null) {
@@ -91,7 +92,6 @@ public class ApnUtils {
         public abstract void onFinished();
     }
 
-    private static final String TAG = "SendUtils";
     private static void loadMmsSettings(Context context) {
         XmlResourceParser parser = context.getResources().getXml(R.xml.mms_config);
         String maxMessageSize = 1000000 + "";
