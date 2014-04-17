@@ -37,5 +37,6 @@ limitations under the License.
         Settings, going to the MMS Settings page, and then selecting the \"Automatically Select APNs\" option.</string>
     <string name="ok">OK</string>
     <string name="auto_select_apn">Automatically Select APNs</string>
+    <string name="no_apns_found">No APNs could be found for your device, choose them from the preset choices</string>
 
 </resources>
