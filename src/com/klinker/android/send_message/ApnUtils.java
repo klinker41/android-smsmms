@@ -27,6 +27,10 @@ public class ApnUtils {
 
         if (apns.size() == 0) {
             Log.v(TAG, "Found no APNs :( Damn CDMA network probably.");
+            Toast.makeText(context, context.getString(R.string.auto_select_failed), Toast.LENGTH_SHORT).show();
+            if (listener != null) {
+                listener.onFinished();
+            }
         } else if (apns.size() == 1) {
             setApns(context, apns.get(0));
             if (listener != null) {
@@ -217,7 +221,7 @@ public class ApnUtils {
                 mnc = ((CdmaCellLocation) tm.getCellLocation()).getSystemId() + "";
             }
         } catch (Exception e) {
-            
+
         }
 
         if (mcc.trim().equals("") || mnc.trim().equals("")) {
