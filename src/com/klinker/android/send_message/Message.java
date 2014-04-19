@@ -17,6 +17,7 @@
 package com.klinker.android.send_message;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 
@@ -441,6 +442,7 @@ public class Message {
      */
     public static byte[] bitmapToByteArray(Bitmap image) {
         if (image == null) {
+            Log.v("Message", "image is null, returning byte array of size 0");
             return new byte[0];
         }
 
