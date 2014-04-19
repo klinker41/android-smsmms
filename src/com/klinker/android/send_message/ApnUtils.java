@@ -171,14 +171,6 @@ public class ApnUtils {
                 .putString("mms_agent", userAgent)
                 .putString("mms_user_agent_profile_url", uaProfUrl)
                 .commit();
-
-        if (!mmsc.equals("")) {
-            APN apn = new APN();
-            apn.mmsc = mmsc;
-            apn.proxy = mmsproxy;
-            apn.port = mmsport;
-            setApns(context, apn);
-        }
     }
 
     private static ArrayList<APN> loadApns(Context context) {
