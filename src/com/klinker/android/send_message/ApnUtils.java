@@ -106,10 +106,6 @@ public class ApnUtils {
         String userAgent = "Android-Mms/2.0";
         String uaProfUrl = "";
 
-        String mmsc = "";
-        String mmsproxy = "";
-        String mmsport = "";
-
         try {
             beginDocument(parser, "mms_config");
 
@@ -144,12 +140,6 @@ public class ApnUtils {
                             userAgent = text;
                         } else if ("uaProfUrl".equalsIgnoreCase(value)) {
                             uaProfUrl = text;
-                        } else if ("mmsc".equals(value)) {
-                            mmsc = text.trim();
-                        } else if ("mmsproxy".equals(value)) {
-                            mmsproxy = text.trim();
-                        } else if ("mmsport".equals(value)) {
-                            mmsport = text.trim();
                         }
                     }
                 }
