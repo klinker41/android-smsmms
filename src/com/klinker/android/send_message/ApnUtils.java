@@ -183,7 +183,7 @@ public class ApnUtils {
         TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         String networkOperator = manager.getNetworkOperator();
 
-        if (networkOperator != null) {
+        if (networkOperator != null && !networkOperator.equals("")) {
             mcc = networkOperator.substring(0, 3);
             String s = networkOperator.substring(3);
             mnc = s.replaceFirst("^0{1,2}", "");
