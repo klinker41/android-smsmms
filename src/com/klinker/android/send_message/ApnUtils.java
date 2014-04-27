@@ -265,7 +265,20 @@ public class ApnUtils {
                         apn.mmsc = mmsc;
                         apn.proxy = proxy;
                         apn.port = port;
-                        apns.add(apn);
+
+                        boolean contains = false;
+                        for (int i = 0; i < apns.size(); i++) {
+                            APN current = apns.get(i);
+
+                            if (current.mmsc.equals(apn.mmsc) && current.port.equals(apn.port) && current.proxy.equals(apn.proxy)) {
+                                contains = true;
+                                break;
+                            }
+                        }
+
+                        if (!contains) {
+                            apns.add(apn);
+                        }
                     }
                 }
             }
