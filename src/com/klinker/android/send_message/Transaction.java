@@ -279,9 +279,13 @@ public class Transaction {
     private void sendDelayedSms(final SmsManager smsManager, final String address,
                                 final ArrayList<String> parts, final ArrayList<PendingIntent> sPI,
                                 final ArrayList<PendingIntent> dPI, final int delay, final Uri messageUri) {
-        ((Activity) context).findViewById(android.R.id.content).postDelayed(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    Thread.sleep(delay);
+                } catch (Exception e) { }
+
                 if (checkIfMessageExistsAfterDelay(messageUri)) {
                     Log.v("send_transaction", "message sent after delay");
                     smsManager.sendMultipartTextMessage(address, null, parts, sPI, dPI);
@@ -289,7 +293,7 @@ public class Transaction {
                     Log.v("send_transaction", "message not sent after delay, no longer exists");
                 }
             }
-        }, delay);
+        }).start();
     }
 
     private boolean checkIfMessageExistsAfterDelay(Uri messageUti) {
