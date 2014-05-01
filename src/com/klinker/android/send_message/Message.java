@@ -36,6 +36,7 @@ public class Message {
     private String mediaMimeType;
     private boolean save;
     private int type;
+    private int delay;
 
     /**
      * Default send type, to be sent through SMS or MMS depending on contents
@@ -90,6 +91,7 @@ public class Message {
         this.mediaMimeType = null;
         this.save = true;
         this.type = TYPE_SMSMMS;
+        this.delay = 0;
     }
 
     /**
@@ -108,6 +110,7 @@ public class Message {
         this.mediaMimeType = null;
         this.save = true;
         this.type = TYPE_SMSMMS;
+        this.delay = 0;
     }
 
     /**
@@ -195,6 +198,7 @@ public class Message {
         this.mediaMimeType = null;
         this.save = true;
         this.type = TYPE_SMSMMS;
+        this.delay = 0;
     }
 
     /**
@@ -214,6 +218,7 @@ public class Message {
         this.mediaMimeType = null;
         this.save = true;
         this.type = TYPE_SMSMMS;
+        this.delay = 0;
     }
 
     /**
@@ -310,6 +315,16 @@ public class Message {
      */
     public void setSave(boolean save) {
         this.save = save;
+    }
+
+    /**
+     * Sets the time delay before sending a message
+     * NOTE: this is only applicable for SMS messages
+     *
+     * @param delay the time delay in milliseconds
+     */
+    public void setDelay(int delay) {
+        this.delay = delay;
     }
 
     /**
@@ -425,6 +440,15 @@ public class Message {
      */
     public boolean getSave() {
         return this.save;
+    }
+
+    /**
+     * Gets the time to delay before sending the message
+     *
+     * @return the delay time in milliseconds
+     */
+    public int getDelay() {
+        return this.delay;
     }
 
     /**

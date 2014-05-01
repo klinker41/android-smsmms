@@ -136,7 +136,7 @@ public class Transaction {
         } else {
             if (message.getType() == Message.TYPE_SMSMMS) {
                 Log.v("send_transaction", "sending sms");
-                sendSmsMessage(message.getText(), message.getAddresses(), threadId);
+                sendSmsMessage(message.getText(), message.getAddresses(), threadId, message.getDelay());
             } else {
                 Log.v("send_transaction", "error with message type, aborting...");
             }
@@ -144,7 +144,7 @@ public class Transaction {
 
     }
 
-    private void sendSmsMessage(String text, String[] addresses, long threadId) {
+    private void sendSmsMessage(String text, String[] addresses, long threadId, int delay) {
         Log.v("send_transaction", "message text: " + text);
         Uri messageUri = null;
         int messageId = 0;
@@ -237,7 +237,7 @@ public class Transaction {
                         }
 
                         Log.v("send_transaction", "sending split message");
-                        smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
+                        sendDelayedSms(smsManager, addresses[i], parts, sPI, dPI, delay, messageUri);
                     }
                 } else {
                     Log.v("send_transaction", "sending without splitting");
@@ -251,7 +251,7 @@ public class Transaction {
 
                     try {
                         Log.v("send_transaction", "sent message");
-                        smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
+                        sendDelayedSms(smsManager, addresses[i], parts, sPI, dPI, delay, messageUri);
                     } catch (Exception e) {
                         // whoops...
                         Log.v("send_transaction", "error sending message");
@@ -269,6 +269,31 @@ public class Transaction {
                     }
                 }
             }
+        }
+    }
+
+    private void sendDelayedSms(final SmsManager smsManager, final String address,
+                                final ArrayList<String> parts, final ArrayList<PendingIntent> sPI,
+                                final ArrayList<PendingIntent> dPI, final int delay, final Uri messageUri) {
+        ((Activity) context).findViewById(android.R.id.content).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (checkIfMessageExistsAfterDelay(messageUri)) {
+                    Log.v("send_transaction", "message sent after delay");
+                    smsManager.sendMultipartTextMessage(address, null, parts, sPI, dPI);
+                } else {
+                    Log.v("send_transaction", "message not sent after delay, no longer exists");
+                }
+            }
+        }, delay);
+    }
+
+    private boolean checkIfMessageExistsAfterDelay(Uri messageUti) {
+        Cursor query = context.getContentResolver().query(messageUti, new String[] {"_id"}, null, null, null);
+        if (query != null && query.moveToFirst()) {
+            return true;
+        } else {
+            return false;
         }
     }
 
