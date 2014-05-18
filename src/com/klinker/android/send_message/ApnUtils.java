@@ -178,35 +178,35 @@ public class ApnUtils {
         ArrayList<APN> apns = new ArrayList<APN>();
         String mmsc = "", proxy = "", port = "", carrier = "";
 
-        String mcc, mnc;
+        int mcc = -1, mnc = -1;
 
         TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         String networkOperator = manager.getNetworkOperator();
 
         if (networkOperator != null && !networkOperator.equals("")) {
-            mcc = networkOperator.substring(0, 3);
+            mcc = Integer.parseInt(networkOperator.substring(0, 3));
             String s = networkOperator.substring(3);
-            mnc = s.replaceFirst("^0{1,2}", "");
+            mnc = Integer.parseInt(s.replaceFirst("^0{1,2}", ""));
         } else {
-            mcc = context.getResources().getConfiguration().mcc + "";
-            mnc = context.getResources().getConfiguration().mnc + "";
+            mcc = context.getResources().getConfiguration().mcc;
+            mnc = context.getResources().getConfiguration().mnc;
         }
 
         try {
-            if (mcc.equals("")) {
-                mcc = new ServiceState().getOperatorNumeric().substring(0, 3);
+            if (mcc == -1) {
+                mcc = Integer.parseInt(new ServiceState().getOperatorNumeric().substring(0, 3));
             }
 
-            if (mnc.equals("")) {
+            if (mnc == -1) {
                 TelephonyManager tm  = (TelephonyManager) context.getSystemService
                         (Context.TELEPHONY_SERVICE);
-                mnc = ((CdmaCellLocation) tm.getCellLocation()).getSystemId() + "";
+                mnc = ((CdmaCellLocation) tm.getCellLocation()).getSystemId();
             }
         } catch (Exception e) {
 
         }
 
-        if (mcc.trim().equals("") || mnc.trim().equals("")) {
+        if (mcc == -1 || mnc == -1) {
             Log.v(TAG, "couldn't find both mcc and mnc. mcc = " + mcc + ", mnc = " + mnc);
             return null;
         }
@@ -225,12 +225,16 @@ public class ApnUtils {
 
                 boolean mccCorrect = false, mncCorrect = false;
                 for (int i = 0; i < parser.getAttributeCount(); i++) {
-                    String name = parser.getAttributeName(i);
-                    String value = parser.getAttributeValue(i);
-                    if ("mcc".equals(name) && mcc.equals(value)) {
-                        mccCorrect = true;
-                    } else if ("mnc".equals(name) && mnc.equalsIgnoreCase(value)) {
-                        mncCorrect = true;
+                    try {
+                        String name = parser.getAttributeName(i);
+                        int value = Integer.parseInt(parser.getAttributeValue(i));
+                        if ("mcc".equals(name) && mcc == value) {
+                            mccCorrect = true;
+                        } else if ("mnc".equals(name) && mnc == value) {
+                            mncCorrect = true;
+                        }
+                    } catch (Exception e) {
+                        // cast exception probably
                     }
                 }
 
