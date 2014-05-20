@@ -73,6 +73,7 @@ public class PduPersister {
     private static final boolean LOCAL_LOGV = false;
 
     private static final long DUMMY_THREAD_ID = Long.MAX_VALUE;
+    private static final int DEFAULT_SUBSCRIPTION = 0;
 
     /**
      * The uri of temporary drm objects.
@@ -1235,6 +1236,13 @@ public class PduPersister {
     public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId, boolean groupMmsEnabled,
             HashMap<Uri, InputStream> preOpenedFiles)
             throws MmsException {
+        return persist(pdu, uri, createThreadId, groupMmsEnabled, preOpenedFiles,
+                DEFAULT_SUBSCRIPTION);
+    }
+
+    public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId, boolean groupMmsEnabled,
+            HashMap<Uri, InputStream> preOpenedFiles, int subscription)
+            throws MmsException {
         if (uri == null) {
             throw new MmsException("Uri may not be null.");
         }
@@ -1401,6 +1409,9 @@ public class PduPersister {
         // Record whether this mms message is a simple plain text or not. This is a hint for the
         // UI.
         values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
+
+        // Update subscription for MMS message
+        values.put(Mms.SUB_ID, subscription);
 
         Uri res = null;
         if (existingUri) {
