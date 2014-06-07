@@ -82,3 +82,6 @@ module_ion.xml
 module_android-smsmms.xml
 /gen
 /gen
+.gradle/
+build/
+*.iml
