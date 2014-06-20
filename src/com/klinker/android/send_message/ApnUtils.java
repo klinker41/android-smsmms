@@ -186,7 +186,11 @@ public class ApnUtils {
         if (networkOperator != null && !networkOperator.equals("")) {
             mcc = Integer.parseInt(networkOperator.substring(0, 3));
             String s = networkOperator.substring(3);
-            mnc = Integer.parseInt(s.replaceFirst("^0{1,2}", ""));
+            try {
+                mnc = Integer.parseInt(s.replaceFirst("^0{1,2}", ""));
+            } catch (Exception e) {
+                mnc = -1;
+            }
         } else {
             mcc = context.getResources().getConfiguration().mcc;
             mnc = context.getResources().getConfiguration().mnc;
