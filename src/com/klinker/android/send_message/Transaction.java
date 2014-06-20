@@ -27,11 +27,8 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Telephony;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -44,14 +41,12 @@ import com.android.mms.util.RateController;
 import com.google.android.mms.*;
 import com.google.android.mms.pdu_alt.*;
 import com.google.android.mms.smil.SmilHelper;
-import org.w3c.dom.smil.ElementExclusiveTimeContainer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Class to process transaction requests for sending
@@ -284,7 +279,11 @@ public class Transaction {
 
                 if (checkIfMessageExistsAfterDelay(messageUri)) {
                     Log.v("send_transaction", "message sent after delay");
-                    smsManager.sendMultipartTextMessage(address, null, parts, sPI, dPI);
+                    try {
+                        smsManager.sendMultipartTextMessage(address, null, parts, sPI, dPI);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     Log.v("send_transaction", "message not sent after delay, no longer exists");
                 }
