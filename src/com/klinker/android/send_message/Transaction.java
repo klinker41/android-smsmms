@@ -354,7 +354,7 @@ public class Transaction {
         MessageInfo info;
 
         try {
-            info = getBytes(address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
+            info = getBytes(context, saveMessage, address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
         } catch (MmsException e) {
             Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
             return;
@@ -407,7 +407,7 @@ public class Transaction {
         }
     }
 
-    private MessageInfo getBytes(String[] recipients, MMSPart[] parts, String subject)
+    public static MessageInfo getBytes(Context context, boolean saveMessage, String[] recipients, MMSPart[] parts, String subject)
                 throws MmsException {
         final SendReq sendRequest = new SendReq();
 
@@ -491,7 +491,7 @@ public class Transaction {
                 e.printStackTrace();
 
                 // use the old way if something goes wrong with the persister
-                insert(recipients, parts, subject);
+                insert(context, recipients, parts, subject);
             }
         }
 
@@ -511,7 +511,7 @@ public class Transaction {
         return info;
     }
 
-    private class MessageInfo {
+    public static class MessageInfo {
         public long token;
         public Uri location;
         public byte[] bytes;
@@ -1051,7 +1051,7 @@ public class Transaction {
         return rnrse;
     }
 
-    private Uri insert(String[] to, MMSPart[] parts, String subject) {
+    private static Uri insert(Context context, String[] to, MMSPart[] parts, String subject) {
         try {
             Uri destUri = Uri.parse("content://mms");
 
@@ -1099,15 +1099,15 @@ public class Transaction {
             // Create part
             for (MMSPart part : parts) {
                 if (part.MimeType.startsWith("image")) {
-                    createPartImage(messageId, part.Data, part.MimeType);
+                    createPartImage(context, messageId, part.Data, part.MimeType);
                 } else if (part.MimeType.startsWith("text")) {
-                    createPartText(messageId, new String(part.Data, "UTF-8"));
+                    createPartText(context, messageId, new String(part.Data, "UTF-8"));
                 }
             }
 
             // Create addresses
             for (String addr : to) {
-                createAddr(messageId, addr);
+                createAddr(context, messageId, addr);
             }
 
             //res = Uri.parse(destUri + "/" + messageId);
@@ -1125,7 +1125,7 @@ public class Transaction {
     }
 
     // create the image part to be stored in database
-    private Uri createPartImage(String id, byte[] imageBytes, String mimeType) throws Exception {
+    private static Uri createPartImage(Context context, String id, byte[] imageBytes, String mimeType) throws Exception {
         ContentValues mmsPartValue = new ContentValues();
         mmsPartValue.put("mid", id);
         mmsPartValue.put("ct", mimeType);
@@ -1149,7 +1149,7 @@ public class Transaction {
     }
 
     // create the text part to be stored in database
-    private Uri createPartText(String id, String text) throws Exception {
+    private static Uri createPartText(Context context, String id, String text) throws Exception {
         ContentValues mmsPartValue = new ContentValues();
         mmsPartValue.put("mid", id);
         mmsPartValue.put("ct", "text/plain");
@@ -1162,7 +1162,7 @@ public class Transaction {
     }
 
     // add address to the request
-    private Uri createAddr(String id, String addr) throws Exception {
+    private static Uri createAddr(Context context, String id, String addr) throws Exception {
         ContentValues addrValues = new ContentValues();
         addrValues.put("address", addr);
         addrValues.put("charset", "106");
