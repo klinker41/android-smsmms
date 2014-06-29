@@ -3,19 +3,22 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.10.+'
+        classpath 'com.android.tools.build:gradle:0.11.+'
     }
 }
-apply plugin: 'android-library'
 
-dependencies {
+allprojects {
     repositories {
         mavenCentral()
         flatDir {
             dirs 'libs'
         }
     }
+}
 
+apply plugin: 'android-library'
+
+dependencies {
     compile(name:'ion', ext:'aar')
 }
 
