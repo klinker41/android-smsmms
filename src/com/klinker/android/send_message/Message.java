@@ -32,6 +32,7 @@ public class Message {
     private String subject;
     private String[] addresses;
     private Bitmap[] images;
+    private String[] imageNames;
     private byte[] media;
     private String mediaMimeType;
     private boolean save;
@@ -259,6 +260,15 @@ public class Message {
     }
 
     /**
+     * Sets image names
+     *
+     * @param names
+     */
+    public void setImageNames(String[] names) {
+        this.imageNames = names;
+    }
+
+    /**
      * Sets image
      *
      * @param image is the single image to send to recipient
@@ -404,6 +414,15 @@ public class Message {
      */
     public Bitmap[] getImages() {
         return this.images;
+    }
+
+    /**
+     * Gets image names for the message
+     *
+     * @return
+     */
+    public String[] getImageNames() {
+        return this.imageNames;
     }
     
     /**

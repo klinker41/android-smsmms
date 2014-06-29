@@ -133,7 +133,7 @@ public class Transaction {
             try { Looper.prepare(); } catch (Exception e) { }
             RateController.init(context);
             DownloadManager.init(context);
-            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getMedia(), message.getMediaMimeType(), message.getSubject());
+            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getImageNames(), message.getMedia(), message.getMediaMimeType(), message.getSubject());
         } else {
             if (message.getType() == Message.TYPE_VOICE) {
                 sendVoiceMessage(message.getText(), message.getAddresses(), threadId);
@@ -308,7 +308,7 @@ public class Transaction {
         }
     }
 
-    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, byte[] media, String mimeType, String subject) {
+    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, String[] imageNames, byte[] media, String mimeType, String subject) {
         // merge the string[] of addresses into a single string so they can be inserted into the database easier
         String address = "";
 
@@ -327,7 +327,7 @@ public class Transaction {
 
             MMSPart part = new MMSPart();
             part.MimeType = "image/jpeg";
-            part.Name = "image" + i;
+            part.Name = (imageNames != null) ? imageNames[i] : ("image" + i);
             part.Data = imageBytes;
             data.add(part);
         }
