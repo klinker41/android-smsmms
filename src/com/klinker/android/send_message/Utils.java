@@ -163,7 +163,7 @@ public class Utils {
     public static void ensureRouteToHost(Context context, String url, String proxy) throws IOException {
         ConnectivityManager connMgr =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        connMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, "enableMMS");
+        connMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE_HIPRI, "enableMMS");
 
         Log.v("sending_mms_library", "ensuring route to host");
 
