@@ -17,8 +17,6 @@
 
 package com.android.mms.transaction;
 
-import java.io.IOException;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -26,20 +24,16 @@ import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
-
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.AcknowledgeInd;
-import com.google.android.mms.pdu_alt.EncodedStringValue;
-import com.google.android.mms.pdu_alt.PduComposer;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduParser;
-import com.google.android.mms.pdu_alt.PduPersister;
-import com.google.android.mms.pdu_alt.RetrieveConf;
+import com.google.android.mms.pdu_alt.*;
 import com.klinker.android.send_message.Utils;
+
+import java.io.IOException;
 
 /**
  * The RetrieveTransaction is responsible for retrieving multimedia
@@ -156,12 +150,12 @@ public class RetrieveTransaction extends Transaction implements Runnable {
 
                 // Store M-Retrieve.conf into Inbox
                 PduPersister persister = PduPersister.getPduPersister(mContext);
-                msgUri = persister.persist(retrieveConf, Uri.parse("content://mms/inbox"), true,
+                msgUri = persister.persist(retrieveConf, Telephony.Mms.Inbox.CONTENT_URI, true,
                         group, null);
 
                 // Use local time instead of PDU time
                 ContentValues values = new ContentValues(1);
-                values.put("date", System.currentTimeMillis() / 1000L);
+                values.put(Telephony.Mms.DATE, System.currentTimeMillis() / 1000L);
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
                         msgUri, values, null, null);
 
@@ -209,7 +203,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
 
             Cursor cursor = SqliteWrapper.query(
                     context, context.getContentResolver(),
-                    Uri.parse("content://mms"), new String[] { "_id", "sub", "sub_cs" },
+                    Telephony.Mms.CONTENT_URI, new String[] {Telephony.Mms._ID, Telephony.Mms.SUBJECT, Telephony.Mms.SUBJECT_CHARSET },
                     selection, selectionArgs, null);
 
             if (cursor != null) {
@@ -241,8 +235,8 @@ public class RetrieveTransaction extends Transaction implements Runnable {
         }
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            int subjectIdx = cursor.getColumnIndex("sub");
-            int charsetIdx = cursor.getColumnIndex("sub_cs");
+            int subjectIdx = cursor.getColumnIndex(Telephony.Mms.SUBJECT);
+            int charsetIdx = cursor.getColumnIndex(Telephony.Mms.SUBJECT_CHARSET);
             subject = cursor.getString(subjectIdx);
             int charset = cursor.getInt(charsetIdx);
             if (subject != null) {
@@ -294,8 +288,8 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                                               String contentLocation,
                                               boolean locked) {
         ContentValues values = new ContentValues(2);
-        values.put("ct_l", contentLocation);
-        values.put("locked", locked);     // preserve the state of the M-Notification.ind lock.
+        values.put(Telephony.Mms.CONTENT_LOCATION, contentLocation);
+        values.put(Telephony.Mms.LOCKED, locked);     // preserve the state of the M-Notification.ind lock.
         SqliteWrapper.update(context, context.getContentResolver(),
                              uri, values, null, null);
     }

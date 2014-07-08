@@ -17,42 +17,26 @@
 
 package com.android.mms.transaction;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
-import android.os.PowerManager;
+import android.os.*;
 import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;
-import com.google.android.mms.pdu_alt.GenericPdu;
-import com.google.android.mms.pdu_alt.NotificationInd;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduParser;
-import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu_alt.*;
 import com.klinker.android.send_message.R;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 /**
  * The TransactionService of the MMS Client is responsible for handling requests
@@ -234,9 +218,9 @@ public class TransactionService extends Service implements Observer {
                         return;
                     }
 
-                    int columnIndexOfMsgId = cursor.getColumnIndexOrThrow("msg_id");
+                    int columnIndexOfMsgId = cursor.getColumnIndexOrThrow(Telephony.MmsSms.PendingMessages.MSG_ID);
                     int columnIndexOfMsgType = cursor.getColumnIndexOrThrow(
-                            "msg_type");
+                            Telephony.MmsSms.PendingMessages.MSG_TYPE);
 
                     while (cursor.moveToNext()) {
                         int msgType = cursor.getInt(columnIndexOfMsgType);
@@ -257,7 +241,7 @@ public class TransactionService extends Service implements Observer {
                                 // option, we also retry those messages that don't have any errors.
                                 int failureType = cursor.getInt(
                                         cursor.getColumnIndexOrThrow(
-                                                "err_type"));
+                                                Telephony.MmsSms.PendingMessages.ERROR_TYPE));
                                 DownloadManager.init(this);
                                 DownloadManager downloadManager = DownloadManager.getInstance();
                                 boolean autoDownload = downloadManager.isAuto();
@@ -284,7 +268,7 @@ public class TransactionService extends Service implements Observer {
                                // fall-through
                             default:
                                 Uri uri = ContentUris.withAppendedId(
-                                        Uri.parse("content://mms"),
+                                        Telephony.Mms.CONTENT_URI,
                                         cursor.getLong(columnIndexOfMsgId));
                                 TransactionBundle args = new TransactionBundle(
                                         transactionType, uri.toString());
@@ -321,7 +305,6 @@ public class TransactionService extends Service implements Observer {
     }
 
     private static boolean isTransientFailure(int type) {
-        // TODO don't use the sdk > 19 apis here
         return type > 0 && type < 10;
     }
 

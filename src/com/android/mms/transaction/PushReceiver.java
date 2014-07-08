@@ -17,10 +17,6 @@
 
 package com.android.mms.transaction;
 
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
-
 import android.content.*;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -30,18 +26,14 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.provider.Telephony;
 import android.util.Log;
-
 import com.android.mms.MmsConfig;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.DeliveryInd;
-import com.google.android.mms.pdu_alt.GenericPdu;
-import com.google.android.mms.pdu_alt.NotificationInd;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduParser;
-import com.google.android.mms.pdu_alt.PduPersister;
-import com.google.android.mms.pdu_alt.ReadOrigInd;
+import com.google.android.mms.pdu_alt.*;
+
+import static com.google.android.mms.pdu_alt.PduHeaders.*;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
@@ -100,7 +92,7 @@ public class PushReceiver extends BroadcastReceiver {
                                 group, null);
                         // Update thread ID for ReadOrigInd & DeliveryInd.
                         ContentValues values = new ContentValues(1);
-                        values.put("thread_id", threadId);
+                        values.put(Telephony.Mms.THREAD_ID, threadId);
                         SqliteWrapper.update(mContext, cr, uri, values, null, null);
                         break;
                     }
@@ -132,7 +124,7 @@ public class PushReceiver extends BroadcastReceiver {
                         // Save the pdu. If we can start downloading the real pdu immediately,
                         // don't allow persist() to create a thread for the notificationInd
                         // because it causes UI jank.
-                        Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"),
+                        Uri uri = p.persist(pdu, Telephony.Mms.Inbox.CONTENT_URI,
                                 !NotificationTransaction.allowAutoDownload(mContext),
                                 group,
                                 null);
@@ -212,18 +204,18 @@ public class PushReceiver extends BroadcastReceiver {
         }
 
         StringBuilder sb = new StringBuilder('(');
-        sb.append("m_id");
+        sb.append(Telephony.Mms.MESSAGE_ID);
         sb.append('=');
         sb.append(DatabaseUtils.sqlEscapeString(messageId));
         sb.append(" AND ");
-        sb.append("m_type");
+        sb.append(Telephony.Mms.MESSAGE_TYPE);
         sb.append('=');
         sb.append(PduHeaders.MESSAGE_TYPE_SEND_REQ);
         // TODO ContentResolver.query() appends closing ')' to the selection argument
         // sb.append(')');
 
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                            Uri.parse("content://mms"), new String[] { "thread_id" },
+                Telephony.Mms.CONTENT_URI, new String[] {Telephony.Mms.THREAD_ID },
                             sb.toString(), null, null);
         if (cursor != null) {
             try {

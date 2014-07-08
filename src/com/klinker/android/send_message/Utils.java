@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.BaseColumns;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
@@ -253,6 +254,10 @@ public class Utils {
         return data[0];
     }
 
+    private static final String[] ID_PROJECTION = { BaseColumns._ID };
+    private static final Uri THREAD_ID_CONTENT_URI = Uri.parse(
+            "content://mms-sms/threadID");
+
     /**
      * Gets the current thread_id or creates a new one for the given recipient
      * @param context is the context of the activity or service
@@ -274,7 +279,7 @@ public class Utils {
      */
     public static long getOrCreateThreadId(
             Context context, Set<String> recipients) {
-        Uri.Builder uriBuilder = Uri.parse("content://mms-sms/threadID").buildUpon();
+        Uri.Builder uriBuilder = THREAD_ID_CONTENT_URI.buildUpon();
 
         for (String recipient : recipients) {
             if (isEmailAddress(recipient)) {
@@ -286,19 +291,20 @@ public class Utils {
 
         Uri uri = uriBuilder.build();
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                uri, new String[]{"_id"}, null, null, null);
+                uri, ID_PROJECTION, null, null, null);
         if (cursor != null) {
             try {
                 if (cursor.moveToFirst()) {
                     return cursor.getLong(0);
                 } else {
-
+                    Log.e("Utils", "getOrCreateThreadId returned no rows!");
                 }
             } finally {
                 cursor.close();
             }
         }
 
+        Log.e("Utils", "getOrCreateThreadId failed with uri " + uri.toString());
         throw new IllegalArgumentException("Unable to find or allocate a thread ID.");
     }
 

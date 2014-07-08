@@ -17,24 +17,15 @@
 
 package com.android.mms.transaction;
 
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.provider.Telephony;
 import android.util.Log;
-
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.InvalidHeaderValueException;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.EncodedStringValue;
-import com.google.android.mms.pdu_alt.GenericPdu;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduPersister;
-import com.google.android.mms.pdu_alt.ReadRecInd;
-import com.google.android.mms.pdu_alt.SendReq;
+import com.google.android.mms.pdu_alt.*;
 import com.google.android.mms.util_alt.SqliteWrapper;
 
 public class MmsMessageSender implements MessageSender {
@@ -64,7 +55,7 @@ public class MmsMessageSender implements MessageSender {
         }
     }
 
-    public boolean sendMessage(long token) throws Throwable {
+    public boolean sendMessage(long token) throws Exception {
         // Load the MMS from the message uri
         PduPersister p = PduPersister.getPduPersister(mContext);
         GenericPdu pdu = p.load(mMessageUri);
@@ -91,7 +82,7 @@ public class MmsMessageSender implements MessageSender {
         long messageId = ContentUris.parseId(mMessageUri);
 
         // Move the message into MMS Outbox.
-        if (!mMessageUri.toString().startsWith(Uri.parse("content://mms/drafts").toString())) {
+        if (!mMessageUri.toString().startsWith(Telephony.Mms.Draft.CONTENT_URI.toString())) {
             // If the message is already in the outbox (most likely because we created a "primed"
             // message in the outbox when the user hit send), then we have to manually put an
             // entry in the pending_msgs table which is where TransacationService looks for
@@ -99,23 +90,19 @@ public class MmsMessageSender implements MessageSender {
             // insert_mms_pending_on_update, when a message is moved from drafts to the outbox.
             ContentValues values = new ContentValues(7);
 
-            values.put("proto_type", 1);
-            values.put("msg_id", messageId);
-            values.put("msg_type", pdu.getMessageType());
-            values.put("err_type", 0);
-            values.put("err_code", 0);
-            values.put("retry_index", 0);
-            values.put("due_time", 0);
+            values.put(Telephony.MmsSms.PendingMessages.PROTO_TYPE, 1);
+            values.put(Telephony.MmsSms.PendingMessages.MSG_ID, messageId);
+            values.put(Telephony.MmsSms.PendingMessages.MSG_TYPE, pdu.getMessageType());
+            values.put(Telephony.MmsSms.PendingMessages.ERROR_TYPE, 0);
+            values.put(Telephony.MmsSms.PendingMessages.ERROR_CODE, 0);
+            values.put(Telephony.MmsSms.PendingMessages.RETRY_INDEX, 0);
+            values.put(Telephony.MmsSms.PendingMessages.DUE_TIME, 0);
 
-            Uri uri = SqliteWrapper.insert(mContext, mContext.getContentResolver(),
-                        Uri.withAppendedPath(
-                                Uri.parse("content://mms-sms/"), "pending"), values);
+            SqliteWrapper.insert(mContext, mContext.getContentResolver(),
+                    Telephony.MmsSms.PendingMessages.CONTENT_URI, values);
 
-            if (uri == null) {
-                throw new Throwable("Cannot insert into correct database, fall back to old method");
-            }
         } else {
-            p.move(mMessageUri, Uri.parse("content://mms/outbox"));
+            p.move(mMessageUri, Telephony.Mms.Outbox.CONTENT_URI);
         }
 
         // Start MMS transaction service
@@ -174,7 +161,7 @@ public class MmsMessageSender implements MessageSender {
                 group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
             }
 
-            PduPersister.getPduPersister(context).persist(readRec, Uri.parse("content://mms/outbox"), true,
+            PduPersister.getPduPersister(context).persist(readRec, Telephony.Mms.Outbox.CONTENT_URI, true,
                     group, null);
             context.startService(new Intent(context, TransactionService.class));
         } catch (InvalidHeaderValueException e) {

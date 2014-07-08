@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.provider.Telephony;
 import android.util.Log;
 import com.klinker.android.send_message.Utils;
 
@@ -59,7 +60,7 @@ public class MmsSystemEventReceiver extends BroadcastReceiver {
 
         String action = intent.getAction();
         if (action.equals("android.intent.action.CONTENT_CHANGED")) {
-            Uri changed = (Uri) intent.getParcelableExtra("deleted_contents");
+            Uri changed = (Uri) intent.getParcelableExtra(Telephony.Mms.Intents.DELETED_CONTENTS);
         } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             if (mConnMgr == null) {
                 mConnMgr = (ConnectivityManager) context
