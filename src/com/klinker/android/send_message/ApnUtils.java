@@ -25,7 +25,7 @@ public class ApnUtils {
         loadMmsSettings(context);
         final ArrayList<APN> apns = loadApns(context);
 
-        if (apns.size() == 0) {
+        if (apns == null || apns.size() == 0) {
             Log.v(TAG, "Found no APNs :( Damn CDMA network probably.");
             Toast.makeText(context, context.getString(R.string.auto_select_failed), Toast.LENGTH_SHORT).show();
             if (listener != null) {
