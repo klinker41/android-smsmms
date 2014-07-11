@@ -32,7 +32,7 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import android.widget.Toast;
 import com.android.mms.dom.smil.parser.SmilXmlSerializer;
 import com.android.mms.transaction.HttpUtils;
@@ -61,6 +61,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class Transaction {
 
+    private static final String TAG = "Transaction";
     public static Settings settings;
     private Context context;
     private ConnectivityManager mConnMgr;
@@ -258,7 +259,7 @@ public class Transaction {
                     } catch (Exception e) {
                         // whoops...
                         Log.v("send_transaction", "error sending message");
-                        e.printStackTrace();
+                        Log.e(TAG, "exception thrown", e);
 
                         try {
                             ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
@@ -290,7 +291,7 @@ public class Transaction {
                     try {
                         smsManager.sendMultipartTextMessage(address, null, parts, sPI, dPI);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "exception thrown", e);
                     }
                 } else {
                     Log.v("send_transaction", "message not sent after delay, no longer exists");
@@ -397,7 +398,7 @@ public class Transaction {
 
             context.registerReceiver(receiver, filter);
         } catch (Throwable e) {
-            e.printStackTrace();
+            Log.e(TAG, "exception thrown", e);
             // insert the pdu into the database and return the bytes to send
             if (settings.getWifiMmsFix()) {
                 sendMMS(info.bytes);
@@ -488,7 +489,7 @@ public class Transaction {
                 info.location = persister.persist(sendRequest, Uri.parse("content://mms/outbox"), true, settings.getGroup(), null);
             } catch (Exception e) {
                 Log.v("sending_mms_library", "error saving mms message");
-                e.printStackTrace();
+                Log.e(TAG, "exception thrown", e);
 
                 // use the old way if something goes wrong with the persister
                 insert(context, recipients, parts, subject);
@@ -504,7 +505,7 @@ public class Transaction {
                 info.token = 4444L;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "exception thrown", e);
             info.token = 4444L;
         }
 
@@ -663,7 +664,7 @@ public class Transaction {
                     Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
                     sendData(bytesToSend);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "exception thrown", e);
                     sendData(bytesToSend);
                 }
             } else {
@@ -694,7 +695,7 @@ public class Transaction {
                                 Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
                                 sendData(bytesToSend);
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                Log.e(TAG, "exception thrown", e);
                                 sendData(bytesToSend);
                             }
 
@@ -728,7 +729,7 @@ public class Transaction {
                                 Utils.ensureRouteToHost(context, settings.getMmsc(), settings.getProxy());
                                 sendData(bytesToSend);
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                Log.e(TAG, "exception thrown", e);
                                 sendData(bytesToSend);
                             }
                         }
@@ -863,7 +864,7 @@ public class Transaction {
             HttpUtils.httpConnection(context, 4444L, apns.MMSCenterUrl, bytesToSend, HttpUtils.HTTP_POST_METHOD, !TextUtils.isEmpty(apns.MMSProxy), apns.MMSProxy, Integer.parseInt(apns.MMSPort));
         } catch (IOException e) {
             Log.v("sending_mms_library", "some type of error happened when actually sending maybe?");
-            e.printStackTrace();
+            Log.e(TAG, "exception thrown", e);
 
             if (numRetries < NUM_RETRIES) {
                 // sleep and try again in three seconds to see if that give wifi and mobile data a chance to toggle in time
@@ -1118,7 +1119,7 @@ public class Transaction {
             return res;
         } catch (Exception e) {
             Log.v("sending_mms_library", "still an error saving... :(");
-            e.printStackTrace();
+            Log.e(TAG, "exception thrown", e);
         }
 
         return null;

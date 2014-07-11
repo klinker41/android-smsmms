@@ -23,7 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.util.Calendar;
 

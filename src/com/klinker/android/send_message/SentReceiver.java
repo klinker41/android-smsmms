@@ -24,7 +24,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.telephony.SmsManager;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 public class SentReceiver extends BroadcastReceiver {
 

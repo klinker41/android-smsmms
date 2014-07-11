@@ -17,7 +17,7 @@ import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.google.android.mms.util_alt.SqliteWrapper;
 
 import java.io.IOException;
@@ -40,6 +40,7 @@ public class Utils {
      * characters to compare against when checking for 160 character sending compatibility
      */
     public static final String GSM_CHARACTERS_REGEX = "^[A-Za-z0-9 \\r\\n@Ł$ĽčéůěňÇŘřĹĺ\u0394_\u03A6\u0393\u039B\u03A9\u03A0\u03A8\u03A3\u0398\u039EĆćßÉ!\"#$%&'()*+,\\-./:;<=>?ĄÄÖŃÜ§żäöńüŕ^{}\\\\\\[~\\]|\u20AC]*$";
+    private static final String TAG = "Utils";
 
     /**
      * Gets the current users phone number
@@ -209,7 +210,7 @@ public class Utils {
             m.setAccessible(true);
             return (Boolean) m.invoke(cm);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "exception thrown", e);
             return null;
         }
     }
@@ -233,7 +234,7 @@ public class Utils {
 
             setMobileDataEnabledMethod.invoke(iConnectivityManager, enabled);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "exception thrown", e);
         }
 
     }

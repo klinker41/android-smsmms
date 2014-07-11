@@ -16,7 +16,7 @@
 
 package android.net;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;

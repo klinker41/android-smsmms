@@ -22,7 +22,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import android.widget.Toast;
 
 /**

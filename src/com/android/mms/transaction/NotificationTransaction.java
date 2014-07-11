@@ -27,7 +27,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
 import android.telephony.TelephonyManager;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
@@ -143,7 +143,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
         try {
             Looper.prepare();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "exception thrown", e);
         }
 
         DownloadManager.init(mContext);
@@ -235,7 +235,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
 
             sendNotifyRespInd(status);
         } catch (Throwable t) {
-            Log.e(TAG, Log.getStackTraceString(t));
+            Log.e(TAG, android.util.Log.getStackTraceString(t));
         } finally {
             mTransactionState.setContentUri(mUri);
             if (!autoDownload) {

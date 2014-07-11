@@ -24,7 +24,7 @@ import org.w3c.dom.smil.ElementTime;
 import org.w3c.dom.smil.SMILMediaElement;
 import org.w3c.dom.smil.TimeList;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import com.android.mms.dom.events.EventImpl;
 

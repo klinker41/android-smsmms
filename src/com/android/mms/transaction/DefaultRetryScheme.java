@@ -19,7 +19,7 @@ package com.android.mms.transaction;
 
 import android.content.Context;
 import android.util.Config;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 /**
  * Default retry scheme, based on specs.

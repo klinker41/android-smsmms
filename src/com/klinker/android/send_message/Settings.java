@@ -17,6 +17,7 @@
 package com.klinker.android.send_message;
 
 import android.net.wifi.WifiInfo;
+import com.klinker.android.logger.Log;
 
 /**
  * Class to house all of the settings that can be used to send a message
@@ -437,5 +438,18 @@ public class Settings {
      */
     public boolean getWifiMmsFix() {
         return this.wifiMmsFix;
+    }
+
+    /**
+     * Enables or disables logging for debug purposes logs will be written both to your devices
+     * logcat log and an external file you can specify so that other users can assist with debugging easily
+     * if you would like
+     *
+     * @param debugLogging true to enable debug logging when sending and receiving messages
+     * @param path the external path on the sd card to write the log to
+     */
+    public static void setDebugLogging(boolean debugLogging, String path) {
+        Log.setDebug(debugLogging);
+        Log.setPath(path);
     }
 }

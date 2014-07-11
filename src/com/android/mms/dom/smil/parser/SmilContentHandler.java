@@ -23,7 +23,7 @@ import org.w3c.dom.smil.SMILDocument;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import com.android.mms.dom.smil.SmilDocumentImpl;
 

@@ -26,7 +26,7 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
@@ -178,7 +178,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
             // Don't mark the transaction as failed if we failed to send it.
             sendAcknowledgeInd(retrieveConf);
         } catch (Throwable t) {
-            Log.e(TAG, Log.getStackTraceString(t));
+            Log.e(TAG, android.util.Log.getStackTraceString(t));
         } finally {
             if (mTransactionState.getState() != TransactionState.SUCCESS) {
                 mTransactionState.setState(TransactionState.FAILED);

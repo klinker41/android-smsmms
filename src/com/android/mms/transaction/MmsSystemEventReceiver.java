@@ -24,7 +24,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.provider.Telephony;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.Utils;
 
 import java.lang.reflect.Method;

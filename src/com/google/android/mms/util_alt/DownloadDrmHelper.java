@@ -19,7 +19,7 @@ package com.google.android.mms.util_alt;
 
 import android.content.Context;
 import android.drm.DrmManagerClient;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 public class DownloadDrmHelper {
     private static final String TAG = "DownloadDrmHelper";

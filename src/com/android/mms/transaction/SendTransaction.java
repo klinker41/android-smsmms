@@ -25,7 +25,7 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.provider.Telephony;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.android.mms.util.RateController;
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.pdu_alt.*;
@@ -156,7 +156,7 @@ public class SendTransaction extends Transaction implements Runnable {
             mTransactionState.setState(TransactionState.SUCCESS);
             mTransactionState.setContentUri(uri);
         } catch (Throwable t) {
-            Log.e(TAG, Log.getStackTraceString(t));
+            Log.e(TAG, android.util.Log.getStackTraceString(t));
         } finally {
             if (mTransactionState.getState() != TransactionState.SUCCESS) {
                 mTransactionState.setState(TransactionState.FAILED);

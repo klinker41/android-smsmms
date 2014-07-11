@@ -20,7 +20,7 @@ package com.google.android.mms.pdu_alt;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.InvalidHeaderValueException;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

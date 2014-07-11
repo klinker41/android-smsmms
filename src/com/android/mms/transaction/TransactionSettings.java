@@ -20,7 +20,7 @@ package com.android.mms.transaction;
 import android.content.Context;
 import android.net.NetworkUtils;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.android.mms.MmsConfig;
 import com.klinker.android.send_message.Transaction;
 import com.klinker.android.send_message.Utils;
@@ -76,7 +76,7 @@ public class TransactionSettings {
 //                Log.v(TAG, "TransactionSettings looking for apn: " + selection + " returned: " +
 //                        (cursor == null ? "null cursor" : (cursor.getCount() + " hits")));
 //        } catch (SecurityException e) {
-//            e.printStackTrace();
+//            Log.e(TAG, "exception thrown", e);
 //            cursor = null;
 //        }
 //

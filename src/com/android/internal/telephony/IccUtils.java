@@ -19,7 +19,7 @@ package com.android.internal.telephony;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.UnsupportedEncodingException;
 

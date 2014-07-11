@@ -26,7 +26,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import android.widget.Toast;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.EncodedStringValue;

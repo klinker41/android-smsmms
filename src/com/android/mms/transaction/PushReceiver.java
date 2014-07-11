@@ -27,7 +27,7 @@ import android.os.Build;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.android.mms.MmsConfig;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.MmsException;

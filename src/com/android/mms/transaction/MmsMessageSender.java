@@ -21,7 +21,7 @@ import android.content.*;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.InvalidHeaderValueException;
 import com.google.android.mms.MmsException;

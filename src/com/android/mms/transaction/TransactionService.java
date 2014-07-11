@@ -27,7 +27,7 @@ import android.net.Uri;
 import android.os.*;
 import android.provider.Telephony;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import android.widget.Toast;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;

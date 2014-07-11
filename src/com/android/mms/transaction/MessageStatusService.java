@@ -26,7 +26,7 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 /**
  * Service that gets started by the MessageStatusReceiver when a message status report is

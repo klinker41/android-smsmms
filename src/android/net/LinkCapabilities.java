@@ -18,7 +18,7 @@ package android.net;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.util.Collection;
 import java.util.HashMap;

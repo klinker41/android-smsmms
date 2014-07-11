@@ -20,7 +20,7 @@ package com.android.mms.transaction;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.Telephony;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.EncodedStringValue;
 import com.google.android.mms.pdu_alt.PduComposer;

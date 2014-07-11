@@ -26,7 +26,7 @@ import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.provider.Telephony;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 public class RateController {
     private static final String TAG = "RateController";

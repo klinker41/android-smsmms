@@ -17,7 +17,7 @@
 package com.klinker.android.send_message;
 
 import android.graphics.Bitmap;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
 
