@@ -17,6 +17,8 @@
 
 package com.android.mms.transaction;
 
+import java.util.Arrays;
+
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -28,10 +30,14 @@ import android.text.TextUtils;
 import com.klinker.android.logger.Log;
 import com.android.mms.util.RateController;
 import com.android.mms.util.SendingProgressTokenManager;
-import com.google.android.mms.pdu_alt.*;
+import com.google.android.mms.pdu_alt.EncodedStringValue;
+import com.google.android.mms.pdu_alt.PduComposer;
+import com.google.android.mms.pdu_alt.PduHeaders;
+import com.google.android.mms.pdu_alt.PduParser;
+import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu_alt.SendConf;
+import com.google.android.mms.pdu_alt.SendReq;
 import com.klinker.android.send_message.Utils;
-
-import java.util.Arrays;
 
 /**
  * The SendTransaction is responsible for sending multimedia messages
@@ -92,7 +98,7 @@ public class SendTransaction extends Transaction implements Runnable {
 
             // Persist the new date value into database.
             ContentValues values = new ContentValues(1);
-            values.put(Telephony.Mms.DATE, date);
+            values.put("date", date);
             SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                  mSendReqURI, values, null, null);
 
@@ -135,7 +141,7 @@ public class SendTransaction extends Transaction implements Runnable {
             // into the related M-Send.req.
             values = new ContentValues(2);
             int respStatus = conf.getResponseStatus();
-            values.put(Telephony.Mms.RESPONSE_STATUS, respStatus);
+            values.put("resp_st", respStatus);
 
             if (respStatus != PduHeaders.RESPONSE_STATUS_OK) {
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
@@ -146,12 +152,12 @@ public class SendTransaction extends Transaction implements Runnable {
             }
 
             String messageId = PduPersister.toIsoString(conf.getMessageId());
-            values.put(Telephony.Mms.MESSAGE_ID, messageId);
+            values.put("m_id", messageId);
             SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                  mSendReqURI, values, null, null);
 
             // Move M-Send.req from Outbox into Sent.
-            Uri uri = persister.move(mSendReqURI, Telephony.Mms.Sent.CONTENT_URI);
+            Uri uri = persister.move(mSendReqURI, Uri.parse("content://mms/sent"));
 
             mTransactionState.setState(TransactionState.SUCCESS);
             mTransactionState.setContentUri(uri);

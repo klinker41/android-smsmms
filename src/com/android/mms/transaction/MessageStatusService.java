@@ -33,7 +33,7 @@ import com.klinker.android.logger.Log;
  * received.
  */
 public class MessageStatusService extends IntentService {
-    private static final String[] ID_PROJECTION = new String[] {Telephony.Sms._ID };
+    private static final String[] ID_PROJECTION = new String[] { "_id" };
     private static final String LOG_TAG = "MessageStatusReceiver";
     private static final Uri STATUS_URI = Uri.parse("content://sms/status");
 
@@ -79,8 +79,8 @@ public class MessageStatusService extends IntentService {
                     log("updateMessageStatus: msgUrl=" + messageUri + ", status=" + status +
                             ", isStatusReport=" + isStatusReport);
 
-                contentValues.put(Telephony.Sms.STATUS, status);
-                contentValues.put(Telephony.Sms.Inbox.DATE_SENT, System.currentTimeMillis());
+                contentValues.put("status", status);
+                contentValues.put("date_sent", System.currentTimeMillis());
                 SqliteWrapper.update(context, context.getContentResolver(),
                                     updateUri, contentValues, null, null);
             } else {

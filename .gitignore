@@ -4,4 +4,3 @@ build/
 gen/
 *.iml
 module_android-smsmms.xml
-project.properties

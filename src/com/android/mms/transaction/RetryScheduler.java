@@ -19,7 +19,11 @@ package com.android.mms.transaction;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.*;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
@@ -95,7 +99,8 @@ public class RetryScheduler implements Observer {
     private void scheduleRetry(Uri uri) {
         long msgId = ContentUris.parseId(uri);
 
-        Uri.Builder uriBuilder = Telephony.MmsSms.PendingMessages.CONTENT_URI.buildUpon();
+        Uri.Builder uriBuilder = Uri.withAppendedPath(
+                Uri.parse("content://mms-sms/"), "pending").buildUpon();
         uriBuilder.appendQueryParameter("protocol", "mms");
         uriBuilder.appendQueryParameter("message", String.valueOf(msgId));
 
@@ -106,10 +111,10 @@ public class RetryScheduler implements Observer {
             try {
                 if ((cursor.getCount() == 1) && cursor.moveToFirst()) {
                     int msgType = cursor.getInt(cursor.getColumnIndexOrThrow(
-                            Telephony.MmsSms.PendingMessages.MSG_TYPE));
+                            "msg_type"));
 
                     int retryIndex = cursor.getInt(cursor.getColumnIndexOrThrow(
-                            Telephony.MmsSms.PendingMessages.RETRY_INDEX)) + 1; // Count this time.
+                            "retry_index")) + 1; // Count this time.
 
                     // TODO Should exactly understand what was happened.
                     // TODO don't use the sdk > 19 apis here
@@ -166,7 +171,7 @@ public class RetryScheduler implements Observer {
                             Log.v(TAG, "scheduleRetry: retry for " + uri + " is scheduled at "
                                     + (retryAt - System.currentTimeMillis()) + "ms from now");
 
-                        values.put(Telephony.MmsSms.PendingMessages.DUE_TIME, retryAt);
+                        values.put("due_time", retryAt);
 
                         if (isRetryDownloading) {
                             // Downloading process is transiently failed.
@@ -176,10 +181,11 @@ public class RetryScheduler implements Observer {
                                     uri, DownloadManager.STATE_TRANSIENT_FAILURE);
                         }
                     } else {
+                        // TODO don't use the sdk > 19 apis here
                         errorType = 10;
                         if (isRetryDownloading) {
                             Cursor c = SqliteWrapper.query(mContext, mContext.getContentResolver(), uri,
-                                    new String[] {Telephony.Mms.THREAD_ID }, null, null, null);
+                                    new String[] { "thread_id" }, null, null, null);
 
                             long threadId = -1;
                             if (c != null) {
@@ -202,23 +208,24 @@ public class RetryScheduler implements Observer {
                         } else {
                             // Mark the failed message as unread.
                             ContentValues readValues = new ContentValues(1);
-                            readValues.put(Telephony.Mms.READ, 0);
+                            readValues.put("read", 0);
                             SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                     uri, readValues, null, null);
                             markMmsFailed(mContext);
                         }
                     }
 
-                    values.put(Telephony.MmsSms.PendingMessages.ERROR_TYPE,  errorType);
-                    values.put(Telephony.MmsSms.PendingMessages.RETRY_INDEX, retryIndex);
-                    values.put(Telephony.MmsSms.PendingMessages.LAST_TRY,    current);
+                    values.put("err_type",  errorType);
+                    values.put("retry_index", retryIndex);
+                    values.put("last_try",    current);
 
                     int columnIndex = cursor.getColumnIndexOrThrow(
-                            Telephony.MmsSms.PendingMessages._ID);
+                            "_id");
                     long id = cursor.getLong(columnIndex);
                     SqliteWrapper.update(mContext, mContentResolver,
-                            Telephony.MmsSms.PendingMessages.CONTENT_URI,
-                            values, Telephony.MmsSms.PendingMessages._ID + "=" + id, null);
+                            Uri.withAppendedPath(
+                                    Uri.parse("content://mms-sms/"), "pending"),
+                            values, "_id" + "=" + id, null);
                 } else if (LOCAL_LOGV) {
                     Log.v(TAG, "Cannot found correct pending status for: " + msgId);
                 }
@@ -229,7 +236,7 @@ public class RetryScheduler implements Observer {
     }
 
     private void markMmsFailed(final Context context) {
-        Cursor query = context.getContentResolver().query(Telephony.Mms.CONTENT_URI, new String[]{Telephony.Mms._ID}, null, null, "date desc");
+        Cursor query = context.getContentResolver().query(Uri.parse("content://mms"), new String[]{"_id"}, null, null, "date desc");
         query.moveToFirst();
         String id = query.getString(query.getColumnIndex("_id"));
         query.close();
@@ -250,10 +257,10 @@ public class RetryScheduler implements Observer {
     private int getResponseStatus(long msgID) {
         int respStatus = 0;
         Cursor cursor = SqliteWrapper.query(mContext, mContentResolver,
-                Telephony.Mms.Outbox.CONTENT_URI, null, Telephony.Mms._ID + "=" + msgID, null, null);
+                Uri.parse("content://mms/outbox"), null, "_id" + "=" + msgID, null, null);
         try {
             if (cursor.moveToFirst()) {
-                respStatus = cursor.getInt(cursor.getColumnIndexOrThrow(Telephony.Mms.RESPONSE_STATUS));
+                respStatus = cursor.getInt(cursor.getColumnIndexOrThrow("resp_st"));
             }
         } finally {
             cursor.close();
@@ -268,11 +275,11 @@ public class RetryScheduler implements Observer {
     private int getRetrieveStatus(long msgID) {
         int retrieveStatus = 0;
         Cursor cursor = SqliteWrapper.query(mContext, mContentResolver,
-                Telephony.Mms.Inbox.CONTENT_URI, null, Telephony.Mms._ID + "=" + msgID, null, null);
+                Uri.parse("content://mms/inbox"), null, "_id" + "=" + msgID, null, null);
         try {
             if (cursor.moveToFirst()) {
                 retrieveStatus = cursor.getInt(cursor.getColumnIndexOrThrow(
-                        Telephony.Mms.Inbox.RESPONSE_STATUS));
+                        "resp_st"));
             }
         } finally {
             cursor.close();
@@ -291,7 +298,7 @@ public class RetryScheduler implements Observer {
                 if (cursor.moveToFirst()) {
                     // The result of getPendingMessages() is order by due time.
                     long retryAt = cursor.getLong(cursor.getColumnIndexOrThrow(
-                            Telephony.MmsSms.PendingMessages.DUE_TIME));
+                            "due_time"));
 
                     Intent service = new Intent(TransactionService.ACTION_ONALARM,
                                         null, context, TransactionService.class);

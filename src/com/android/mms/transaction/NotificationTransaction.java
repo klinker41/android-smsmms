@@ -17,6 +17,16 @@
 
 package com.android.mms.transaction;
 
+import static com.android.mms.transaction.TransactionState.FAILED;
+import static com.android.mms.transaction.TransactionState.INITIALIZED;
+import static com.android.mms.transaction.TransactionState.SUCCESS;
+import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF;
+import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_DEFERRED;
+import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_RETRIEVED;
+import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_UNRECOGNIZED;
+
+import java.io.IOException;
+
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
@@ -31,12 +41,13 @@ import com.klinker.android.logger.Log;
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.*;
-
-import java.io.IOException;
-
-import static com.android.mms.transaction.TransactionState.*;
-import static com.google.android.mms.pdu_alt.PduHeaders.*;
+import com.google.android.mms.pdu_alt.GenericPdu;
+import com.google.android.mms.pdu_alt.NotificationInd;
+import com.google.android.mms.pdu_alt.NotifyRespInd;
+import com.google.android.mms.pdu_alt.PduComposer;
+import com.google.android.mms.pdu_alt.PduHeaders;
+import com.google.android.mms.pdu_alt.PduParser;
+import com.google.android.mms.pdu_alt.PduPersister;
 
 /**
  * The NotificationTransaction is responsible for handling multimedia
@@ -109,7 +120,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
             }
 
             mUri = PduPersister.getPduPersister(context).persist(
-                        ind, Telephony.Mms.Inbox.CONTENT_URI, !allowAutoDownload(context),
+                        ind, Uri.parse("content://mms/inbox"), !allowAutoDownload(context),
                         group, null);
         } catch (MmsException e) {
             Log.e(TAG, "Failed to save NotificationInd in constructor.", e);
@@ -131,9 +142,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
 
     public static boolean allowAutoDownload(Context context) {
         try { Looper.prepare(); } catch (Exception e) { }
-        DownloadManager.init(context);
-        DownloadManager downloadManager = DownloadManager.getInstance();
-        boolean autoDownload = downloadManager.isAuto();
+        boolean autoDownload = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_download_mms", true);
         boolean dataSuspended = (((TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE)).getDataState() ==
                 TelephonyManager.DATA_SUSPENDED);
         return autoDownload && !dataSuspended;
@@ -190,12 +199,12 @@ public class NotificationTransaction extends Transaction implements Runnable {
                 } else {
                     // Save the received PDU (must be a M-RETRIEVE.CONF).
                     PduPersister p = PduPersister.getPduPersister(mContext);
-                    Uri uri = p.persist(pdu, Telephony.Mms.Inbox.CONTENT_URI, true,
+                    Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"), true,
                             com.klinker.android.send_message.Transaction.settings.getGroup(), null);
 
                     // Use local time instead of PDU time
                     ContentValues values = new ContentValues(1);
-                    values.put(Telephony.Mms.DATE, System.currentTimeMillis() / 1000L);
+                    values.put("date", System.currentTimeMillis() / 1000L);
                     SqliteWrapper.update(mContext, mContext.getContentResolver(),
                             uri, values, null, null);
 
@@ -206,7 +215,9 @@ public class NotificationTransaction extends Transaction implements Runnable {
                     Log.v(TAG, "NotificationTransaction received new mms message: " + uri);
                     // Delete obsolete threads
                     SqliteWrapper.delete(mContext, mContext.getContentResolver(),
-                            Telephony.Threads.OBSOLETE_THREADS_URI, null, null);
+                            Uri.withAppendedPath(
+                                    Uri.withAppendedPath(
+                                            Uri.parse("content://mms-sms/"), "conversations"), "obsolete"), null, null);
 
                     // Notify observers with newly received MM.
                     mUri = uri;

@@ -65,10 +65,10 @@ public final class PduCache extends AbstractCache<Uri, PduCacheEntry> {
         URI_MATCHER.addURI("mms-sms", "conversations/#", MMS_CONVERSATION_ID);
 
         MATCH_TO_MSGBOX_ID_MAP = new HashMap<Integer, Integer>();
-        MATCH_TO_MSGBOX_ID_MAP.put(MMS_INBOX, Telephony.Mms.MESSAGE_BOX_INBOX);
-        MATCH_TO_MSGBOX_ID_MAP.put(MMS_SENT, Telephony.Mms.MESSAGE_BOX_SENT);
-        MATCH_TO_MSGBOX_ID_MAP.put(MMS_DRAFTS, Telephony.Mms.MESSAGE_BOX_DRAFTS);
-        MATCH_TO_MSGBOX_ID_MAP.put(MMS_OUTBOX, Telephony.Mms.MESSAGE_BOX_OUTBOX);
+        MATCH_TO_MSGBOX_ID_MAP.put(MMS_INBOX,  1);
+        MATCH_TO_MSGBOX_ID_MAP.put(MMS_SENT,   2);
+        MATCH_TO_MSGBOX_ID_MAP.put(MMS_DRAFTS, 3);
+        MATCH_TO_MSGBOX_ID_MAP.put(MMS_OUTBOX, 4);
     }
 
     private final HashMap<Integer, HashSet<Uri>> mMessageBoxes;
@@ -140,7 +140,7 @@ public final class PduCache extends AbstractCache<Uri, PduCacheEntry> {
             case MMS_DRAFTS_ID:
             case MMS_OUTBOX_ID:
                 String msgId = uri.getLastPathSegment();
-                return purgeSingleEntry(Uri.withAppendedPath(Telephony.Mms.CONTENT_URI, msgId));
+                return purgeSingleEntry(Uri.withAppendedPath(Uri.parse("content://mms"), msgId));
             // Implicit batch of purge, return null.
             case MMS_ALL:
             case MMS_CONVERSATION:
@@ -197,7 +197,7 @@ public final class PduCache extends AbstractCache<Uri, PduCacheEntry> {
             case MMS_DRAFTS_ID:
             case MMS_OUTBOX_ID:
                 String msgId = uri.getLastPathSegment();
-                normalizedKey = Uri.withAppendedPath(Telephony.Mms.CONTENT_URI, msgId);
+                normalizedKey = Uri.withAppendedPath(Uri.parse("content://mms"), msgId);
                 break;
             default:
                 return null;
