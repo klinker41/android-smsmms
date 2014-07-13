@@ -92,30 +92,29 @@ public class MmsMessageSender implements MessageSender {
 
         // Move the message into MMS Outbox.
         if (!mMessageUri.toString().startsWith(Uri.parse("content://mms/drafts").toString())) {
-            // If the message is already in the outbox (most likely because we created a "primed"
-            // message in the outbox when the user hit send), then we have to manually put an
-            // entry in the pending_msgs table which is where TransacationService looks for
-            // messages to send. Normally, the entry in pending_msgs is created by the trigger:
-            // insert_mms_pending_on_update, when a message is moved from drafts to the outbox.
-            ContentValues values = new ContentValues(7);
+            try {
+                // If the message is already in the outbox (most likely because we created a "primed"
+                // message in the outbox when the user hit send), then we have to manually put an
+                // entry in the pending_msgs table which is where TransacationService looks for
+                // messages to send. Normally, the entry in pending_msgs is created by the trigger:
+                // insert_mms_pending_on_update, when a message is moved from drafts to the outbox.
+                ContentValues values = new ContentValues(7);
 
-            values.put("proto_type", 1);
-            values.put("msg_id", messageId);
-            values.put("msg_type", pdu.getMessageType());
-            values.put("err_type", 0);
-            values.put("err_code", 0);
-            values.put("retry_index", 0);
-            values.put("due_time", 0);
+                values.put(Telephony.MmsSms.PendingMessages.PROTO_TYPE, 1);
+                values.put(Telephony.MmsSms.PendingMessages.MSG_ID, messageId);
+                values.put(Telephony.MmsSms.PendingMessages.MSG_TYPE, pdu.getMessageType());
+                values.put(Telephony.MmsSms.PendingMessages.ERROR_TYPE, 0);
+                values.put(Telephony.MmsSms.PendingMessages.ERROR_CODE, 0);
+                values.put(Telephony.MmsSms.PendingMessages.RETRY_INDEX, 0);
+                values.put(Telephony.MmsSms.PendingMessages.DUE_TIME, 0);
 
-            Uri uri = SqliteWrapper.insert(mContext, mContext.getContentResolver(),
-                        Uri.withAppendedPath(
-                                Uri.parse("content://mms-sms/"), "pending"), values);
-
-            if (uri == null) {
-                throw new Throwable("Cannot insert into correct database, fall back to old method");
+                Uri uri = SqliteWrapper.insert(mContext, mContext.getContentResolver(),
+                        Telephony.MmsSms.PendingMessages.CONTENT_URI, values);
+            } catch (Throwable e) {
+                p.move(mMessageUri, Telephony.Mms.Outbox.CONTENT_URI);
             }
         } else {
-            p.move(mMessageUri, Uri.parse("content://mms/outbox"));
+            p.move(mMessageUri, Telephony.Mms.Outbox.CONTENT_URI);
         }
 
         // Start MMS transaction service

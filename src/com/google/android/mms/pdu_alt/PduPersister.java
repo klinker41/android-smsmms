@@ -1539,8 +1539,7 @@ public class PduPersister {
      * Find all messages to be sent or downloaded before certain time.
      */
     public Cursor getPendingMessages(long dueTime) {
-        Uri.Builder uriBuilder = Uri.withAppendedPath(
-                Uri.parse("content://mms-sms/"), "pending").buildUpon();
+        Uri.Builder uriBuilder = Telephony.MmsSms.PendingMessages.CONTENT_URI.buildUpon();
         uriBuilder.appendQueryParameter("protocol", "mms");
 
         String selection = "err_type" + " < ?"

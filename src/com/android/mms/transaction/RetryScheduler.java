@@ -99,8 +99,7 @@ public class RetryScheduler implements Observer {
     private void scheduleRetry(Uri uri) {
         long msgId = ContentUris.parseId(uri);
 
-        Uri.Builder uriBuilder = Uri.withAppendedPath(
-                Uri.parse("content://mms-sms/"), "pending").buildUpon();
+        Uri.Builder uriBuilder = Telephony.MmsSms.PendingMessages.CONTENT_URI.buildUpon();
         uriBuilder.appendQueryParameter("protocol", "mms");
         uriBuilder.appendQueryParameter("message", String.valueOf(msgId));
 
