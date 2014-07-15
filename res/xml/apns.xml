@@ -487,7 +487,7 @@
     <apn carrier="MMS" mcc="302" mnc="490" apn="mms.windmobile.ca" mmsc="http://mms.windmobile.ca" mmsproxy="74.115.197.70" mmsport="8080" type="mms" />
     <apn carrier="Videotron" mcc="302" mnc="500" apn="media.videotron" mmsc="http://media.videotron.com" type="default,supl,mms" />
     <apn carrier="Videotron" mcc="302" mnc="510" apn="media.videotron" mmsc="http://media.videotron.com" type="default,supl,mms" />
-    <apn carrier="Bell Mobility" mcc="302" mnc="610" apn="pda.bell.ca" type="default,mms,dun,supl" mmsc="http://mms.bell.ca/mms/wapenc" />
+    <apn carrier="Bell Mobility" mcc="302" mnc="610" apn="pda.bell.ca" type="default,mms,dun,supl" mmsc="http://mms.bell.ca/mms/wapenc" mmsproxy="web.wireless.bell.ca" mmsport="80" />
     <apn carrier="MTS" mcc="302" mnc="370" apn="sp.mts" type="default,mms,supl" mmsc="http://mmsc2.mts.net/" mmsproxy="wapgw1.mts.net" mmsport="9201" protocol="IPV4V6" roaming_protocol="IPV4V6" mvno_match_data="2C" mvno_type="gid" />
     <apn carrier="Fido LTE" mcc="302" mnc="370" apn="ltemobile.apn" type="default,mms,supl" mmsc="http://mms.fido.ca" mmsproxy="mmsproxy.fido.ca" mmsport="80" protocol="IPV4V6" roaming_protocol="IPV4V6" />
     <apn carrier="MTS" mcc="302" mnc="660" apn="sp.mts" type="default,mms,supl" mmsc="http://mmsc2.mts.net/" mmsproxy="wapgw1.mts.net" mmsport="9201" protocol="IPV4V6" roaming_protocol="IPV4V6" mvno_match_data="2C" mvno_type="gid" />
