@@ -152,7 +152,7 @@ That code will then save the RnrSe value so that I don't have to fetch it every 
 
 ### Dependencies Information
 
-This library relies on Ion by Koush. That library is packaged into here making it easier to use. Please note that there are also a few jars that are in the ion/libs folder that need to be set as dependencies for both this library and Ion to get it compiling.
+This library relies on Ion by Koush, which is included in the libs folder already. Build the project with Gradle and this will be used.
 
 ---
 
