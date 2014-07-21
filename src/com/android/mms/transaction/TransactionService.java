@@ -17,42 +17,26 @@
 
 package com.android.mms.transaction;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
-import android.os.PowerManager;
-import android.provider.Telephony;
+import android.os.*;
 import android.text.TextUtils;
-import com.klinker.android.logger.Log;
 import android.widget.Toast;
-
-import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;
-import com.google.android.mms.pdu_alt.GenericPdu;
-import com.google.android.mms.pdu_alt.NotificationInd;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduParser;
-import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu_alt.*;
+import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.R;
+import com.klinker.android.send_message.Utils;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 /**
  * The TransactionService of the MMS Client is responsible for handling requests
@@ -140,6 +124,7 @@ public class TransactionService extends Service implements Observer {
     private final ArrayList<Transaction> mPending  = new ArrayList<Transaction>();
     private ConnectivityManager mConnMgr;
     private ConnectivityBroadcastReceiver mReceiver;
+    private boolean mobileDataEnabled;
 
     private PowerManager.WakeLock mWakeLock;
 
@@ -194,16 +179,12 @@ public class TransactionService extends Service implements Observer {
     }
 
     public void onNewIntent(Intent intent, int serviceId) {
-        boolean mobileDataEnabled = false;
+        mobileDataEnabled = Utils.isMobileDataEnabled(this);
         mConnMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        try {
-            Class cmClass = Class.forName(mConnMgr.getClass().getName());
-            Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
-            method.setAccessible(true);
-            mobileDataEnabled = (Boolean)method.invoke(mConnMgr);
-        } catch (Exception e) {
+        if (!mobileDataEnabled) {
+            Utils.setMobileDataEnabled(this, true);
         }
-        if (mConnMgr == null || !mobileDataEnabled) {
+        if (mConnMgr == null) {
             endMmsConnectivity();
             stopSelf(serviceId);
             return;
@@ -321,7 +302,6 @@ public class TransactionService extends Service implements Observer {
     }
 
     private static boolean isTransientFailure(int type) {
-        // TODO don't use the sdk > 19 apis here
         return type > 0 && type < 10;
     }
 
@@ -380,6 +360,11 @@ public class TransactionService extends Service implements Observer {
         unregisterReceiver(mReceiver);
 
         mServiceHandler.sendEmptyMessage(EVENT_QUIT);
+
+        if (!mobileDataEnabled) {
+            Log.v(TAG, "disabling mobile data");
+            Utils.setMobileDataEnabled(TransactionService.this, false);
+        }
     }
 
     @Override
