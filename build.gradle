@@ -3,24 +3,27 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.11.+'
+        classpath 'com.android.tools.build:gradle:0.12.1'
     }
 }
 
 allprojects {
     repositories {
         mavenCentral()
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
         flatDir {
             dirs 'libs'
         }
     }
 }
 
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 
 dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
-    compile files('libs/android-logger.jar')
+    compile 'com.klinkerapps:logger:+'
     compile(name:'ion', ext:'aar')
 }
 
