@@ -54,3 +54,5 @@ android {
         abortOnError false
     }
 }
+
+apply from: 'https://raw.github.com/klinker41/gradle-mvn-push/master/gradle-mvn-push.gradle'
