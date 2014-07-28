@@ -157,18 +157,7 @@ This library relies on Ion by Koush, which is included in the libs folder alread
 To include in your project:
 
 ```groovy
-allprojects {
-    repositories {
-        mavenCentral()
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots/'
-        }
-    }
-}
-
-dependencies {
-    compile 'com.klinkerapps:android-smsmms:+'
-}
+compile 'com.klinkerapps:android-smsmms:+@aar'
 ```
 
 ---
