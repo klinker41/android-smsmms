@@ -1,10 +1,10 @@
 # Android SMS/MMS/Google Voice Sending Library
 
-These are the APIs that Google has so far left out of the Android echosystem for easily sending any type of message without digging through source code and what not. 
+These are the APIs that Google has so far left out of the Android ecosystem for easily sending any type of message without digging through source code and what not. 
 
 ##### This library is still in __BETA__ and has a long way to go... APIs may not be final and things will most likely change.
 
-If you've got a better way to do things, send me a pull request! The library was created specifically for [Sliding Messaging Pro](https://play.google.com/store/apps/details?id=com.klinker.android.messaging_donate&hl=en) and [EvolveSMS](https://play.google.com/store/apps/details?id=com.klinker.android.evolve_sms&hl=en) and some things work the way they do specifically for those apps.
+If you've got a better way to do things, send me a pull request! The library was created specifically for [Sliding Messaging Pro](https://play.google.com/store/apps/details?id=com.klinker.android.messaging_donate&hl=en) and [EvolveSMS](https://play.google.com/store/apps/details?id=com.klinker.android.evolve_sms&hl=en). Some things work the way they do specifically for those apps.
 
 ---
 
@@ -12,7 +12,7 @@ If you've got a better way to do things, send me a pull request! The library was
 
 Sending messages is very easy to do.
 
-First, create a settings object with all of your required information for what you want to do. If you don't set something, then it will just be set to a default and that feature may not work. For example, if you need MMS, set the MMSC, proxy, and port, or else you will get an error every time.
+First, create a settings object with all of your required information for what you want to do. If you don't set something, then it will set to a default and that feature may not work. For example, if you need MMS, set the MMSC, proxy, and port. Otherwise you will get an error every time.
 
 ``` java
 Settings sendSettings = new Settings();
@@ -60,7 +60,7 @@ mMessage.setImage(mBitmap);   // not necessary for voice or sms messages
 mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE
 ```
 
-And then all you have to do is send the message
+And then all you have to do is send the message!
 
 ``` java
 sendTransaction.sendNewMessage(message, threadId)
