@@ -154,10 +154,10 @@ That code will then save the RnrSe value so that I don't have to fetch it every 
 
 This library relies on Ion by Koush, which is included in the libs folder already. Build the project with Gradle and this will be used.
 
-To include in your project:
+To include in your gradle project:
 
 ```groovy
-compile 'com.klinkerapps:android-smsmms:+@aar'
+compile 'com.klinkerapps:android-smsmms:+'
 ```
 
 ---

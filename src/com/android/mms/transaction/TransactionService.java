@@ -117,6 +117,8 @@ public class TransactionService extends Service implements Observer {
     // How often to extend the use of the MMS APN while a transaction
     // is still being processed.
     private static final int APN_EXTENSION_WAIT = 30 * 1000;
+    private static final int MAX_CONNECTION_RETRIES = 5;
+    private static int connectionRetryCounter = 0;
 
     private ServiceHandler mServiceHandler;
     private Looper mServiceLooper;
@@ -875,7 +877,8 @@ public class TransactionService extends Service implements Observer {
                     return;
                 }
 
-                if (mmsNetworkInfo.isConnected()) {
+                if (mmsNetworkInfo.isConnected() || connectionRetryCounter >= MAX_CONNECTION_RETRIES) {
+                    connectionRetryCounter = 0;
                     TransactionSettings settings = new TransactionSettings(
                             TransactionService.this, mmsNetworkInfo.getExtraInfo());
                     // If this APN doesn't have an MMSC, mark everything as failed and bail.
@@ -889,6 +892,7 @@ public class TransactionService extends Service implements Observer {
                     }
                     mServiceHandler.processPendingTransaction(null, settings);
                 } else {
+                    connectionRetryCounter++;
                         Log.v(TAG, "   TYPE_MOBILE_MMS not connected, bail");
 
                     // Retry mms connectivity once it's possible to connect
