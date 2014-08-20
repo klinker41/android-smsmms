@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -300,7 +301,9 @@ public class Utils {
             }
         }
 
-        throw new IllegalArgumentException("Unable to find or allocate a thread ID.");
+        Random random = new Random();
+        return random.nextLong();
+        //throw new IllegalArgumentException("Unable to find or allocate a thread ID.");
     }
 
     private static boolean isEmailAddress(String address) {

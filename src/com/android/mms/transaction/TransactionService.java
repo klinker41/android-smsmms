@@ -877,7 +877,9 @@ public class TransactionService extends Service implements Observer {
                     return;
                 }
 
-                if (mmsNetworkInfo.isConnected() || connectionRetryCounter >= MAX_CONNECTION_RETRIES) {
+                if (mmsNetworkInfo.isConnected() ||
+                        (mmsNetworkInfo.getState().equals(NetworkInfo.State.UNKNOWN) && mmsNetworkInfo.isAvailable()) ||
+                        connectionRetryCounter >= MAX_CONNECTION_RETRIES) {
                     connectionRetryCounter = 0;
                     TransactionSettings settings = new TransactionSettings(
                             TransactionService.this, mmsNetworkInfo.getExtraInfo());
@@ -894,6 +896,7 @@ public class TransactionService extends Service implements Observer {
                 } else {
                     connectionRetryCounter++;
                         Log.v(TAG, "   TYPE_MOBILE_MMS not connected, bail");
+                    Log.v(TAG, "    retry counter is now: " + connectionRetryCounter);
 
                     // Retry mms connectivity once it's possible to connect
                     if (mmsNetworkInfo.isAvailable()) {
