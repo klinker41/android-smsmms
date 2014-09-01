@@ -109,7 +109,11 @@ public class TransactionSettings {
             }
 
             if (isProxySet()) {
-                mProxyPort = Integer.parseInt(Transaction.settings.getPort());
+                try {
+                    mProxyPort = Integer.parseInt(Transaction.settings.getPort());
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, "could not get proxy: " + Transaction.settings.getPort(), e);
+                }
             }
 //        }
 
