@@ -15,7 +15,7 @@
  *
  */
 
-package com.google.android.mms.util_alt;
+package com.google.android.mms.util;
 
 import android.content.Context;
 import android.drm.DrmManagerClient;

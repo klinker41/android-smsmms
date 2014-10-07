@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.util_alt;
+package com.google.android.mms.util;
 
 import com.klinker.android.logger.Log;
 

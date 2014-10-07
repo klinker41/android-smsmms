@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.util_alt;
+package com.google.android.mms.util;
 
-import com.google.android.mms.pdu_alt.GenericPdu;
+import com.google.android.mms.pdu.GenericPdu;
 
 public final class PduCacheEntry {
     private final GenericPdu mPdu;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.pdu_alt;
+package com.google.android.mms.pdu;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;

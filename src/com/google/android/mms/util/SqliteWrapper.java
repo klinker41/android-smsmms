@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.util_alt;
+package com.google.android.mms.util;
 
 import android.app.ActivityManager;
 import android.content.ContentResolver;

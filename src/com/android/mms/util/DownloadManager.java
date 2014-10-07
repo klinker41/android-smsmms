@@ -17,29 +17,22 @@
 
 package com.android.mms.util;
 
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.provider.Telephony;
 import com.klinker.android.logger.Log;
 import android.widget.Toast;
 
-import com.android.internal.telephony.TelephonyProperties;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.EncodedStringValue;
-import com.google.android.mms.pdu_alt.NotificationInd;
-import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu.EncodedStringValue;
+import com.google.android.mms.pdu.NotificationInd;
+import com.google.android.mms.pdu.PduPersister;
 import com.klinker.android.send_message.R;
-import com.klinker.android.send_message.Transaction;
 
 public class DownloadManager {
     private static final String TAG = "DownloadManager";
