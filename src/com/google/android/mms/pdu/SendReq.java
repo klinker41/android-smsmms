@@ -17,7 +17,7 @@
 
 package com.google.android.mms.pdu;
 
-import com.klinker.android.logger.Log;
+import android.util.Log;
 
 import com.google.android.mms.InvalidHeaderValueException;
 

@@ -19,8 +19,8 @@ package com.google.android.mms.pdu;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.util.Log;
 import android.text.TextUtils;
-import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -81,7 +81,6 @@ public class PduComposer {
      * Block size when read data from InputStream.
      */
     static private final int PDU_COMPOSER_BLOCK_SIZE = 1024;
-    private static final String TAG = "PduComposer";
 
     /**
      * The output message.
@@ -156,7 +155,8 @@ public class PduComposer {
         /* make the message */
         switch (type) {
             case PduHeaders.MESSAGE_TYPE_SEND_REQ:
-                if (makeSendReqPdu() != PDU_COMPOSE_SUCCESS) {
+            case PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF:
+                if (makeSendRetrievePdu(type) != PDU_COMPOSE_SUCCESS) {
                     return null;
                 }
                 break;
@@ -565,6 +565,7 @@ public class PduComposer {
             case PduHeaders.PRIORITY:
             case PduHeaders.DELIVERY_REPORT:
             case PduHeaders.READ_REPORT:
+            case PduHeaders.RETRIEVE_STATUS:
                 int octet = mPduHeader.getOctet(field);
                 if (0 == octet) {
                     return PDU_COMPOSE_FIELD_NOT_SET;
@@ -585,6 +586,7 @@ public class PduComposer {
                 break;
 
             case PduHeaders.SUBJECT:
+            case PduHeaders.RETRIEVE_TEXT:
                 EncodedStringValue enString =
                     mPduHeader.getEncodedStringValue(field);
                 if (null == enString) {
@@ -758,7 +760,7 @@ public class PduComposer {
     /**
      * Make Send.req.
      */
-    private int makeSendReqPdu() {
+    private int makeSendRetrievePdu(int type) {
         if (mMessage == null) {
             mMessage = new ByteArrayOutputStream();
             mPosition = 0;
@@ -766,7 +768,7 @@ public class PduComposer {
 
         // X-Mms-Message-Type
         appendOctet(PduHeaders.MESSAGE_TYPE);
-        appendOctet(PduHeaders.MESSAGE_TYPE_SEND_REQ);
+        appendOctet(type);
 
         // X-Mms-Transaction-ID
         appendOctet(PduHeaders.TRANSACTION_ID);
@@ -832,17 +834,24 @@ public class PduComposer {
         // X-Mms-Read-Report Optional
         appendHeader(PduHeaders.READ_REPORT);
 
+        if (type == PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF) {
+            // X-Mms-Retrieve-Status Optional
+            appendHeader(PduHeaders.RETRIEVE_STATUS);
+            // X-Mms-Retrieve-Text Optional
+            appendHeader(PduHeaders.RETRIEVE_TEXT);
+        }
+
         //    Content-Type
         appendOctet(PduHeaders.CONTENT_TYPE);
 
         //  Message body
-        return makeMessageBody();
+        return makeMessageBody(type);
     }
 
     /**
      * Make message body.
      */
-    private int makeMessageBody() {
+    private int makeMessageBody(int type) {
         // 1. add body informations
         mStack.newbuf();  // Switching buffer because we need to
 
@@ -859,7 +868,12 @@ public class PduComposer {
         appendShortInteger(contentTypeIdentifier.intValue());
 
         // content-type parameter: start
-        PduBody body = ((SendReq) mPdu).getBody();
+        PduBody body;
+        if (type == PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF) {
+            body = ((RetrieveConf) mPdu).getBody();
+        } else {
+            body = ((SendReq) mPdu).getBody();
+        }
         if (null == body || body.getPartsNum() == 0) {
             // empty message
             appendUintvarInteger(0);
@@ -887,7 +901,7 @@ public class PduComposer {
             appendTextString(part.getContentType());
         }
         catch (ArrayIndexOutOfBoundsException e){
-            Log.e(TAG, "exception thrown", e);
+            e.printStackTrace();
         }
 
         int ctLength = ctStart.getLength();

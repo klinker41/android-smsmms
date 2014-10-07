@@ -19,14 +19,17 @@ package com.google.android.mms.pdu;
 
 import com.google.android.mms.ContentType;
 import com.google.android.mms.InvalidHeaderValueException;
+import com.google.android.mms.pdu.EncodedStringValue;
 
-import com.klinker.android.logger.Log;
+import android.util.Log;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import android.content.res.Resources;
 
 public class PduParser {
     /**
@@ -1658,10 +1661,8 @@ public class PduParser {
                          * some carrier mmsc servers do not support content_disposition
                          * field correctly
                          */
-                        // TODO this should be dependant on the system but I don't know how to get that value
-//                        boolean contentDisposition = Resources.getSystem().getBoolean(com
-//                                .android.internal.R.bool.config_mms_content_disposition_support);
-                        boolean contentDisposition = false;
+                        boolean contentDisposition = Resources.getSystem().getBoolean(com
+                                .android.internal.R.bool.config_mms_content_disposition_support);
 
                         if (contentDisposition) {
                             int len = parseValueLength(pduDataStream);

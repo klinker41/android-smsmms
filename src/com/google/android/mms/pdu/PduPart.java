@@ -152,13 +152,9 @@ public class PduPart {
             return null;
          }
 
-         try {
-             byte[] byteArray = new byte[mPartData.length];
-             System.arraycopy(mPartData, 0, byteArray, 0, mPartData.length);
-             return byteArray;
-         } catch (Exception e) {
-             return null;
-         }
+         byte[] byteArray = new byte[mPartData.length];
+         System.arraycopy(mPartData, 0, byteArray, 0, mPartData.length);
+         return byteArray;
      }
 
      /**

@@ -17,7 +17,7 @@
 
 package com.google.android.mms.pdu;
 
-import com.klinker.android.logger.Log;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -173,7 +173,7 @@ public class EncodedStringValue implements Cloneable {
                 newTextString.write(mData);
                 newTextString.write(textString);
             } catch (IOException e) {
-                Log.e(TAG, "exception thrown", e);
+                e.printStackTrace();
                 throw new NullPointerException(
                         "appendTextString: failed when write a new Text-string");
             }
@@ -197,7 +197,7 @@ public class EncodedStringValue implements Cloneable {
             return new EncodedStringValue(mCharacterSet, dstBytes);
         } catch (Exception e) {
             Log.e(TAG, "failed to clone an EncodedStringValue: " + this);
-            Log.e(TAG, "exception thrown", e);
+            e.printStackTrace();
             throw new CloneNotSupportedException(e.getMessage());
         }
     }
