@@ -1661,8 +1661,7 @@ public class PduParser {
                          * some carrier mmsc servers do not support content_disposition
                          * field correctly
                          */
-                        boolean contentDisposition = Resources.getSystem().getBoolean(com
-                                .android.internal.R.bool.config_mms_content_disposition_support);
+                        boolean contentDisposition = true;
 
                         if (contentDisposition) {
                             int len = parseValueLength(pduDataStream);

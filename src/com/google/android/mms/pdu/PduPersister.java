@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import com.google.android.mms.pdu.EncodedStringValue;
+import com.klinker.android.send_message.Utils;
 
 /**
  * This class is the high-level manager of PDU storage.
@@ -1076,7 +1077,7 @@ public class PduPersister {
             }
         }
         if (!recipients.isEmpty()) {
-            long threadId = Threads.getOrCreateThreadId(mContext, recipients);
+            long threadId = Utils.getOrCreateThreadId(mContext, recipients);
             values.put(Mms.THREAD_ID, threadId);
         }
 
@@ -1367,7 +1368,7 @@ public class PduPersister {
             if (createThreadId && !recipients.isEmpty()) {
                 // Given all the recipients associated with this message, find (or create) the
                 // correct thread.
-                threadId = Threads.getOrCreateThreadId(mContext, recipients);
+                threadId = Utils.getOrCreateThreadId(mContext, recipients);
             }
             values.put(Mms.THREAD_ID, threadId);
         }
@@ -1411,7 +1412,7 @@ public class PduPersister {
         values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
 
         // Update subscription for MMS message
-        values.put(Mms.SUB_ID, subscription);
+        values.put("pending_sub_id", subscription);
 
         Uri res = null;
         if (existingUri) {
