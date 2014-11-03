@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.pdu;
+package com.google.android.mms.pdu_alt;
 
 import com.google.android.mms.InvalidHeaderValueException;
 

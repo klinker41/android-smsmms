@@ -17,7 +17,7 @@
 
 package com.google.android.mms.util;
 
-import com.google.android.mms.pdu.GenericPdu;
+import com.google.android.mms.pdu_alt.GenericPdu;
 
 public final class PduCacheEntry {
     private final GenericPdu mPdu;
