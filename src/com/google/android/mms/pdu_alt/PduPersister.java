@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.pdu;
+package com.google.android.mms.pdu_alt;
 
 import com.google.android.mms.ContentType;
 import com.google.android.mms.InvalidHeaderValueException;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.util.DownloadDrmHelper;
-import com.google.android.mms.util.DrmConvertSession;
-import com.google.android.mms.util.PduCache;
-import com.google.android.mms.util.PduCacheEntry;
-import com.google.android.mms.util.SqliteWrapper;
+import com.google.android.mms.util_alt.DownloadDrmHelper;
+import com.google.android.mms.util_alt.DrmConvertSession;
+import com.google.android.mms.util_alt.PduCache;
+import com.google.android.mms.util_alt.PduCacheEntry;
+import com.google.android.mms.util_alt.SqliteWrapper;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -39,14 +39,13 @@ import android.provider.MediaStore;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
-import android.provider.Telephony.Threads;
 import android.provider.Telephony.Mms.Addr;
 import android.provider.Telephony.Mms.Part;
 import android.provider.Telephony.MmsSms.PendingMessages;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -62,7 +61,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import com.google.android.mms.pdu.EncodedStringValue;
 import com.klinker.android.send_message.Utils;
 
 /**
@@ -528,7 +526,7 @@ public class PduPersister {
         GenericPdu pdu = null;
         PduCacheEntry cacheEntry = null;
         int msgBox = 0;
-        long threadId = -1;
+        long threadId = DUMMY_THREAD_ID;
         try {
             synchronized(PDU_CACHE_INSTANCE) {
                 if (PDU_CACHE_INSTANCE.isUpdating(uri)) {
@@ -1364,7 +1362,7 @@ public class PduPersister {
                     loadRecipients(PduHeaders.TO, recipients, addressMap, false);
                     break;
             }
-            long threadId = 0;
+            long threadId = DUMMY_THREAD_ID;
             if (createThreadId && !recipients.isEmpty()) {
                 // Given all the recipients associated with this message, find (or create) the
                 // correct thread.
@@ -1409,10 +1407,10 @@ public class PduPersister {
         }
         // Record whether this mms message is a simple plain text or not. This is a hint for the
         // UI.
-        values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
+        //values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
 
         // Update subscription for MMS message
-        values.put("pending_sub_id", subscription);
+        //values.put("pending_sub_id", subscription);
 
         Uri res = null;
         if (existingUri) {

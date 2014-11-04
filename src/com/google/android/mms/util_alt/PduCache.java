@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.util;
+package com.google.android.mms.util_alt;
 
 import android.content.ContentUris;
 import android.content.UriMatcher;
 import android.net.Uri;
 import android.provider.Telephony.Mms;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.util.HashMap;
 import java.util.HashSet;

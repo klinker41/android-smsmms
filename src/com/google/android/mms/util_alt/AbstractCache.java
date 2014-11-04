@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.util;
+package com.google.android.mms.util_alt;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.util.HashMap;
 

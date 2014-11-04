@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.pdu;
+package com.google.android.mms.pdu_alt;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

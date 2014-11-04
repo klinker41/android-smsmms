@@ -29,7 +29,7 @@ import android.text.TextUtils;
 import android.widget.Toast;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;
-import com.google.android.mms.pdu.*;
+import com.google.android.mms.pdu_alt.*;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.R;
 import com.klinker.android.send_message.Utils;

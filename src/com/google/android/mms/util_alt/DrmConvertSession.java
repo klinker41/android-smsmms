@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-package com.google.android.mms.util;
+package com.google.android.mms.util_alt;
 
 import android.content.Context;
 import android.drm.DrmConvertedStatus;
 import android.drm.DrmManagerClient;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import android.provider.Downloads;
 
 import java.io.FileNotFoundException;

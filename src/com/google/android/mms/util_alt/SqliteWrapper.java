@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.util;
+package com.google.android.mms.util_alt;
 
 import android.app.ActivityManager;
 import android.content.ContentResolver;
@@ -24,7 +24,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 import android.widget.Toast;
 
 public final class SqliteWrapper {
