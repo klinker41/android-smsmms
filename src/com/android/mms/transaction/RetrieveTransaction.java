@@ -31,13 +31,13 @@ import com.klinker.android.logger.Log;
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.AcknowledgeInd;
-import com.google.android.mms.pdu_alt.EncodedStringValue;
-import com.google.android.mms.pdu_alt.PduComposer;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduParser;
-import com.google.android.mms.pdu_alt.PduPersister;
-import com.google.android.mms.pdu_alt.RetrieveConf;
+import com.google.android.mms.pdu.AcknowledgeInd;
+import com.google.android.mms.pdu.EncodedStringValue;
+import com.google.android.mms.pdu.PduComposer;
+import com.google.android.mms.pdu.PduHeaders;
+import com.google.android.mms.pdu.PduParser;
+import com.google.android.mms.pdu.PduPersister;
+import com.google.android.mms.pdu.RetrieveConf;
 import com.klinker.android.send_message.Utils;
 
 /**

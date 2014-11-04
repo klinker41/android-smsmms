@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.pdu_alt;
+package com.google.android.mms.pdu;
 
 import com.google.android.mms.ContentType;
 import com.google.android.mms.InvalidHeaderValueException;
+import com.google.android.mms.pdu.EncodedStringValue;
 
 import android.util.Log;
 
@@ -27,6 +28,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import android.content.res.Resources;
 
 public class PduParser {
     /**

@@ -3,8 +3,8 @@ package com.google.android.mms.smil;
 import com.klinker.android.logger.Log;
 import com.android.mms.dom.smil.SmilDocumentImpl;
 import com.google.android.mms.ContentType;
-import com.google.android.mms.pdu_alt.PduBody;
-import com.google.android.mms.pdu_alt.PduPart;
+import com.google.android.mms.pdu.PduBody;
+import com.google.android.mms.pdu.PduPart;
 import org.w3c.dom.smil.*;
 
 

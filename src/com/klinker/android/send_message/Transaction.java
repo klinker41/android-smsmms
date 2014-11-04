@@ -41,7 +41,7 @@ import com.android.mms.transaction.ProgressCallbackEntity;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;
 import com.google.android.mms.*;
-import com.google.android.mms.pdu_alt.*;
+import com.google.android.mms.pdu.*;
 import com.google.android.mms.smil.SmilHelper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

@@ -23,10 +23,10 @@ import android.content.Context;
 import android.net.Uri;
 import com.klinker.android.logger.Log;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.EncodedStringValue;
-import com.google.android.mms.pdu_alt.PduComposer;
-import com.google.android.mms.pdu_alt.PduPersister;
-import com.google.android.mms.pdu_alt.ReadRecInd;
+import com.google.android.mms.pdu.EncodedStringValue;
+import com.google.android.mms.pdu.PduComposer;
+import com.google.android.mms.pdu.PduPersister;
+import com.google.android.mms.pdu.ReadRecInd;
 import com.klinker.android.send_message.Utils;
 
 /**

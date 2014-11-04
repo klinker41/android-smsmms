@@ -20,10 +20,10 @@ package com.android.mms.transaction;
 import static com.android.mms.transaction.TransactionState.FAILED;
 import static com.android.mms.transaction.TransactionState.INITIALIZED;
 import static com.android.mms.transaction.TransactionState.SUCCESS;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF;
-import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_DEFERRED;
-import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_RETRIEVED;
-import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_UNRECOGNIZED;
+import static com.google.android.mms.pdu.PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF;
+import static com.google.android.mms.pdu.PduHeaders.STATUS_DEFERRED;
+import static com.google.android.mms.pdu.PduHeaders.STATUS_RETRIEVED;
+import static com.google.android.mms.pdu.PduHeaders.STATUS_UNRECOGNIZED;
 
 import java.io.IOException;
 
@@ -40,13 +40,13 @@ import com.klinker.android.logger.Log;
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
-import com.google.android.mms.pdu_alt.GenericPdu;
-import com.google.android.mms.pdu_alt.NotificationInd;
-import com.google.android.mms.pdu_alt.NotifyRespInd;
-import com.google.android.mms.pdu_alt.PduComposer;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduParser;
-import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu.GenericPdu;
+import com.google.android.mms.pdu.NotificationInd;
+import com.google.android.mms.pdu.NotifyRespInd;
+import com.google.android.mms.pdu.PduComposer;
+import com.google.android.mms.pdu.PduHeaders;
+import com.google.android.mms.pdu.PduParser;
+import com.google.android.mms.pdu.PduPersister;
 
 /**
  * The NotificationTransaction is responsible for handling multimedia

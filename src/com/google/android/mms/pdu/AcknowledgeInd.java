@@ -15,32 +15,29 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.pdu_alt;
+package com.google.android.mms.pdu;
 
 import com.google.android.mms.InvalidHeaderValueException;
 
 /**
- * M-NofifyResp.ind PDU.
+ * M-Acknowledge.ind PDU.
  */
-public class NotifyRespInd extends GenericPdu {
+public class AcknowledgeInd extends GenericPdu {
     /**
-     * Constructor, used when composing a M-NotifyResp.ind pdu.
+     * Constructor, used when composing a M-Acknowledge.ind pdu.
      *
-     * @param mmsVersion current version of mms
+     * @param mmsVersion current viersion of mms
      * @param transactionId the transaction-id value
-     * @param status the status value
      * @throws InvalidHeaderValueException if parameters are invalid.
      *         NullPointerException if transactionId is null.
-     *         RuntimeException if an undeclared error occurs.
      */
-    public NotifyRespInd(int mmsVersion,
-                         byte[] transactionId,
-                         int status) throws InvalidHeaderValueException {
+    public AcknowledgeInd(int mmsVersion, byte[] transactionId)
+            throws InvalidHeaderValueException {
         super();
-        setMessageType(PduHeaders.MESSAGE_TYPE_NOTIFYRESP_IND);
+
+        setMessageType(PduHeaders.MESSAGE_TYPE_ACKNOWLEDGE_IND);
         setMmsVersion(mmsVersion);
         setTransactionId(transactionId);
-        setStatus(status);
     }
 
     /**
@@ -48,7 +45,7 @@ public class NotifyRespInd extends GenericPdu {
      *
      * @param headers Headers for this PDU.
      */
-    NotifyRespInd(PduHeaders headers) {
+    AcknowledgeInd(PduHeaders headers) {
         super(headers);
     }
 
@@ -66,30 +63,9 @@ public class NotifyRespInd extends GenericPdu {
      *
      * @param value the value
      * @throws InvalidHeaderValueException if the value is invalid.
-     *         RuntimeException if an undeclared error occurs.
      */
     public void setReportAllowed(int value) throws InvalidHeaderValueException {
         mPduHeaders.setOctet(value, PduHeaders.REPORT_ALLOWED);
-    }
-
-    /**
-     * Set X-Mms-Status field value.
-     *
-     * @param value the value
-     * @throws InvalidHeaderValueException if the value is invalid.
-     *         RuntimeException if an undeclared error occurs.
-     */
-    public void setStatus(int value) throws InvalidHeaderValueException {
-        mPduHeaders.setOctet(value, PduHeaders.STATUS);
-    }
-
-    /**
-     * GetX-Mms-Status field value.
-     *
-     * @return the X-Mms-Status value
-     */
-    public int getStatus() {
-        return mPduHeaders.getOctet(PduHeaders.STATUS);
     }
 
     /**
@@ -106,9 +82,8 @@ public class NotifyRespInd extends GenericPdu {
      *
      * @param value the value
      * @throws NullPointerException if the value is null.
-     *         RuntimeException if an undeclared error occurs.
      */
     public void setTransactionId(byte[] value) {
-            mPduHeaders.setTextString(value, PduHeaders.TRANSACTION_ID);
+        mPduHeaders.setTextString(value, PduHeaders.TRANSACTION_ID);
     }
 }

@@ -33,8 +33,8 @@ import android.os.Looper;
 import android.provider.Telephony;
 import com.klinker.android.logger.Log;
 import com.android.mms.util.DownloadManager;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu.PduHeaders;
+import com.google.android.mms.pdu.PduPersister;
 import com.klinker.android.send_message.R;
 
 public class RetryScheduler implements Observer {

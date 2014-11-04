@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package com.google.android.mms.pdu_alt;
+package com.google.android.mms.pdu;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.util.Log;
 import android.text.TextUtils;
 
 import java.io.ByteArrayOutputStream;

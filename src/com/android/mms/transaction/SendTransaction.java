@@ -29,13 +29,13 @@ import android.text.TextUtils;
 import com.klinker.android.logger.Log;
 import com.android.mms.util.RateController;
 import com.android.mms.util.SendingProgressTokenManager;
-import com.google.android.mms.pdu_alt.EncodedStringValue;
-import com.google.android.mms.pdu_alt.PduComposer;
-import com.google.android.mms.pdu_alt.PduHeaders;
-import com.google.android.mms.pdu_alt.PduParser;
-import com.google.android.mms.pdu_alt.PduPersister;
-import com.google.android.mms.pdu_alt.SendConf;
-import com.google.android.mms.pdu_alt.SendReq;
+import com.google.android.mms.pdu.EncodedStringValue;
+import com.google.android.mms.pdu.PduComposer;
+import com.google.android.mms.pdu.PduHeaders;
+import com.google.android.mms.pdu.PduParser;
+import com.google.android.mms.pdu.PduPersister;
+import com.google.android.mms.pdu.SendConf;
+import com.google.android.mms.pdu.SendReq;
 import com.klinker.android.send_message.Utils;
 
 /**
