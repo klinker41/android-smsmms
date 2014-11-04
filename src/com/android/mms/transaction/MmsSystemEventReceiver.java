@@ -78,10 +78,24 @@ public class MmsSystemEventReceiver extends BroadcastReceiver {
                     Log.v(TAG, "mobile data turned off, bailing");
                 return;
             }
+            boolean available = false;
+            boolean isConnected = false;
+
+
             NetworkInfo mmsNetworkInfo = mConnMgr
                     .getNetworkInfo(ConnectivityManager.TYPE_MOBILE_MMS);
-            boolean available = mmsNetworkInfo.isAvailable();
-            boolean isConnected = mmsNetworkInfo.isConnected();
+            if (mmsNetworkInfo != null) {
+                available = mmsNetworkInfo.isAvailable();
+                isConnected = mmsNetworkInfo.isConnected();
+            } else {
+                mmsNetworkInfo = mConnMgr
+                        .getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+
+                if (mmsNetworkInfo != null) {
+                    available = mmsNetworkInfo.isAvailable();
+                    isConnected = mmsNetworkInfo.isConnected();
+                }
+            }
 
                 Log.v(TAG, "TYPE_MOBILE_MMS available = " + available +
                            ", isConnected = " + isConnected);
