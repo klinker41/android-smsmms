@@ -173,6 +173,7 @@ public class EncodedStringValue implements Cloneable {
                 newTextString.write(mData);
                 newTextString.write(textString);
             } catch (IOException e) {
+                Log.e(TAG, "logging error", e);
                 e.printStackTrace();
                 throw new NullPointerException(
                         "appendTextString: failed when write a new Text-string");
@@ -196,7 +197,7 @@ public class EncodedStringValue implements Cloneable {
         try {
             return new EncodedStringValue(mCharacterSet, dstBytes);
         } catch (Exception e) {
-            Log.e(TAG, "failed to clone an EncodedStringValue: " + this);
+            Log.e(TAG, "logging error", e);
             e.printStackTrace();
             throw new CloneNotSupportedException(e.getMessage());
         }
