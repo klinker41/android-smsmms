@@ -240,7 +240,7 @@ public abstract class MmsRequest {
                 // library yet. We have to rely on this API to get things work. Once
                 // a multinet aware HTTP lib is ready, we should switch to that and
                 // remove all the unnecessary code.
-                Method m = connMgr.getClass().getDeclaredMethod("requestRoutetoHostAddress", int.class, InetAddress.class);
+                Method m = connMgr.getClass().getDeclaredMethod("requestRouteToHostAddress", int.class, InetAddress.class);
                 m.setAccessible(true);
                 if (!(Boolean) m.invoke(connMgr,
                         ConnectivityManager.TYPE_MOBILE_MMS, address)) {
@@ -325,7 +325,7 @@ public abstract class MmsRequest {
 
         try {
             // This function is available in the SDK down to 14, it is just hidden, so use reflection to grab it
-            Method linkPropMethod = connMgr.getClass().getMethod("getLinkProperties", int.class);
+            Method linkPropMethod = connMgr.getClass().getMethod("getLinkProperties", Network.class);
             linkPropMethod.setAccessible(true);
             final LinkProperties linkProperties = (LinkProperties) linkPropMethod.invoke(connMgr, network);
             if (linkProperties != null) {

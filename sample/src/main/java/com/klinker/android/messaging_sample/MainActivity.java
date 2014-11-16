@@ -19,7 +19,6 @@ package com.klinker.android.messaging_sample;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.v7.widget.LinearLayoutManager;
@@ -43,6 +42,7 @@ public class MainActivity extends Activity {
     private Settings settings;
 
     private Button setDefaultAppButton;
+    private Button selectApns;
     private EditText fromField;
     private EditText toField;
     private EditText messageField;
@@ -67,17 +67,22 @@ public class MainActivity extends Activity {
         settings = Settings.get(this);
 
         if (TextUtils.isEmpty(settings.getMmsc())) {
-            ApnUtils.initDefaultApns(this, new ApnUtils.OnApnFinishedListener() {
-                @Override
-                public void onFinished() {
-                    settings = Settings.get(MainActivity.this, true);
-                }
-            });
+            initApns();
         }
+    }
+
+    private void initApns() {
+        ApnUtils.initDefaultApns(this, new ApnUtils.OnApnFinishedListener() {
+            @Override
+            public void onFinished() {
+                settings = Settings.get(MainActivity.this, true);
+            }
+        });
     }
 
     private void initViews() {
         setDefaultAppButton = (Button) findViewById(R.id.set_as_default);
+        selectApns = (Button) findViewById(R.id.apns);
         fromField = (EditText) findViewById(R.id.from);
         toField = (EditText) findViewById(R.id.to);
         messageField = (EditText) findViewById(R.id.message);
@@ -97,6 +102,13 @@ public class MainActivity extends Activity {
                 }
             });
         }
+
+        selectApns.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                initApns();
+            }
+        });
 
         fromField.setText(Utils.getMyPhoneNumber(this));
         toField.setText(Utils.getMyPhoneNumber(this));
@@ -152,21 +164,26 @@ public class MainActivity extends Activity {
     }
 
     public void sendMessage() {
-        com.klinker.android.send_message.Settings sendSettings = new com.klinker.android.send_message.Settings();
-        sendSettings.setMmsc(settings.getMmsc());
-        sendSettings.setProxy(settings.getMmsProxy());
-        sendSettings.setPort(settings.getMmsPort());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                com.klinker.android.send_message.Settings sendSettings = new com.klinker.android.send_message.Settings();
+                sendSettings.setMmsc(settings.getMmsc());
+                sendSettings.setProxy(settings.getMmsProxy());
+                sendSettings.setPort(settings.getMmsPort());
 
-        Transaction transaction = new Transaction(this, sendSettings);
+                Transaction transaction = new Transaction(MainActivity.this, sendSettings);
 
-        Message message = new Message(messageField.getText().toString(), toField.getText().toString());
-        message.setType(Message.TYPE_SMSMMS);
+                Message message = new Message(messageField.getText().toString(), toField.getText().toString());
+                message.setType(Message.TYPE_SMSMMS);
 
-        if (imageToSend.isEnabled()) {
-            message.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.android));
-        }
+                if (imageToSend.isEnabled()) {
+                    message.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.android));
+                }
 
-        transaction.sendNewMessage(message, Transaction.NO_THREAD_ID);
+                transaction.sendNewMessage(message, Transaction.NO_THREAD_ID);
+            }
+        }).start();
     }
 
 }

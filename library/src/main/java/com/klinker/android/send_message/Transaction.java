@@ -364,7 +364,7 @@ public class Transaction {
             return;
         }
 
-        if (/*Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT*/true) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             try {
                 MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
                 sender.sendMessage(info.token);
@@ -412,7 +412,7 @@ public class Transaction {
             }
         } else {
             Log.v(TAG, "using lollipop method for sending sms");
-            SendRequest request = new SendRequest(info.location, null, null, null, null, null);
+            SendRequest request = new SendRequest(info.location, null, null, null, null, null, info.bytes);
             MmsNetworkManager manager = new MmsNetworkManager(context);
             request.execute(context, manager);
         }

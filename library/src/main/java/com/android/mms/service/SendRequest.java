@@ -65,10 +65,10 @@ public class SendRequest extends MmsRequest {
 
     public SendRequest(Uri contentUri, Uri messageUri,
             String locationUrl, PendingIntent sentIntent, String creator,
-            Bundle configOverrides) {
+            Bundle configOverrides, byte[] pduData) {
         super(null, messageUri, creator, configOverrides);
         mPduUri = contentUri;
-        mPduData = null;
+        mPduData = pduData;
         mLocationUrl = locationUrl;
         mSentIntent = sentIntent;
     }
