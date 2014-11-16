@@ -25,6 +25,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.telephony.PhoneNumberUtils;
@@ -32,6 +33,8 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import com.android.mms.service.MmsNetworkManager;
+import com.android.mms.service.SendRequest;
 import com.klinker.android.logger.Log;
 import android.widget.Toast;
 import com.android.mms.dom.smil.parser.SmilXmlSerializer;
@@ -361,50 +364,56 @@ public class Transaction {
             return;
         }
 
-        try {
-            MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
-            sender.sendMessage(info.token);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
+            try {
+                MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
+                sender.sendMessage(info.token);
 
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(ProgressCallbackEntity.PROGRESS_STATUS_ACTION);
-            BroadcastReceiver receiver = new BroadcastReceiver() {
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(ProgressCallbackEntity.PROGRESS_STATUS_ACTION);
+                BroadcastReceiver receiver = new BroadcastReceiver() {
 
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    int progress = intent.getIntExtra("progress", -3);
-                    Log.v("sending_mms_library", "progress: " + progress);
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        int progress = intent.getIntExtra("progress", -3);
+                        Log.v("sending_mms_library", "progress: " + progress);
 
-                    // send progress broadcast to update ui if desired...
-                    Intent progressIntent = new Intent(MMS_PROGRESS);
-                    progressIntent.putExtra("progress", progress);
-                    context.sendBroadcast(progressIntent);
+                        // send progress broadcast to update ui if desired...
+                        Intent progressIntent = new Intent(MMS_PROGRESS);
+                        progressIntent.putExtra("progress", progress);
+                        context.sendBroadcast(progressIntent);
 
-                    if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
-                        context.sendBroadcast(new Intent(REFRESH));
+                        if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
+                            context.sendBroadcast(new Intent(REFRESH));
 
-                        try {
-                            context.unregisterReceiver(this);
-                        } catch (Exception e) {
-                            // TODO fix me
-                            // receiver is not registered force close error... hmm.
+                            try {
+                                context.unregisterReceiver(this);
+                            } catch (Exception e) {
+                                // TODO fix me
+                                // receiver is not registered force close error... hmm.
+                            }
+                        } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
+                            // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
+                            Log.v("sending_mms_library", "sending aborted for some reason...");
                         }
-                    } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
-                        // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
-                        Log.v("sending_mms_library", "sending aborted for some reason...");
                     }
+
+                };
+
+                context.registerReceiver(receiver, filter);
+            } catch (Throwable e) {
+                Log.e(TAG, "exception thrown", e);
+                // insert the pdu into the database and return the bytes to send
+                if (settings.getWifiMmsFix()) {
+                    sendMMS(info.bytes);
+                } else {
+                    sendMMSWiFi(info.bytes);
                 }
-
-            };
-
-            context.registerReceiver(receiver, filter);
-        } catch (Throwable e) {
-            Log.e(TAG, "exception thrown", e);
-            // insert the pdu into the database and return the bytes to send
-            if (settings.getWifiMmsFix()) {
-                sendMMS(info.bytes);
-            } else {
-                sendMMSWiFi(info.bytes);
             }
+        } else {
+            SendRequest request = new SendRequest(info.location, null, null, null, null, null);
+            MmsNetworkManager manager = new MmsNetworkManager(context);
+            request.execute(context, manager);
         }
     }
 
