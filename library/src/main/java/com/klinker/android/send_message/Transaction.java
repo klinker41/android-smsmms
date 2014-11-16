@@ -364,7 +364,7 @@ public class Transaction {
             return;
         }
 
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
+        if (/*Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT*/true) {
             try {
                 MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
                 sender.sendMessage(info.token);

@@ -25,6 +25,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.*;
+import android.provider.Telephony;
 import android.text.TextUtils;
 import android.widget.Toast;
 import com.android.mms.util.DownloadManager;
@@ -151,6 +152,11 @@ public class TransactionService extends Service implements Observer {
     @Override
     public void onCreate() {
             Log.v(TAG, "Creating TransactionService");
+
+        if (!Utils.isDefaultSmsApp(this)) {
+            Log.v(TAG, "not default sms app, so quit transaction service");
+            return;
+        }
 
         // Start up the thread running the service.  Note that we create a
         // separate thread because the service normally runs in the process's
