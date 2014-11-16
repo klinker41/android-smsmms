@@ -43,7 +43,7 @@ import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.IOException;
 import java.util.Arrays;

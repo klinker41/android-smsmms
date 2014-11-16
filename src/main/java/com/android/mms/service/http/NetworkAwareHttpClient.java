@@ -52,7 +52,7 @@ import android.net.SSLCertificateSocketFactory;
 import android.net.SSLSessionCache;
 import android.os.Looper;
 import android.util.Base64;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -350,14 +350,14 @@ public final class NetworkAwareHttpClient implements HttpClient {
          * Returns true if logging is turned on for this configuration.
          */
         private boolean isLoggable() {
-            return Log.isLoggable(tag, level);
+            return true;
         }
 
         /**
          * Prints a message using this configuration.
          */
         private void println(String message) {
-            Log.println(level, tag, message);
+            Log.v(tag, message);
         }
     }
 
@@ -373,10 +373,6 @@ public final class NetworkAwareHttpClient implements HttpClient {
     public void enableCurlLogging(String name, int level) {
         if (name == null) {
             throw new NullPointerException("name");
-        }
-        if (level < Log.VERBOSE || level > Log.ASSERT) {
-            throw new IllegalArgumentException("Level is out of range ["
-                + Log.VERBOSE + ".." + Log.ASSERT + "]");
         }
 
         curlConfiguration = new LoggingConfiguration(name, level);

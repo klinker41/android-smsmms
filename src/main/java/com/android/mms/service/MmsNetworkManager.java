@@ -26,7 +26,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.os.SystemClock;
 import android.provider.Settings;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

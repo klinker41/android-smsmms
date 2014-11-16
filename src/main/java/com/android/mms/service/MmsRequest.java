@@ -32,7 +32,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.lang.reflect.Method;
 import java.net.Inet4Address;
@@ -322,22 +322,26 @@ public abstract class MmsRequest {
         if (network == null) {
             return result;
         }
-        final LinkProperties linkProperties = connMgr.getLinkProperties(network);
-        if (linkProperties != null) {
-            try {
-                Method method = linkProperties.getClass().getMethod("getAddresses");
-                method.setAccessible(true);
-                List<InetAddress> addresses = (List<InetAddress>) method.invoke(linkProperties);
-                for (InetAddress addr : addresses) {
-                    if (addr instanceof Inet4Address) {
-                        result |= ADDRESS_TYPE_IPV4;
-                    } else if (addr instanceof Inet6Address) {
-                        result |= ADDRESS_TYPE_IPV6;
+
+        try {
+            // This function is available in the SDK down to 14, it is just hidden, so use reflection to grab it
+            Method linkPropMethod = connMgr.getClass().getMethod("getLinkProperties", int.class);
+            linkPropMethod.setAccessible(true);
+            final LinkProperties linkProperties = (LinkProperties) linkPropMethod.invoke(connMgr, network);
+            if (linkProperties != null) {
+                    Method method = linkProperties.getClass().getMethod("getAddresses");
+                    method.setAccessible(true);
+                    List<InetAddress> addresses = (List<InetAddress>) method.invoke(linkProperties);
+                    for (InetAddress addr : addresses) {
+                        if (addr instanceof Inet4Address) {
+                            result |= ADDRESS_TYPE_IPV4;
+                        } else if (addr instanceof Inet6Address) {
+                            result |= ADDRESS_TYPE_IPV6;
+                        }
                     }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "error finding addresses", e);
             }
+        } catch (Exception e) {
+            Log.e(TAG, "error finding addresses", e);
         }
         return result;
     }

@@ -37,7 +37,7 @@ import org.apache.http.params.HttpProtocolParams;
 import android.content.Context;
 import android.net.http.AndroidHttpClient;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -88,17 +88,13 @@ public class HttpUtils {
             boolean isProxySet, String proxyHost, int proxyPort, NameResolver resolver,
             boolean useIpv6, MmsConfig.Overridden mmsConfig) throws MmsHttpException {
         final String methodString = getMethodString(method);
-        if (Log.isLoggable(TAG, Log.VERBOSE)) {
-            Log.v(TAG, "HttpUtils: request param list\n"
-                    + "url=" + url + "\n"
-                    + "method=" + methodString + "\n"
-                    + "isProxySet=" + isProxySet + "\n"
-                    + "proxyHost=" + proxyHost + "\n"
-                    + "proxyPort=" + proxyPort + "\n"
-                    + "size=" + (pdu != null ? pdu.length : 0));
-        } else {
-            Log.d(TAG, "HttpUtils: " + methodString + " " + url);
-        }
+        Log.v(TAG, "HttpUtils: request param list\n"
+                + "url=" + url + "\n"
+                + "method=" + methodString + "\n"
+                + "isProxySet=" + isProxySet + "\n"
+                + "proxyHost=" + proxyHost + "\n"
+                + "proxyPort=" + proxyPort + "\n"
+                + "size=" + (pdu != null ? pdu.length : 0));
 
         NetworkAwareHttpClient client = null;
         try {
@@ -137,9 +133,7 @@ public class HttpUtils {
             String xWapProfileTagName = mmsConfig.getUaProfTagName();
             String xWapProfileUrl = mmsConfig.getUaProfUrl();
             if (xWapProfileUrl != null) {
-                if (Log.isLoggable(TAG, Log.VERBOSE)) {
-                    Log.v(TAG, "HttpUtils: xWapProfUrl=" + xWapProfileUrl);
-                }
+                Log.v(TAG, "HttpUtils: xWapProfUrl=" + xWapProfileUrl);
                 req.addHeader(xWapProfileTagName, xWapProfileUrl);
             }
 

@@ -27,7 +27,7 @@ import android.net.NetworkUtils;
 import android.net.Uri;
 import android.provider.Telephony;
 import android.text.TextUtils;
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -65,9 +65,7 @@ public class ApnSettings {
      */
     public static ApnSettings load(Context context, String apnName)
             throws ApnException {
-        if (Log.isLoggable(TAG, Log.VERBOSE)) {
-            Log.v(TAG, "ApnSettings: apnName " + apnName);
-        }
+        Log.v(TAG, "ApnSettings: apnName " + apnName);
         // TODO: CURRENT semantics is currently broken in telephony. Revive this when it is fixed.
         //String selection = Telephony.Carriers.CURRENT + " IS NOT NULL";
         String selection = null;

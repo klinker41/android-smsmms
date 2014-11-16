@@ -29,7 +29,7 @@ import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 import java.io.IOException;
 import java.net.ConnectException;
