@@ -136,7 +136,6 @@ public class DownloadRequest extends MmsRequest {
             if (!TextUtils.isEmpty(mCreator)) {
                 values.put(Telephony.Mms.CREATOR, mCreator);
             }
-            //values.put(Telephony.Mms.SUB_ID, mSubId);
             if (SqliteWrapper.update(
                     context,
                     context.getContentResolver(),

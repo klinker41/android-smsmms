@@ -131,7 +131,6 @@ public class SendRequest extends MmsRequest {
                 if (!TextUtils.isEmpty(mCreator)) {
                     values.put(Telephony.Mms.CREATOR, mCreator);
                 }
-                //values.put(Telephony.Mms.SUB_ID, mSubId);
                 if (SqliteWrapper.update(context, context.getContentResolver(), mMessageUri, values,
                         null/*where*/, null/*selectionArg*/) != 1) {
                     Log.e(TAG, "SendRequest.storeInOutbox: failed to update message");
@@ -143,7 +142,6 @@ public class SendRequest extends MmsRequest {
                 // Reset the timestamp
                 values.put(Telephony.Mms.DATE, System.currentTimeMillis() / 1000L);
                 values.put(Telephony.Mms.MESSAGE_BOX, Telephony.Mms.MESSAGE_BOX_OUTBOX);
-                //values.put(Telephony.Mms.SUB_ID, mSubId);
                 if (SqliteWrapper.update(context, context.getContentResolver(), mMessageUri, values,
                         null/*where*/, null/*selectionArg*/) != 1) {
                     Log.e(TAG, "SendRequest.storeInOutbox: failed to update message");

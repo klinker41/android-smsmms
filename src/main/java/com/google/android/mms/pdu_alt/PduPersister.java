@@ -1410,7 +1410,6 @@ public class PduPersister {
         //values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
 
         // Update subscription for MMS message
-        //values.put("pending_sub_id", subscription);
 
         Uri res = null;
         if (existingUri) {

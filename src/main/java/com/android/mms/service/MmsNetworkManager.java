@@ -33,6 +33,9 @@ import java.net.UnknownHostException;
 
 /**
  * Manages the MMS network connectivity
+ *
+ * TODO this is the class that does not support backporting to api 14, everything else is good
+ * would need to backport connectivitymanager and network at the very least for this to work
  */
 public class MmsNetworkManager implements NameResolver {
     private static final String TAG = "MmsNetworkManager";

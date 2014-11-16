@@ -167,12 +167,10 @@ public class HttpUtils {
             final HttpEntity entity = response.getEntity();
             Log.d(TAG, "HttpUtils: status=" + status + " size="
                     + (entity != null ? entity.getContentLength() : -1));
-            if (Log.isLoggable(TAG, Log.VERBOSE)) {
-                for (Header header : req.getAllHeaders()) {
-                    if (header != null) {
-                        Log.v(TAG, "HttpUtils: header "
-                                + header.getName() + "=" + header.getValue());
-                    }
+            for (Header header : req.getAllHeaders()) {
+                if (header != null) {
+                    Log.v(TAG, "HttpUtils: header "
+                            + header.getName() + "=" + header.getValue());
                 }
             }
             byte[] body = null;
@@ -307,10 +305,8 @@ public class HttpUtils {
         // set the socket timeout
         int soTimeout = mmsConfig.getHttpSocketTimeout();
 
-        if (Log.isLoggable(TAG, Log.VERBOSE)) {
-            Log.v(TAG, "HttpUtils: createHttpClient w/ socket timeout "
-                    + soTimeout + " ms, UA=" + userAgent);
-        }
+        Log.v(TAG, "HttpUtils: createHttpClient w/ socket timeout "
+                + soTimeout + " ms, UA=" + userAgent);
         HttpConnectionParams.setSoTimeout(params, soTimeout);
         return client;
     }

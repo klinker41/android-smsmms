@@ -175,7 +175,7 @@ public class MmsConfig {
 
     /**
      * This class manages a cached copy of current MMS configuration key values for a particular
-     * subscription id. (See the {@link android.telephony.SubscriptionManager}).
+     * subscription id.
      *
      * @param context Context of the particular subscription to load. The context's mcc/mnc
      * should be set to that of the subscription id
