@@ -1,6 +1,6 @@
 # Android SMS/MMS/Google Voice Sending Library
 
-[Promo](https://raw.githubusercontent.com/klinker41/android-smsmms/master/android-messaging.png)
+![Promo](https://raw.githubusercontent.com/klinker41/android-smsmms/master/android-messaging.png)
 
 These are the APIs that Google has so far left out of the Android echosystem for easily sending any type of message without digging through source code and what not. 
 
