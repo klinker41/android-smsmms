@@ -446,6 +446,7 @@ public class Transaction {
         final PduBody pduBody = new PduBody();
 
         // assign parts to the pdu body which contains sending data
+        long size = 0;
         if (parts != null) {
             for (int i = 0; i < parts.length; i++) {
                 MMSPart part = parts[i];
@@ -462,8 +463,8 @@ public class Transaction {
                         partPdu.setData(part.Data);
 
                         pduBody.addPart(partPdu);
+                        size += (part.Name.getBytes().length + part.MimeType.getBytes().length + part.Data.length);
                     } catch (Exception e) {
-
                     }
                 }
             }
@@ -479,6 +480,9 @@ public class Transaction {
         pduBody.addPart(0, smilPart);
 
         sendRequest.setBody(pduBody);
+
+        Log.v(TAG, "setting message size to " + size + " bytes");
+        sendRequest.setMessageSize(size);
 
         // create byte array which will actually be sent
         final PduComposer composer = new PduComposer(context, sendRequest);

@@ -190,15 +190,14 @@ public abstract class MmsRequest {
                 try {
                     networkManager.acquireNetwork();
                     networkManager.acquireNetwork();
-                    try {
-                        final ApnSettings apn = ApnSettings.load(context, null/*apnName*/);
-                        response = doHttp(context, networkManager, apn);
-                        result = Activity.RESULT_OK;
-                        // Success
-                        break;
-                    } finally {
-                        networkManager.releaseNetwork();
-                    }
+                    final ApnSettings apn = ApnSettings.load(context, null/*apnName*/);
+                    Log.v(TAG, "MmsRequest: apns: " + apn);
+                    response = doHttp(context, networkManager, apn);
+                    result = Activity.RESULT_OK;
+                    networkManager.releaseNetwork();
+                    Log.v(TAG, "MmsRequest: Success! Releasing request");
+                    // Success
+                    break;
                 } catch (ApnException e) {
                     Log.e(TAG, "MmsRequest: APN failure", e);
                     result = SmsManager.MMS_ERROR_INVALID_APN;

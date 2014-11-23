@@ -16,19 +16,11 @@
 
 package com.klinker.android.messaging_sample;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.widget.Toast;
+import com.android.mms.transaction.PushReceiver;
 
 /**
  * Needed to make default sms app for testing
  */
-public class MmsReceiver extends BroadcastReceiver {
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        Toast.makeText(context, "MMS message received, failed to save it... oops", Toast.LENGTH_SHORT).show();
-    }
+public class MmsReceiver extends PushReceiver {
 
 }
