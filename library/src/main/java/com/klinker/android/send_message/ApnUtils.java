@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.XmlResourceParser;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
@@ -103,8 +104,8 @@ public class ApnUtils {
         String maxMessageSize = 1000000 + "";
         int maxImageHeight = 800;
         int maxImageWidth = 800;
-        String userAgent = "Android-Mms/2.0";
-        String uaProfUrl = "";
+        String userAgent = "Android Messaging";
+        String uaProfUrl = "http://www.gstatic.com/android/hangouts/hangouts_mms_ua_profile.xml";
 
         try {
             beginDocument(parser, "mms_config");
@@ -161,6 +162,13 @@ public class ApnUtils {
                     String.format("MmsConfig.loadMmsSettings mms_config.xml missing %s setting",
                             errorStr);
             Log.e(TAG, err);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            final TelephonyManager telephonyManager =
+                    (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            userAgent = telephonyManager.getMmsUserAgent();
+            uaProfUrl = telephonyManager.getMmsUAProfUrl();
         }
 
         PreferenceManager.getDefaultSharedPreferences(context)
