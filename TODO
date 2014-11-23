@@ -1,4 +1,3 @@
 - merge all changes to old method
 - backport lollipop sending
 - receiving with lollipop method
-- mark messages as sent when sending completes
