@@ -34,8 +34,8 @@ limitations under the License.
     <string name="auto_select_multiple_apns">Multiple different APNs were found for your carrier, which
         will be listed after clicking the message below. If one of the following doesn\'t work for you, try another
         and one of them should work correctly!\n\nRemember you can always get to this APN selection by going into
-        Settings, going to the MMS Settings page, and then selecting the \"Automatically Select APNs\" option.\n\n
-        You also have the option under MMS settings to select from a list of preset APNs that could work instead of
+        Settings, going to the MMS Settings page, and then selecting the \"Automatically Select APNs\" option.\n\nYou
+        also have the option under MMS settings to select from a list of preset APNs that could work instead of
         these that have been automatically found.</string>
     <string name="ok">OK</string>
     <string name="auto_select_apn">Automatically Select APNs</string>

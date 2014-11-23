@@ -33,6 +33,8 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import com.klinker.android.logger.Log;
+import com.klinker.android.send_message.Utils;
+import com.koushikdutta.async.Util;
 
 import java.lang.reflect.Method;
 import java.net.Inet4Address;
@@ -103,6 +105,8 @@ public abstract class MmsRequest {
     // MMS config overrides
     protected Bundle mMmsConfigOverrides;
 
+    private boolean mobileDataEnabled;
+
     // Intent result receiver for carrier app
 //    protected final BroadcastReceiver mCarrierAppResultReceiver = new BroadcastReceiver() {
 //        @Override
@@ -163,6 +167,14 @@ public abstract class MmsRequest {
      * @param networkManager The network manager to use
      */
     public void execute(Context context, MmsNetworkManager networkManager) {
+        mobileDataEnabled = Utils.isMobileDataEnabled(context);
+        Log.v(TAG, "mobile data enabled: " + mobileDataEnabled);
+
+        if (!mobileDataEnabled) {
+            Log.v(TAG, "mobile data not enabled, so forcing it to enable");
+            Utils.setMobileDataEnabled(context, true);
+        }
+
         int result = SmsManager.MMS_ERROR_UNSPECIFIED;
         byte[] response = null;
         if (!ensureMmsConfigLoaded(context)) { // Check mms config
@@ -210,6 +222,12 @@ public abstract class MmsRequest {
                 retryDelaySecs <<= 1;
             }
         }
+
+        if (!mobileDataEnabled) {
+            Log.v(TAG, "setting mobile data back to disabled");
+            Utils.setMobileDataEnabled(context, false);
+        }
+
         processResult(context, result, response);
     }
 
