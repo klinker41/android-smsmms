@@ -206,4 +206,9 @@ public class DownloadRequest extends MmsRequest {
     protected void revokeUriPermission(Context context) {
         context.revokeUriPermission(mContentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
     }
+
+    public void markFinished(Context context) {
+        // do nothing for receiving messages that have finished being received for now
+        // maybe this could be notification broadcast later
+    }
 }

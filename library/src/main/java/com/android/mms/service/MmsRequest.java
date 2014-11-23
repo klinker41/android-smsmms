@@ -196,6 +196,7 @@ public abstract class MmsRequest {
                     result = Activity.RESULT_OK;
                     networkManager.releaseNetwork();
                     Log.v(TAG, "MmsRequest: Success! Releasing request");
+                    markFinished(context);
                     // Success
                     break;
                 } catch (ApnException e) {
@@ -488,4 +489,6 @@ public abstract class MmsRequest {
      * @param context The context
      */
     protected abstract void revokeUriPermission(Context context);
+
+    protected abstract void markFinished(Context context);
 }
