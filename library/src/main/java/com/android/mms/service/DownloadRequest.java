@@ -16,6 +16,8 @@
 
 package com.android.mms.service;
 
+import android.content.ContentResolver;
+import android.os.ParcelFileDescriptor;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.GenericPdu;
 import com.google.android.mms.pdu_alt.PduHeaders;
@@ -42,13 +44,16 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import com.klinker.android.logger.Log;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * Request to download an MMS
  */
 public class DownloadRequest extends MmsRequest {
     private static final String TAG = "DownloadRequest";
+    private final ExecutorService mExecutor = Executors.newCachedThreadPool();
     
     private static final String LOCATION_SELECTION =
             Telephony.Mms.MESSAGE_TYPE + "=? AND " + Telephony.Mms.CONTENT_LOCATION + " =?";
@@ -57,10 +62,10 @@ public class DownloadRequest extends MmsRequest {
     private final PendingIntent mDownloadedIntent;
     private final Uri mContentUri;
 
-    public DownloadRequest(RequestManager manager, String locationUrl,
+    public DownloadRequest(String locationUrl,
             Uri contentUri, PendingIntent downloadedIntent, String creator,
             Bundle configOverrides) {
-        super(manager, null/*messageUri*/, creator, configOverrides);
+        super(null/*messageUri*/, creator, configOverrides);
         mLocationUrl = locationUrl;
         mDownloadedIntent = downloadedIntent;
         mContentUri = contentUri;
@@ -89,9 +94,7 @@ public class DownloadRequest extends MmsRequest {
 
     @Override
     protected void updateStatus(Context context, int result, byte[] response) {
-        if (mRequestManager.getAutoPersistingPref()) {
-            storeInboxMessage(context, result, response);
-        }
+        storeInboxMessage(context, result, response);
     }
 
     /**
@@ -101,8 +104,42 @@ public class DownloadRequest extends MmsRequest {
      * @param response the pdu to transfer
      */
     @Override
-    protected boolean transferResponse(Intent fillIn, final byte[] response) {
-        return mRequestManager.writePduToContentUri(mContentUri, response);
+    protected boolean transferResponse(Context context, Intent fillIn, final byte[] response) {
+        return writePduToContentUri(context, mContentUri, response);
+    }
+
+    public boolean writePduToContentUri(final Context context, final Uri contentUri, final byte[] pdu) {
+        Callable<Boolean> copyDownloadedPduToOutput = new Callable<Boolean>() {
+            public Boolean call() {
+                ParcelFileDescriptor.AutoCloseOutputStream outStream = null;
+                try {
+                    ContentResolver cr = context.getContentResolver();
+                    ParcelFileDescriptor pduFd = cr.openFileDescriptor(contentUri, "w");
+                    outStream = new ParcelFileDescriptor.AutoCloseOutputStream(pduFd);
+                    outStream.write(pdu);
+                    return Boolean.TRUE;
+                } catch (IOException ex) {
+                    return Boolean.FALSE;
+                } finally {
+                    if (outStream != null) {
+                        try {
+                            outStream.close();
+                        } catch (IOException ex) {
+                        }
+                    }
+                }
+            }
+        };
+
+        Future<Boolean> pendingResult = mExecutor.submit(copyDownloadedPduToOutput);
+        try {
+            Boolean succeeded = pendingResult.get(TASK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            return succeeded == Boolean.TRUE;
+        } catch (Exception e) {
+            // Typically a timeout occurred - cancel task
+            pendingResult.cancel(true);
+        }
+        return false;
     }
 
     private void storeInboxMessage(Context context, int result, byte[] response) {
@@ -129,10 +166,11 @@ public class DownloadRequest extends MmsRequest {
                 return;
             }
             // Update some of the properties of the message
-            ContentValues values = new ContentValues(5);
+            ContentValues values = new ContentValues(6);
             values.put(Telephony.Mms.DATE, System.currentTimeMillis() / 1000L);
             values.put(Telephony.Mms.READ, 0);
             values.put(Telephony.Mms.SEEN, 0);
+            values.put(Telephony.Mms.MESSAGE_SIZE, response.length);
             if (!TextUtils.isEmpty(mCreator)) {
                 values.put(Telephony.Mms.CREATOR, mCreator);
             }

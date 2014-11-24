@@ -50,54 +50,12 @@ import java.util.List;
 public abstract class MmsRequest {
     private static final String TAG = "MmsRequest";
     private static final int RETRY_TIMES = 3;
+    protected static final int TASK_TIMEOUT_MS = 30 * 1000;
 
     protected static final String EXTRA_MESSAGE_REF = "messageref";
 
-    /**
-     * Interface for certain functionalities from MmsService
-     */
-    public static interface RequestManager {
-        /**
-         * Add a request to pending queue when it is executed by carrier app
-         *
-         * @param key The message ref key from carrier app
-         * @param request The request in pending
-         */
-        public void addPending(int key, MmsRequest request);
-
-        /**
-         * Enqueue an MMS request for running
-         *
-         * @param request the request to enqueue
-         */
-        public void addRunning(MmsRequest request);
-
-        /*
-         * @return Whether to auto persist received MMS
-         */
-        public boolean getAutoPersistingPref();
-
-        /**
-         * Read pdu (up to maxSize bytes) from supplied content uri
-         * @param contentUri content uri from which to read
-         * @param maxSize maximum number of bytes to read
-         * @return read pdu (else null in case of error or too big)
-         */
-        public byte[] readPduFromContentUri(final Uri contentUri, final int maxSize);
-
-        /**
-         * Write pdu to supplied content uri
-         * @param contentUri content uri to which bytes should be written
-         * @param pdu pdu bytes to write
-         * @return true in case of success (else false)
-         */
-        public boolean writePduToContentUri(final Uri contentUri, final byte[] pdu);
-    }
-
     // The URI of persisted message
     protected Uri mMessageUri;
-    // The reference to the pending requests manager (i.e. the MmsService)
-    protected RequestManager mRequestManager;
     // The creator app
     protected String mCreator;
     // MMS config
@@ -140,9 +98,8 @@ public abstract class MmsRequest {
 //        }
 //    };
 
-    public MmsRequest(RequestManager requestManager, Uri messageUri,
+    public MmsRequest(Uri messageUri,
             String creator, Bundle configOverrides) {
-        mRequestManager = requestManager;
         mMessageUri = messageUri;
         mCreator = creator;
         mMmsConfigOverrides = configOverrides;
@@ -196,7 +153,6 @@ public abstract class MmsRequest {
                     result = Activity.RESULT_OK;
                     networkManager.releaseNetwork();
                     Log.v(TAG, "MmsRequest: Success! Releasing request");
-                    markFinished(context);
                     // Success
                     break;
                 } catch (ApnException e) {
@@ -419,7 +375,7 @@ public abstract class MmsRequest {
             // Extra information to send back with the pending intent
             Intent fillIn = new Intent();
             if (response != null) {
-                succeeded = transferResponse(fillIn, response);
+                succeeded = transferResponse(context, fillIn, response);
             }
             if (mMessageUri != null) {
                 fillIn.putExtra("uri", mMessageUri.toString());
@@ -481,7 +437,7 @@ public abstract class MmsRequest {
      * @param response the pdu to transfer
      * @return true if response transfer succeeds else false
      */
-    protected abstract boolean transferResponse(Intent fillIn, byte[] response);
+    protected abstract boolean transferResponse(Context context, Intent fillIn, byte[] response);
 
     /**
      * Revoke the content URI permission granted by the MMS app to the phone package.
@@ -489,6 +445,4 @@ public abstract class MmsRequest {
      * @param context The context
      */
     protected abstract void revokeUriPermission(Context context);
-
-    protected abstract void markFinished(Context context);
 }

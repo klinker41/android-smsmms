@@ -412,7 +412,7 @@ public class Transaction {
             }
         } else {
             Log.v(TAG, "using lollipop method for sending sms");
-            SendRequest request = new SendRequest(info.location, null, null, null, null, null, info.bytes);
+            SendRequest request = new SendRequest(info.location, info.location, null, null, null, null, info.bytes);
             MmsNetworkManager manager = new MmsNetworkManager(context);
             request.execute(context, manager);
         }

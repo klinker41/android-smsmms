@@ -60,13 +60,12 @@ public class SendRequest extends MmsRequest {
     private final String mLocationUrl;
     private final PendingIntent mSentIntent;
 
-    private static final int TASK_TIMEOUT_MS = 30 * 1000;
     private final ExecutorService mExecutor = Executors.newCachedThreadPool();
 
     public SendRequest(Uri contentUri, Uri messageUri,
             String locationUrl, PendingIntent sentIntent, String creator,
             Bundle configOverrides, byte[] pduData) {
-        super(null, messageUri, creator, configOverrides);
+        super(messageUri, creator, configOverrides);
         mPduUri = contentUri;
         mPduData = pduData;
         mLocationUrl = locationUrl;
@@ -211,7 +210,7 @@ public class SendRequest extends MmsRequest {
      * @param response the pdu to transfer
      */
     @Override
-    protected boolean transferResponse(Intent fillIn, byte[] response) {
+    protected boolean transferResponse(Context context, Intent fillIn, byte[] response) {
         // SendConf pdus are always small and can be included in the intent
         if (response != null) {
             fillIn.putExtra(SmsManager.EXTRA_MMS_DATA, response);
