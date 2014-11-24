@@ -41,6 +41,7 @@ import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadOrigInd;
+import com.klinker.android.send_message.Utils;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
@@ -142,6 +143,8 @@ public class PushReceiver extends BroadcastReceiver {
                             svc.putExtra(TransactionBundle.URI, uri.toString());
                             svc.putExtra(TransactionBundle.TRANSACTION_TYPE,
                                     Transaction.NOTIFICATION_TRANSACTION);
+                            svc.putExtra(TransactionBundle.LOLLIPOP_RECEIVING,
+                                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
                             mContext.startService(svc);
                         } else {
                             Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);

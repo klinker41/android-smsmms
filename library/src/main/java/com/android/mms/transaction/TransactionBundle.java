@@ -38,6 +38,8 @@ public class TransactionBundle {
      */
     private static final String PUSH_DATA = "mms-push-data";
 
+    public static final String LOLLIPOP_RECEIVING = "receive_with_new_method";
+
     /**
      * Key of the MMSC server URL.
      */

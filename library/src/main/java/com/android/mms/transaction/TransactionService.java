@@ -28,6 +28,8 @@ import android.os.*;
 import android.provider.Telephony;
 import android.text.TextUtils;
 import android.widget.Toast;
+import com.android.mms.service.DownloadRequest;
+import com.android.mms.service.MmsNetworkManager;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;
 import com.google.android.mms.pdu_alt.*;
@@ -126,6 +128,7 @@ public class TransactionService extends Service implements Observer {
     private ConnectivityManager mConnMgr;
     private ConnectivityBroadcastReceiver mReceiver;
     private boolean mobileDataEnabled;
+    private boolean lollipopReceiving = false;
 
     private PowerManager.WakeLock mWakeLock;
 
@@ -151,7 +154,7 @@ public class TransactionService extends Service implements Observer {
 
     @Override
     public void onCreate() {
-            Log.v(TAG, "Creating TransactionService");
+        Log.v(TAG, "Creating TransactionService");
 
         if (!Utils.isDefaultSmsApp(this)) {
             Log.v(TAG, "not default sms app, so quit transaction service");
@@ -174,8 +177,33 @@ public class TransactionService extends Service implements Observer {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(final Intent intent, int flags, int startId) {
         if (intent != null) {
+            if (intent.getBooleanExtra(TransactionBundle.LOLLIPOP_RECEIVING, false)) {
+                lollipopReceiving = true;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.v(TAG, "starting receiving with new lollipop method");
+                        Uri contentUri = Uri.parse(intent.getStringExtra(TransactionBundle.URI));
+                        String downloadLocation = null;
+                        Cursor locationQuery = getContentResolver().query(contentUri, new String[]{Telephony.Mms.CONTENT_LOCATION, Telephony.Mms._ID}, null, null, "date desc");
+
+                        if (locationQuery != null && locationQuery.moveToFirst()) {
+                            Log.v(TAG, "grabbing content location url");
+                            downloadLocation = locationQuery.getString(locationQuery.getColumnIndex(Telephony.Mms.CONTENT_LOCATION));
+                        }
+
+                        Log.v(TAG, "creating request with url: " + downloadLocation);
+                        DownloadRequest request = new DownloadRequest(downloadLocation, contentUri, null, null, null);
+                        MmsNetworkManager manager = new MmsNetworkManager(TransactionService.this);
+                        request.execute(TransactionService.this, manager);
+                        stopSelf();
+                    }
+                }).start();
+                return START_NOT_STICKY;
+            }
+
             Message msg = mServiceHandler.obtainMessage(EVENT_NEW_INTENT);
             msg.arg1 = startId;
             msg.obj = intent;
@@ -367,7 +395,7 @@ public class TransactionService extends Service implements Observer {
 
         mServiceHandler.sendEmptyMessage(EVENT_QUIT);
 
-        if (!mobileDataEnabled) {
+        if (!mobileDataEnabled && !lollipopReceiving) {
             Log.v(TAG, "disabling mobile data");
             Utils.setMobileDataEnabled(TransactionService.this, false);
         }
