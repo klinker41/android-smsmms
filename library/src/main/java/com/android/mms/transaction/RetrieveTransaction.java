@@ -162,6 +162,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                 // Use local time instead of PDU time
                 ContentValues values = new ContentValues(1);
                 values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
+                values.put(Mms.MESSAGE_SIZE, resp.length);
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
                         msgUri, values, null, null);
 
