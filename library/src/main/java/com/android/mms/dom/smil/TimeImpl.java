@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,9 +61,9 @@ public class TimeImpl implements Time {
      * @param timeValue A String in the representation specified above
      * @param constraints Any combination of the #ALLOW_* flags
      * @return  A TimeImpl instance representing
-     * @exception java.lang.IllegalArgumentException if the timeValue input
+     * @exception IllegalArgumentException if the timeValue input
      *          parameter does not comply with the defined syntax
-     * @exception java.lang.NullPointerException if the timekValue string is
+     * @exception NullPointerException if the timekValue string is
      *          <code>null</code>
      */
     TimeImpl(String timeValue, int constraints) {
@@ -122,9 +121,9 @@ public class TimeImpl implements Time {
      * @param clockValue A String in the representation specified above
      * @return  A float value in milliseconds that matches the string
      *          representation given as the parameter
-     * @exception java.lang.IllegalArgumentException if the clockValue input
+     * @exception IllegalArgumentException if the clockValue input
      *          parameter does not comply with the defined syntax
-     * @exception java.lang.NullPointerException if the clockValue string is
+     * @exception NullPointerException if the clockValue string is
      *          <code>null</code>
      */
     public static float parseClockValue(String clockValue) {

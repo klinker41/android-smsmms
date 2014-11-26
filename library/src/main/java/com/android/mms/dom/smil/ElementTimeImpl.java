@@ -17,6 +17,8 @@
 
 package com.android.mms.dom.smil;
 
+import com.android.mms.LogTag;
+
 import java.util.ArrayList;
 
 import org.w3c.dom.DOMException;
@@ -25,10 +27,10 @@ import org.w3c.dom.smil.SMILElement;
 import org.w3c.dom.smil.Time;
 import org.w3c.dom.smil.TimeList;
 
-import com.klinker.android.logger.Log;
+import android.util.Log;
 
 public abstract class ElementTimeImpl implements ElementTime {
-    private static final String TAG = "ElementTimeImpl";
+    private static final String TAG = LogTag.TAG;
 
     private static final String FILL_REMOVE_ATTRIBUTE = "remove";
     private static final String FILL_FREEZE_ATTRIBUTE = "freeze";

@@ -24,8 +24,9 @@ import org.w3c.dom.smil.ElementTime;
 import org.w3c.dom.smil.SMILMediaElement;
 import org.w3c.dom.smil.TimeList;
 
-import com.klinker.android.logger.Log;
+import android.util.Log;
 
+import com.android.mms.LogTag;
 import com.android.mms.dom.events.EventImpl;
 
 public class SmilMediaElementImpl extends SmilElementImpl implements
@@ -34,7 +35,7 @@ public class SmilMediaElementImpl extends SmilElementImpl implements
     public final static String SMIL_MEDIA_END_EVENT = "SmilMediaEnd";
     public final static String SMIL_MEDIA_PAUSE_EVENT = "SmilMediaPause";
     public final static String SMIL_MEDIA_SEEK_EVENT = "SmilMediaSeek";
-    private final static String TAG = "Mms:smil";
+    private final static String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 

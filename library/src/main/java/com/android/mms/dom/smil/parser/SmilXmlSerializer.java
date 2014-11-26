@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007 Esmertec AG.
- * Copyright (C) 2007 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,14 +16,19 @@
 
 package com.android.mms.dom.smil.parser;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+
 import com.klinker.android.logger.Log;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.smil.SMILDocument;
 import org.w3c.dom.smil.SMILElement;
-
-import java.io.*;
 
 public class SmilXmlSerializer {
     private static final String TAG = "SmilXmlSerializer";

@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2008 Esmertec AG.
- * Copyright (C) 2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +24,13 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import com.klinker.android.logger.Log;
+import android.provider.Telephony.Mms;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.android.internal.telephony.TelephonyProperties;
+import com.android.mms.LogTag;
+import com.android.mms.service.SystemPropertiesProxy;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.EncodedStringValue;
 import com.google.android.mms.pdu_alt.NotificationInd;
@@ -35,7 +38,7 @@ import com.google.android.mms.pdu_alt.PduPersister;
 import com.klinker.android.send_message.R;
 
 public class DownloadManager {
-    private static final String TAG = "DownloadManager";
+    private static final String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
@@ -47,6 +50,8 @@ public class DownloadManager {
     public static final int STATE_TRANSIENT_FAILURE = 0x82;
     public static final int STATE_PERMANENT_FAILURE = 0x87;
     public static final int STATE_PRE_DOWNLOADING   = 0x88;
+    // TransactionService will skip downloading Mms if auto-download is off
+    public static final int STATE_SKIP_RETRYING     = 0x89;
 
     private final Context mContext;
     private final Handler mHandler;
@@ -60,7 +65,7 @@ public class DownloadManager {
         mHandler = new Handler();
         mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        mAutoDownload = getAutoDownloadState(context);
+        mAutoDownload = getAutoDownloadState(context, mPreferences);
         if (LOCAL_LOGV) {
             Log.v(TAG, "mAutoDownload ------> " + mAutoDownload);
         }
@@ -88,8 +93,8 @@ public class DownloadManager {
         return sInstance;
     }
 
-    static boolean getAutoDownloadState(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_download_mms", true);
+    static boolean getAutoDownloadState(Context context, SharedPreferences prefs) {
+        return getAutoDownloadState(prefs, isRoaming(context));
     }
 
     static boolean getAutoDownloadState(SharedPreferences prefs, boolean roaming) {
@@ -113,8 +118,14 @@ public class DownloadManager {
         return false;
     }
 
-    static boolean isRoaming() {
-        return false;
+    static boolean isRoaming(Context context) {
+        // TODO: fix and put in Telephony layer
+        String roaming = SystemPropertiesProxy.get(context,
+                TelephonyProperties.PROPERTY_OPERATOR_ISROAMING, null);
+        if (LOCAL_LOGV) {
+            Log.v(TAG, "roaming ------> " + roaming);
+        }
+        return "true".equals(roaming);
     }
 
     public void markState(final Uri uri, int state) {
@@ -157,7 +168,7 @@ public class DownloadManager {
         // Use the STATUS field to store the state of downloading process
         // because it's useless for M-Notification.ind.
         ContentValues values = new ContentValues(1);
-        values.put("st", state);
+        values.put(Mms.STATUS, state);
         SqliteWrapper.update(mContext, mContext.getContentResolver(),
                     uri, values, null, null);
     }
@@ -190,7 +201,7 @@ public class DownloadManager {
 
     public int getState(Uri uri) {
         Cursor cursor = SqliteWrapper.query(mContext, mContext.getContentResolver(),
-                            uri, new String[] {"st"}, null, null, null);
+                            uri, new String[] {Mms.STATUS}, null, null, null);
 
         if (cursor != null) {
             try {

@@ -23,12 +23,13 @@ import org.w3c.dom.smil.SMILDocument;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.klinker.android.logger.Log;
+import android.util.Log;
 
+import com.android.mms.LogTag;
 import com.android.mms.dom.smil.SmilDocumentImpl;
 
 public class SmilContentHandler extends DefaultHandler {
-    private static final String TAG = "SmilContentHandler";
+    private static final String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
