@@ -17,6 +17,7 @@
 package com.android.mms.service;
 
 import android.content.ContentResolver;
+import android.database.Cursor;
 import android.os.ParcelFileDescriptor;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.GenericPdu;
@@ -58,15 +59,26 @@ public class DownloadRequest extends MmsRequest {
     private static final String LOCATION_SELECTION =
             Telephony.Mms.MESSAGE_TYPE + "=? AND " + Telephony.Mms.CONTENT_LOCATION + " =?";
 
+    static final String[] PROJECTION = new String[] {
+            Telephony.Mms.CONTENT_LOCATION
+    };
+
+    // The indexes of the columns which must be consistent with above PROJECTION.
+    static final int COLUMN_CONTENT_LOCATION      = 0;
+
     private final String mLocationUrl;
     private final PendingIntent mDownloadedIntent;
     private final Uri mContentUri;
 
     public DownloadRequest(String locationUrl,
             Uri contentUri, PendingIntent downloadedIntent, String creator,
-            Bundle configOverrides) {
+            Bundle configOverrides, Context context) throws MmsException {
         super(null/*messageUri*/, creator, configOverrides);
-        mLocationUrl = locationUrl;
+        if (locationUrl == null) {
+            mLocationUrl = getContentLocation(context, contentUri);
+        } else {
+            mLocationUrl = locationUrl;
+        }
         mDownloadedIntent = downloadedIntent;
         mContentUri = contentUri;
     }
@@ -245,8 +257,22 @@ public class DownloadRequest extends MmsRequest {
         context.revokeUriPermission(mContentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
     }
 
-    public void markFinished(Context context) {
-        // do nothing for receiving messages that have finished being received for now
-        // maybe this could be notification broadcast later
+    private String getContentLocation(Context context, Uri uri)
+            throws MmsException {
+        Cursor cursor = android.database.sqlite.SqliteWrapper.query(context, context.getContentResolver(),
+                uri, PROJECTION, null, null, null);
+
+        if (cursor != null) {
+            try {
+                if ((cursor.getCount() == 1) && cursor.moveToFirst()) {
+                    return cursor.getString(COLUMN_CONTENT_LOCATION);
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+
+        throw new MmsException("Cannot get X-Mms-Content-Location from: " + uri);
     }
+
 }

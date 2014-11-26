@@ -31,12 +31,7 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
-import android.os.PowerManager;
+import android.os.*;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
@@ -665,6 +660,7 @@ public class TransactionService extends Service implements Observer {
             }
 
             Transaction transaction = null;
+            DownloadRequest downloadRequest = null;
 
             switch (msg.what) {
                 case EVENT_NEW_INTENT:
@@ -760,9 +756,14 @@ public class TransactionService extends Service implements Observer {
                                 }
                                 break;
                             case Transaction.RETRIEVE_TRANSACTION:
-                                transaction = new RetrieveTransaction(
-                                        TransactionService.this, serviceId,
-                                        transactionSettings, args.getUri());
+//                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                                    downloadRequest = new DownloadRequest(null, Uri.parse(args.getUri()),
+//                                            null, null, null, TransactionService.this);
+//                                } else {
+                                    transaction = new RetrieveTransaction(
+                                            TransactionService.this, serviceId,
+                                            transactionSettings, args.getUri());
+                                //}
                                 break;
                             case Transaction.SEND_TRANSACTION:
                                 transaction = new SendTransaction(
@@ -778,6 +779,12 @@ public class TransactionService extends Service implements Observer {
                                 Log.w(TAG, "Invalid transaction type: " + serviceId);
                                 transaction = null;
                                 return;
+                        }
+
+                        if (downloadRequest != null) {
+                            Log.v(TAG, "download request not null, so starting lollipop download");
+                            downloadRequest.execute(TransactionService.this,
+                                    new MmsNetworkManager(TransactionService.this));
                         }
 
                         if (!processTransaction(transaction)) {
