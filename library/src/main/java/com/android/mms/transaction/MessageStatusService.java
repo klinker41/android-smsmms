@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2012 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,17 +24,20 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
-import android.provider.Telephony;
+import android.provider.Telephony.Sms;
+import android.provider.Telephony.Sms.Inbox;
 import android.telephony.SmsMessage;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.LogTag;
 
 /**
  * Service that gets started by the MessageStatusReceiver when a message status report is
  * received.
  */
 public class MessageStatusService extends IntentService {
-    private static final String[] ID_PROJECTION = new String[] { "_id" };
-    private static final String LOG_TAG = "MessageStatusReceiver";
+    private static final String[] ID_PROJECTION = new String[] { Sms._ID };
+    private static final String LOG_TAG = LogTag.TAG;
     private static final Uri STATUS_URI = Uri.parse("content://sms/status");
 
     public MessageStatusService() {
@@ -76,11 +79,13 @@ public class MessageStatusService extends IntentService {
                 boolean isStatusReport = message.isStatusReportMessage();
                 ContentValues contentValues = new ContentValues(2);
 
+                if (Log.isLoggable(LogTag.TAG, Log.DEBUG)) {
                     log("updateMessageStatus: msgUrl=" + messageUri + ", status=" + status +
                             ", isStatusReport=" + isStatusReport);
+                }
 
-                contentValues.put("status", status);
-                contentValues.put("date_sent", System.currentTimeMillis());
+                contentValues.put(Sms.STATUS, status);
+                contentValues.put(Inbox.DATE_SENT, System.currentTimeMillis());
                 SqliteWrapper.update(context, context.getContentResolver(),
                                     updateUri, contentValues, null, null);
             } else {

@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,8 +34,13 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.provider.Telephony.Mms;
+import android.provider.Telephony.Threads;
+import android.provider.Telephony.Mms.Inbox;
 import android.telephony.TelephonyManager;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.LogTag;
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
@@ -65,14 +69,13 @@ import com.google.android.mms.pdu_alt.PduPersister;
  * in case the client is in immediate retrieve mode.
  */
 public class NotificationTransaction extends Transaction implements Runnable {
-    private static final String TAG = "NotificationTransaction";
+    private static final String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
     private Uri mUri;
     private NotificationInd mNotificationInd;
     private String mContentLocation;
-    private Context mContext;
 
     public NotificationTransaction(
             Context context, int serviceId,
@@ -80,7 +83,6 @@ public class NotificationTransaction extends Transaction implements Runnable {
         super(context, serviceId, connectionSettings);
 
         mUri = Uri.parse(uriString);
-        mContext = context;
 
         try {
             mNotificationInd = (NotificationInd)
@@ -105,8 +107,6 @@ public class NotificationTransaction extends Transaction implements Runnable {
             TransactionSettings connectionSettings, NotificationInd ind) {
         super(context, serviceId, connectionSettings);
 
-        mContext = context;
-
         try {
             // Save the pdu. If we can start downloading the real pdu immediately, don't allow
             // persist() to create a thread for the notificationInd because it causes UI jank.
@@ -117,9 +117,8 @@ public class NotificationTransaction extends Transaction implements Runnable {
             } catch (Exception e) {
                 group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
             }
-
             mUri = PduPersister.getPduPersister(context).persist(
-                        ind, Uri.parse("content://mms/inbox"), !allowAutoDownload(context),
+                        ind, Inbox.CONTENT_URI, !allowAutoDownload(mContext),
                         group, null);
         } catch (MmsException e) {
             Log.e(TAG, "Failed to save NotificationInd in constructor.", e);
@@ -148,12 +147,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
     }
 
     public void run() {
-        try {
-            Looper.prepare();
-        } catch (Exception e) {
-            Log.e(TAG, "exception thrown", e);
-        }
-
+        try { Looper.prepare(); } catch (Exception e) {}
         DownloadManager.init(mContext);
         DownloadManager downloadManager = DownloadManager.getInstance();
         boolean autoDownload = allowAutoDownload(mContext);
@@ -198,12 +192,12 @@ public class NotificationTransaction extends Transaction implements Runnable {
                 } else {
                     // Save the received PDU (must be a M-RETRIEVE.CONF).
                     PduPersister p = PduPersister.getPduPersister(mContext);
-                    Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"), true,
+                    Uri uri = p.persist(pdu, Inbox.CONTENT_URI, true,
                             com.klinker.android.send_message.Transaction.settings.getGroup(), null);
 
                     // Use local time instead of PDU time
                     ContentValues values = new ContentValues(1);
-                    values.put("date", System.currentTimeMillis() / 1000L);
+                    values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
                     SqliteWrapper.update(mContext, mContext.getContentResolver(),
                             uri, values, null, null);
 
@@ -214,14 +208,11 @@ public class NotificationTransaction extends Transaction implements Runnable {
                     Log.v(TAG, "NotificationTransaction received new mms message: " + uri);
                     // Delete obsolete threads
                     SqliteWrapper.delete(mContext, mContext.getContentResolver(),
-                            Uri.withAppendedPath(
-                                    Uri.withAppendedPath(
-                                            Uri.parse("content://mms-sms/"), "conversations"), "obsolete"), null, null);
+                            Threads.OBSOLETE_THREADS_URI, null, null);
 
                     // Notify observers with newly received MM.
                     mUri = uri;
                     status = STATUS_RETRIEVED;
-
                     mContext.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS));
                 }
             }
@@ -245,7 +236,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
 
             sendNotifyRespInd(status);
         } catch (Throwable t) {
-            Log.e(TAG, android.util.Log.getStackTraceString(t));
+            Log.e(TAG, "error", t);
         } finally {
             mTransactionState.setContentUri(mUri);
             if (!autoDownload) {

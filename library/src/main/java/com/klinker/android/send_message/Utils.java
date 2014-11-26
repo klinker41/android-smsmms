@@ -167,32 +167,37 @@ public class Utils {
     public static void ensureRouteToHost(Context context, String url, String proxy) throws IOException {
         ConnectivityManager connMgr =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        connMgr.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE_HIPRI, "enableMMS");
 
-        Log.v("sending_mms_library", "ensuring route to host");
-
-        int inetAddr;
-        if (proxy != null && !proxy.equals("")) {
-            String proxyAddr = proxy;
-            inetAddr = lookupHost(proxyAddr);
-            if (inetAddr == -1) {
-                throw new IOException("Cannot establish route for " + url + ": Unknown host");
-            } else {
-                if (!connMgr.requestRouteToHost(
-                        ConnectivityManager.TYPE_MOBILE_MMS, inetAddr)) {
+        InetAddress inetAddr;
+        if (proxy != null && proxy.trim().length() != 0) {
+            try {
+                inetAddr = InetAddress.getByName(proxy);
+            } catch (UnknownHostException e) {
+                throw new IOException("Cannot establish route for " + url +
+                        ": Unknown proxy " + proxy);
+            }
+            try {
+                Method requestRoute = ConnectivityManager.class.getMethod("requestRouteToHostAddress", Integer.TYPE, InetAddress.class);
+                if (!((Boolean) requestRoute.invoke(connMgr, ConnectivityManager.TYPE_MOBILE_MMS, inetAddr))) {
                     throw new IOException("Cannot establish route to proxy " + inetAddr);
                 }
+            } catch (Exception e) {
+                Log.e(TAG, "Cannot establishh route to proxy " + inetAddr, e);
             }
         } else {
             Uri uri = Uri.parse(url);
-            inetAddr = lookupHost(uri.getHost());
-            if (inetAddr == -1) {
+            try {
+                inetAddr = InetAddress.getByName(uri.getHost());
+            } catch (UnknownHostException e) {
                 throw new IOException("Cannot establish route for " + url + ": Unknown host");
-            } else {
-                if (!connMgr.requestRouteToHost(
-                        ConnectivityManager.TYPE_MOBILE_MMS, inetAddr)) {
-                    throw new IOException("Cannot establish route to " + inetAddr + " for " + url);
+            }
+            try {
+                Method requestRoute = ConnectivityManager.class.getMethod("requestRouteToHostAddress", Integer.TYPE, InetAddress.class);
+                if (!((Boolean) requestRoute.invoke(connMgr, ConnectivityManager.TYPE_MOBILE_MMS, inetAddr))) {
+                    throw new IOException("Cannot establish route to proxy " + inetAddr);
                 }
+            } catch (Exception e) {
+                Log.e(TAG, "Cannot establishh route to proxy " + inetAddr + " for " + url, e);
             }
         }
     }

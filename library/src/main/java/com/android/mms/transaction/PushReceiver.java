@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +16,7 @@
 
 package com.android.mms.transaction;
 
+import static android.provider.Telephony.Sms.Intents.WAP_PUSH_DELIVER_ACTION;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
@@ -30,7 +30,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.provider.Telephony.Mms;
+import android.provider.Telephony.Mms.Inbox;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.LogTag;
 import com.android.mms.MmsConfig;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.MmsException;
@@ -41,14 +45,13 @@ import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadOrigInd;
-import com.klinker.android.send_message.Utils;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
  * TransactionService by passing the push-data to it.
  */
 public class PushReceiver extends BroadcastReceiver {
-    private static final String TAG = "PushReceiver";
+    private static final String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
@@ -75,7 +78,7 @@ public class PushReceiver extends BroadcastReceiver {
             PduPersister p = PduPersister.getPduPersister(mContext);
             ContentResolver cr = mContext.getContentResolver();
             int type = pdu.getMessageType();
-            long threadId;
+            long threadId = -1;
 
             try {
                 switch (type) {
@@ -100,7 +103,7 @@ public class PushReceiver extends BroadcastReceiver {
                                 group, null);
                         // Update thread ID for ReadOrigInd & DeliveryInd.
                         ContentValues values = new ContentValues(1);
-                        values.put("thread_id", threadId);
+                        values.put(Mms.THREAD_ID, threadId);
                         SqliteWrapper.update(mContext, cr, uri, values, null, null);
                         break;
                     }
@@ -121,35 +124,39 @@ public class PushReceiver extends BroadcastReceiver {
                             }
                         }
 
-                        boolean group;
+                        if (!isDuplicateNotification(mContext, nInd)) {
+                            // Save the pdu. If we can start downloading the real pdu immediately,
+                            // don't allow persist() to create a thread for the notificationInd
+                            // because it causes UI jank.
+                            boolean group;
 
-                        try {
-                            group = com.klinker.android.send_message.Transaction.settings.getGroup();
-                        } catch (Exception e) {
-                            group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
+                            try {
+                                group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                            } catch (Exception e) {
+                                group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
+                            }
+
+                            Uri uri = p.persist(pdu, Inbox.CONTENT_URI,
+                                    !NotificationTransaction.allowAutoDownload(mContext),
+                                    group,
+                                    null);
+
+                            if (NotificationTransaction.allowAutoDownload(mContext)) {
+                                // Start service to finish the notification transaction.
+                                Intent svc = new Intent(mContext, TransactionService.class);
+                                svc.putExtra(TransactionBundle.URI, uri.toString());
+                                svc.putExtra(TransactionBundle.TRANSACTION_TYPE,
+                                        Transaction.NOTIFICATION_TRANSACTION);
+                                mContext.startService(svc);
+                            } else {
+                                Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
+                                notificationBroadcast.putExtra("receive_through_stock", true);
+                                mContext.sendBroadcast(notificationBroadcast);
+                            }
+                        } else if (LOCAL_LOGV) {
+                            Log.v(TAG, "Skip downloading duplicate message: "
+                                    + new String(nInd.getContentLocation()));
                         }
-
-                        // Save the pdu. If we can start downloading the real pdu immediately,
-                        // don't allow persist() to create a thread for the notificationInd
-                        // because it causes UI jank.
-                        Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"),
-                                !NotificationTransaction.allowAutoDownload(mContext),
-                                group,
-                                null);
-
-                        if (NotificationTransaction.allowAutoDownload(mContext)) {
-                            // Start service to finish the notification transaction.
-                            Intent svc = new Intent(mContext, TransactionService.class);
-                            svc.putExtra(TransactionBundle.URI, uri.toString());
-                            svc.putExtra(TransactionBundle.TRANSACTION_TYPE,
-                                    Transaction.NOTIFICATION_TRANSACTION);
-                            mContext.startService(svc);
-                        } else {
-                            Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
-                            notificationBroadcast.putExtra("receive_through_stock", true);
-                            mContext.sendBroadcast(notificationBroadcast);
-                        }
-
                         break;
                     }
                     default:
@@ -171,7 +178,7 @@ public class PushReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if ((intent.getAction().equals("android.provider.Telephony.WAP_PUSH_DELIVER") || intent.getAction().equals("android.provider.Telephony.WAP_PUSH_RECEIVED"))
+        if (intent.getAction().equals(WAP_PUSH_DELIVER_ACTION)
                 && ContentType.MMS_MESSAGE.equals(intent.getType())) {
             if (LOCAL_LOGV) {
                 Log.v(TAG, "Received PUSH Intent: " + intent);
@@ -212,18 +219,18 @@ public class PushReceiver extends BroadcastReceiver {
         }
 
         StringBuilder sb = new StringBuilder('(');
-        sb.append("m_id");
+        sb.append(Mms.MESSAGE_ID);
         sb.append('=');
         sb.append(DatabaseUtils.sqlEscapeString(messageId));
         sb.append(" AND ");
-        sb.append("m_type");
+        sb.append(Mms.MESSAGE_TYPE);
         sb.append('=');
         sb.append(PduHeaders.MESSAGE_TYPE_SEND_REQ);
         // TODO ContentResolver.query() appends closing ')' to the selection argument
         // sb.append(')');
 
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                            Uri.parse("content://mms"), new String[] { "thread_id" },
+                            Mms.CONTENT_URI, new String[] { Mms.THREAD_ID },
                             sb.toString(), null, null);
         if (cursor != null) {
             try {
@@ -243,12 +250,11 @@ public class PushReceiver extends BroadcastReceiver {
         byte[] rawLocation = nInd.getContentLocation();
         if (rawLocation != null) {
             String location = new String(rawLocation);
-            // TODO do not use the sdk > 19 sms apis for this
-            String selection = "ct_l = ?";
+            String selection = Mms.CONTENT_LOCATION + " = ?";
             String[] selectionArgs = new String[] { location };
             Cursor cursor = SqliteWrapper.query(
                     context, context.getContentResolver(),
-                    Uri.parse("content://mms"), new String[] { "_id" },
+                    Mms.CONTENT_URI, new String[] { Mms._ID },
                     selection, selectionArgs, null);
             if (cursor != null) {
                 try {

@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,16 +22,17 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.provider.Telephony;
+import android.provider.Telephony.Mms;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.LogTag;
 import com.klinker.android.send_message.Utils;
+import com.koushikdutta.async.Util;
 
 import java.lang.reflect.Method;
 
 /**
  * MmsSystemEventReceiver receives the
- * {@link android.content.intent.ACTION_BOOT_COMPLETED},
- * {@link com.android.internal.telephony.TelephonyIntents.ACTION_ANY_DATA_CONNECTION_STATE_CHANGED}
  * and performs a series of operations which may include:
  * <ul>
  * <li>Show/hide the icon in notification area which is used to indicate
@@ -41,64 +41,54 @@ import java.lang.reflect.Method;
  * </ul>
  */
 public class MmsSystemEventReceiver extends BroadcastReceiver {
-    private static final String TAG = "MmsSystemEventReceiver";
+    private static final String TAG = LogTag.TAG;
     private static ConnectivityManager mConnMgr = null;
 
     public static void wakeUpService(Context context) {
+        if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
             Log.v(TAG, "wakeUpService: start transaction service ...");
+        }
 
         context.startService(new Intent(context, TransactionService.class));
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
             Log.v(TAG, "Intent received: " + intent);
+        }
 
         if (!Utils.isDefaultSmsApp(context)) {
+            Log.v(TAG, "not default sms app, cancelling");
             return;
         }
 
         String action = intent.getAction();
-        if (action.equals("android.intent.action.CONTENT_CHANGED")) {
-            Uri changed = (Uri) intent.getParcelableExtra("deleted_contents");
+        if (action.equals(Mms.Intents.CONTENT_CHANGED_ACTION)) {
+            Uri changed = (Uri) intent.getParcelableExtra(Mms.Intents.DELETED_CONTENTS);
         } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             if (mConnMgr == null) {
                 mConnMgr = (ConnectivityManager) context
                         .getSystemService(Context.CONNECTIVITY_SERVICE);
             }
-            boolean mobileDataEnabled = false;
-            try {
-                Class cmClass = Class.forName(mConnMgr.getClass().getName());
-                Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
-                method.setAccessible(true);
-                mobileDataEnabled = (Boolean)method.invoke(mConnMgr);
-            } catch (Exception e) {
-            }
+            boolean mobileDataEnabled = Utils.isMobileDataEnabled(context);
             if (!mobileDataEnabled) {
                     Log.v(TAG, "mobile data turned off, bailing");
+                //Utils.setMobileDataEnabled(context, true);
                 return;
             }
-            boolean available = false;
-            boolean isConnected = false;
-
-
             NetworkInfo mmsNetworkInfo = mConnMgr
                     .getNetworkInfo(ConnectivityManager.TYPE_MOBILE_MMS);
-            if (mmsNetworkInfo != null) {
-                available = mmsNetworkInfo.isAvailable();
-                isConnected = mmsNetworkInfo.isConnected();
-            } else {
-                mmsNetworkInfo = mConnMgr
-                        .getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-
-                if (mmsNetworkInfo != null) {
-                    available = mmsNetworkInfo.isAvailable();
-                    isConnected = mmsNetworkInfo.isConnected();
-                }
+            if (mmsNetworkInfo == null) {
+                return;
             }
+            boolean available = mmsNetworkInfo.isAvailable();
+            boolean isConnected = mmsNetworkInfo.isConnected();
 
+            if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
                 Log.v(TAG, "TYPE_MOBILE_MMS available = " + available +
                            ", isConnected = " + isConnected);
+            }
 
             // Wake up transact service when MMS data is available and isn't connected.
             if (available && !isConnected) {

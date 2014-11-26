@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2008 Esmertec AG.
- * Copyright (C) 2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +27,7 @@ public interface MessageSender {
      *
      * @return True if the message was sent through MMS or false if it was
      *         sent through SMS.
-     * @throws MmsException Error occurred while sending the message.
+     * @throws com.google.android.mms.MmsException Error occurred while sending the message.
      */
-    boolean sendMessage(long token) throws Throwable;
+    boolean sendMessage(long token) throws MmsException;
 }

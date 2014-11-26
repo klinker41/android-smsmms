@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,13 +20,16 @@ import java.io.IOException;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.provider.Telephony.Mms;
+import android.provider.Telephony.Mms.Inbox;
 import android.text.TextUtils;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.LogTag;
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;
@@ -54,7 +56,7 @@ import com.klinker.android.send_message.Utils;
  * </ul>
  */
 public class RetrieveTransaction extends Transaction implements Runnable {
-    private static final String TAG = "RetrieveTransaction";
+    private static final String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
@@ -62,10 +64,9 @@ public class RetrieveTransaction extends Transaction implements Runnable {
     private final String mContentLocation;
     private boolean mLocked;
 
-    // TODO dont use the sdk > 19 apis here
     static final String[] PROJECTION = new String[] {
-        "ct_l",
-        "locked"
+        Mms.CONTENT_LOCATION,
+        Mms.LOCKED
     };
 
     // The indexes of the columns which must be consistent with above PROJECTION.
@@ -155,12 +156,12 @@ public class RetrieveTransaction extends Transaction implements Runnable {
 
                 // Store M-Retrieve.conf into Inbox
                 PduPersister persister = PduPersister.getPduPersister(mContext);
-                msgUri = persister.persist(retrieveConf, Uri.parse("content://mms/inbox"), true,
+                msgUri = persister.persist(retrieveConf, Inbox.CONTENT_URI, true,
                         group, null);
 
                 // Use local time instead of PDU time
                 ContentValues values = new ContentValues(1);
-                values.put("date", System.currentTimeMillis() / 1000L);
+                values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
                         msgUri, values, null, null);
 
@@ -183,7 +184,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
             // Don't mark the transaction as failed if we failed to send it.
             sendAcknowledgeInd(retrieveConf);
         } catch (Throwable t) {
-            Log.e(TAG, android.util.Log.getStackTraceString(t));
+            Log.e(TAG, "error", t);
         } finally {
             if (mTransactionState.getState() != TransactionState.SUCCESS) {
                 mTransactionState.setState(TransactionState.FAILED);
@@ -192,23 +193,20 @@ public class RetrieveTransaction extends Transaction implements Runnable {
             }
             notifyObservers();
         }
-
-        mContext.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS));
     }
 
     private static boolean isDuplicateMessage(Context context, RetrieveConf rc) {
         byte[] rawMessageId = rc.getMessageId();
         if (rawMessageId != null) {
             String messageId = new String(rawMessageId);
-            // TODO dont use the sdk > 19 apis here
-            String selection = "(" + "m_id" + " = ? AND "
-                                   + "m_type" + " = ?)";
+            String selection = "(" + Mms.MESSAGE_ID + " = ? AND "
+                                   + Mms.MESSAGE_TYPE + " = ?)";
             String[] selectionArgs = new String[] { messageId,
                     String.valueOf(PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF) };
 
             Cursor cursor = SqliteWrapper.query(
                     context, context.getContentResolver(),
-                    Uri.parse("content://mms"), new String[] { "_id", "sub", "sub_cs" },
+                    Mms.CONTENT_URI, new String[] { Mms._ID, Mms.SUBJECT, Mms.SUBJECT_CHARSET },
                     selection, selectionArgs, null);
 
             if (cursor != null) {
@@ -240,8 +238,8 @@ public class RetrieveTransaction extends Transaction implements Runnable {
         }
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            int subjectIdx = cursor.getColumnIndex("sub");
-            int charsetIdx = cursor.getColumnIndex("sub_cs");
+            int subjectIdx = cursor.getColumnIndex(Mms.SUBJECT);
+            int charsetIdx = cursor.getColumnIndex(Mms.SUBJECT_CHARSET);
             subject = cursor.getString(subjectIdx);
             int charset = cursor.getInt(charsetIdx);
             if (subject != null) {
@@ -293,8 +291,8 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                                               String contentLocation,
                                               boolean locked) {
         ContentValues values = new ContentValues(2);
-        values.put("ct_l", contentLocation);
-        values.put("locked", locked);     // preserve the state of the M-Notification.ind lock.
+        values.put(Mms.CONTENT_LOCATION, contentLocation);
+        values.put(Mms.LOCKED, locked);     // preserve the state of the M-Notification.ind lock.
         SqliteWrapper.update(context, context.getContentResolver(),
                              uri, values, null, null);
     }

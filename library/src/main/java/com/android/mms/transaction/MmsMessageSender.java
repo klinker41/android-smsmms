@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2008 Esmertec AG.
- * Copyright (C) 2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +23,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
-import android.provider.Telephony;
+import android.provider.Telephony.Mms;
+import android.provider.Telephony.MmsSms;
+import android.provider.Telephony.MmsSms.PendingMessages;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.LogTag;
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.InvalidHeaderValueException;
 import com.google.android.mms.MmsException;
@@ -38,7 +41,7 @@ import com.google.android.mms.pdu_alt.SendReq;
 import com.google.android.mms.util_alt.SqliteWrapper;
 
 public class MmsMessageSender implements MessageSender {
-    private static final String TAG = "MmsMessageSender";
+    private static final String TAG = LogTag.TAG;
 
     private final Context mContext;
     private final Uri mMessageUri;
@@ -64,8 +67,11 @@ public class MmsMessageSender implements MessageSender {
         }
     }
 
-    public boolean sendMessage(long token) throws Throwable {
+    public boolean sendMessage(long token) throws MmsException {
         // Load the MMS from the message uri
+        if (Log.isLoggable(LogTag.APP, Log.VERBOSE)) {
+            LogTag.debug("sendMessage uri: " + mMessageUri);
+        }
         PduPersister p = PduPersister.getPduPersister(mContext);
         GenericPdu pdu = p.load(mMessageUri);
 
@@ -91,30 +97,26 @@ public class MmsMessageSender implements MessageSender {
         long messageId = ContentUris.parseId(mMessageUri);
 
         // Move the message into MMS Outbox.
-        if (!mMessageUri.toString().startsWith(Uri.parse("content://mms/drafts").toString())) {
-            try {
-                // If the message is already in the outbox (most likely because we created a "primed"
-                // message in the outbox when the user hit send), then we have to manually put an
-                // entry in the pending_msgs table which is where TransacationService looks for
-                // messages to send. Normally, the entry in pending_msgs is created by the trigger:
-                // insert_mms_pending_on_update, when a message is moved from drafts to the outbox.
-                ContentValues values = new ContentValues(7);
+        if (!mMessageUri.toString().startsWith(Mms.Draft.CONTENT_URI.toString())) {
+            // If the message is already in the outbox (most likely because we created a "primed"
+            // message in the outbox when the user hit send), then we have to manually put an
+            // entry in the pending_msgs table which is where TransacationService looks for
+            // messages to send. Normally, the entry in pending_msgs is created by the trigger:
+            // insert_mms_pending_on_update, when a message is moved from drafts to the outbox.
+            ContentValues values = new ContentValues(7);
 
-                values.put(Telephony.MmsSms.PendingMessages.PROTO_TYPE, 1);
-                values.put(Telephony.MmsSms.PendingMessages.MSG_ID, messageId);
-                values.put(Telephony.MmsSms.PendingMessages.MSG_TYPE, pdu.getMessageType());
-                values.put(Telephony.MmsSms.PendingMessages.ERROR_TYPE, 0);
-                values.put(Telephony.MmsSms.PendingMessages.ERROR_CODE, 0);
-                values.put(Telephony.MmsSms.PendingMessages.RETRY_INDEX, 0);
-                values.put(Telephony.MmsSms.PendingMessages.DUE_TIME, 0);
+            values.put(PendingMessages.PROTO_TYPE, MmsSms.MMS_PROTO);
+            values.put(PendingMessages.MSG_ID, messageId);
+            values.put(PendingMessages.MSG_TYPE, pdu.getMessageType());
+            values.put(PendingMessages.ERROR_TYPE, 0);
+            values.put(PendingMessages.ERROR_CODE, 0);
+            values.put(PendingMessages.RETRY_INDEX, 0);
+            values.put(PendingMessages.DUE_TIME, 0);
 
-                Uri uri = SqliteWrapper.insert(mContext, mContext.getContentResolver(),
-                        Telephony.MmsSms.PendingMessages.CONTENT_URI, values);
-            } catch (Throwable e) {
-                p.move(mMessageUri, Telephony.Mms.Outbox.CONTENT_URI);
-            }
+            SqliteWrapper.insert(mContext, mContext.getContentResolver(),
+                    PendingMessages.CONTENT_URI, values);
         } else {
-            p.move(mMessageUri, Telephony.Mms.Outbox.CONTENT_URI);
+            p.move(mMessageUri, Mms.Outbox.CONTENT_URI);
         }
 
         // Start MMS transaction service
@@ -122,7 +124,7 @@ public class MmsMessageSender implements MessageSender {
             SendingProgressTokenManager.put(messageId, token);
             mContext.startService(new Intent(mContext, TransactionService.class));
         } catch (Exception e) {
-            throw new Exception("transaction service not registered in manifest");
+            throw new MmsException("transaction service not registered in manifest");
         }
 
         return true;
@@ -172,8 +174,7 @@ public class MmsMessageSender implements MessageSender {
             } catch (Exception e) {
                 group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
             }
-
-            PduPersister.getPduPersister(context).persist(readRec, Uri.parse("content://mms/outbox"), true,
+            PduPersister.getPduPersister(context).persist(readRec, Mms.Outbox.CONTENT_URI, true,
                     group, null);
             context.startService(new Intent(context, TransactionService.class));
         } catch (InvalidHeaderValueException e) {

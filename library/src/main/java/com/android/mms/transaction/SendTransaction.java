@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,8 +24,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
+import android.provider.Telephony.Mms;
+import android.provider.Telephony.Mms.Sent;
 import android.text.TextUtils;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.LogTag;
 import com.android.mms.util.RateController;
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.pdu_alt.EncodedStringValue;
@@ -52,7 +55,7 @@ import com.klinker.android.send_message.Utils;
  * </ul>
  */
 public class SendTransaction extends Transaction implements Runnable {
-    private static final String TAG = "SendTransaction";
+    private static final String TAG = LogTag.TAG;
 
     private Thread mThread;
     public final Uri mSendReqURI;
@@ -97,7 +100,7 @@ public class SendTransaction extends Transaction implements Runnable {
 
             // Persist the new date value into database.
             ContentValues values = new ContentValues(1);
-            values.put("date", date);
+            values.put(Mms.DATE, date);
             SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                  mSendReqURI, values, null, null);
 
@@ -113,9 +116,11 @@ public class SendTransaction extends Transaction implements Runnable {
                                       new PduComposer(mContext, sendReq).make());
             SendingProgressTokenManager.remove(tokenKey);
 
+            if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
                 String respStr = new String(response);
                 builder.append("[SendTransaction] run: send mms msg (" + mId + "), resp=" + respStr);
                 Log.d(TAG, "[SendTransaction] run: send mms msg (" + mId + "), resp=" + respStr);
+            }
 
             SendConf conf = (SendConf) new PduParser(response).parse();
             if (conf == null) {
@@ -140,7 +145,7 @@ public class SendTransaction extends Transaction implements Runnable {
             // into the related M-Send.req.
             values = new ContentValues(2);
             int respStatus = conf.getResponseStatus();
-            values.put("resp_st", respStatus);
+            values.put(Mms.RESPONSE_STATUS, respStatus);
 
             if (respStatus != PduHeaders.RESPONSE_STATUS_OK) {
                 SqliteWrapper.update(mContext, mContext.getContentResolver(),
@@ -151,17 +156,17 @@ public class SendTransaction extends Transaction implements Runnable {
             }
 
             String messageId = PduPersister.toIsoString(conf.getMessageId());
-            values.put("m_id", messageId);
+            values.put(Mms.MESSAGE_ID, messageId);
             SqliteWrapper.update(mContext, mContext.getContentResolver(),
                                  mSendReqURI, values, null, null);
 
             // Move M-Send.req from Outbox into Sent.
-            Uri uri = persister.move(mSendReqURI, Uri.parse("content://mms/sent"));
+            Uri uri = persister.move(mSendReqURI, Sent.CONTENT_URI);
 
             mTransactionState.setState(TransactionState.SUCCESS);
             mTransactionState.setContentUri(uri);
         } catch (Throwable t) {
-            Log.e(TAG, android.util.Log.getStackTraceString(t));
+            Log.e(TAG, "error", t);
         } finally {
             if (mTransactionState.getState() != TransactionState.SUCCESS) {
                 mTransactionState.setState(TransactionState.FAILED);

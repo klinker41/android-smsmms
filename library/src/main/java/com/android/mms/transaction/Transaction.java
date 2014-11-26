@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,8 +17,12 @@
 package com.android.mms.transaction;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Uri;
 
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.MmsException;
@@ -110,9 +113,9 @@ public abstract class Transaction extends Observable {
      * @param pdu A byte array which contains the data of the PDU.
      * @return A byte array which contains the response data.
      *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
+     * @throws java.io.IOException if any error occurred on network interface or
      *         an HTTP error code(>=400) returned from the server.
-     * @throws MmsException if pdu is null.
+     * @throws com.google.android.mms.MmsException if pdu is null.
      */
     protected byte[] sendPdu(byte[] pdu) throws IOException, MmsException {
         return sendPdu(SendingProgressTokenManager.NO_TOKEN, pdu,
@@ -126,9 +129,9 @@ public abstract class Transaction extends Observable {
      * @param mmscUrl Url of the recipient MMSC.
      * @return A byte array which contains the response data.
      *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
+     * @throws java.io.IOException if any error occurred on network interface or
      *         an HTTP error code(>=400) returned from the server.
-     * @throws MmsException if pdu is null.
+     * @throws com.google.android.mms.MmsException if pdu is null.
      */
     protected byte[] sendPdu(byte[] pdu, String mmscUrl) throws IOException, MmsException {
         return sendPdu(SendingProgressTokenManager.NO_TOKEN, pdu, mmscUrl);
@@ -141,9 +144,9 @@ public abstract class Transaction extends Observable {
      * @param pdu A byte array which contains the data of the PDU.
      * @return A byte array which contains the response data.
      *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
+     * @throws java.io.IOException if any error occurred on network interface or
      *         an HTTP error code(>=400) returned from the server.
-     * @throws MmsException if pdu is null.
+     * @throws com.google.android.mms.MmsException if pdu is null.
      */
     protected byte[] sendPdu(long token, byte[] pdu) throws IOException, MmsException {
         return sendPdu(token, pdu, mTransactionSettings.getMmscUrl());
@@ -157,9 +160,9 @@ public abstract class Transaction extends Observable {
      * @param mmscUrl Url of the recipient MMSC.
      * @return A byte array which contains the response data.
      *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
+     * @throws java.io.IOException if any error occurred on network interface or
      *         an HTTP error code(>=400) returned from the server.
-     * @throws MmsException if pdu is null.
+     * @throws com.google.android.mms.MmsException if pdu is null.
      */
     protected byte[] sendPdu(long token, byte[] pdu,
             String mmscUrl) throws IOException, MmsException {
@@ -183,7 +186,7 @@ public abstract class Transaction extends Observable {
      * @param url The URL of the message which we are going to retrieve.
      * @return A byte array which contains the data of the PDU.
      *         If the status code is not correct, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
+     * @throws java.io.IOException if any error occurred on network interface or
      *         an HTTP error code(>=400) returned from the server.
      */
     protected byte[] getPdu(String url) throws IOException {

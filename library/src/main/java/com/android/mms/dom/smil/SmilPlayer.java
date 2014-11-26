@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +33,7 @@ import org.w3c.dom.smil.ElementTime;
 import org.w3c.dom.smil.Time;
 import org.w3c.dom.smil.TimeList;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 /**
  * The SmilPlayer is responsible for playing, stopping, pausing and resuming a SMIL tree.

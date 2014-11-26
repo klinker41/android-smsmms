@@ -16,7 +16,7 @@
 
 package com.android.mms;
 
-import android.util.Log;
+import com.klinker.android.logger.Log;
 
 public class LogTag {
     public static final String TAG = "Mms";

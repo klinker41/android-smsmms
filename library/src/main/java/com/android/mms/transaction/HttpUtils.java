@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2008 Esmertec AG.
- * Copyright (C) 2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,10 +42,11 @@ import android.text.TextUtils;
 import android.util.Config;
 import com.klinker.android.logger.Log;
 
+import com.android.mms.LogTag;
 import com.android.mms.MmsConfig;
 
 public class HttpUtils {
-    private static final String TAG = "android-smsmms_transaction";
+    private static final String TAG = LogTag.TRANSACTION;
 
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = DEBUG ? Config.LOGD : Config.LOGV;
@@ -87,7 +87,7 @@ public class HttpUtils {
      * @param method HTTP_POST_METHOD or HTTP_GET_METHOD.
      * @return A byte array which contains the response data.
      *         If an HTTP error code is returned, an IOException will be thrown.
-     * @throws IOException if any error occurred on network interface or
+     * @throws java.io.IOException if any error occurred on network interface or
      *         an HTTP error code(&gt;=400) returned from the server.
      */
     public static byte[] httpConnection(Context context, long token,
@@ -97,6 +97,7 @@ public class HttpUtils {
             throw new IllegalArgumentException("URL must not be null.");
         }
 
+        if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
             Log.v(TAG, "httpConnection: params list");
             Log.v(TAG, "\ttoken\t\t= " + token);
             Log.v(TAG, "\turl\t\t= " + url);
@@ -108,6 +109,7 @@ public class HttpUtils {
             Log.v(TAG, "\tproxyPort\t= " + proxyPort);
             // TODO Print out binary data more readable.
             //Log.v(TAG, "\tpdu\t\t= " + Arrays.toString(pdu));
+        }
 
         AndroidHttpClient client = null;
 
@@ -154,10 +156,11 @@ public class HttpUtils {
             {
                 String xWapProfileTagName = MmsConfig.getUaProfTagName();
                 String xWapProfileUrl = MmsConfig.getUaProfUrl();
-
                 if (xWapProfileUrl != null) {
-                        Log.d(TAG,
+                    if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
+                        Log.d(LogTag.TRANSACTION,
                                 "[HttpUtils] httpConn: xWapProfUrl=" + xWapProfileUrl);
+                    }
                     req.addHeader(xWapProfileTagName, xWapProfileUrl);
                 }
             }
@@ -302,8 +305,10 @@ public class HttpUtils {
         // set the socket timeout
         int soTimeout = MmsConfig.getHttpSocketTimeout();
 
+        if (Log.isLoggable(LogTag.TRANSACTION, Log.DEBUG)) {
             Log.d(TAG, "[HttpUtils] createHttpClient w/ socket timeout " + soTimeout + " ms, "
                     + ", UA=" + userAgent);
+        }
         HttpConnectionParams.setSoTimeout(params, soTimeout);
         return client;
     }

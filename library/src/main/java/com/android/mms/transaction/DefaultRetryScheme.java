@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2008 Esmertec AG.
- * Copyright (C) 2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +16,8 @@
 
 package com.android.mms.transaction;
 
+import com.android.mms.LogTag;
+
 import android.content.Context;
 import android.util.Config;
 import com.klinker.android.logger.Log;
@@ -25,7 +26,7 @@ import com.klinker.android.logger.Log;
  * Default retry scheme, based on specs.
  */
 public class DefaultRetryScheme extends AbstractRetryScheme {
-    private static final String TAG = "DefaultRetryScheme";
+    private static final String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = DEBUG ? Config.LOGD : Config.LOGV;
 

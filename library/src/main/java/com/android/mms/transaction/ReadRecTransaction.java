@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright 2014 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +20,10 @@ import java.io.IOException;
 
 import android.content.Context;
 import android.net.Uri;
+import android.provider.Telephony.Mms.Sent;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.LogTag;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.EncodedStringValue;
 import com.google.android.mms.pdu_alt.PduComposer;
@@ -41,7 +43,7 @@ import com.klinker.android.send_message.Utils;
  * </ul>
  */
 public class ReadRecTransaction extends Transaction implements Runnable{
-    private static final String TAG = "ReadRecTransaction";
+    private static final String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
     private static final boolean LOCAL_LOGV = false;
 
@@ -85,7 +87,7 @@ public class ReadRecTransaction extends Transaction implements Runnable{
             byte[] postingData = new PduComposer(mContext, readRecInd).make();
             sendPdu(postingData);
 
-            Uri uri = persister.move(mReadReportURI, Uri.parse("content://mms/sent"));
+            Uri uri = persister.move(mReadReportURI, Sent.CONTENT_URI);
             mTransactionState.setState(TransactionState.SUCCESS);
             mTransactionState.setContentUri(uri);
         } catch (IOException e) {
