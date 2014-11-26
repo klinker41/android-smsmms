@@ -125,75 +125,81 @@ public class RetrieveTransaction extends Transaction implements Runnable {
     }
 
     public void run() {
-        try {
-            // Change the downloading state of the M-Notification.ind.
-            DownloadManager.getInstance().markState(
-                    mUri, DownloadManager.STATE_DOWNLOADING);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            DownloadRequest request = new DownloadRequest(mContentLocation, mUri, null, null, null);
+//            MmsNetworkManager manager = new MmsNetworkManager(mContext);
+//            request.execute(mContext, manager);
+//        } else {
+            try {
+                // Change the downloading state of the M-Notification.ind.
+                DownloadManager.getInstance().markState(
+                        mUri, DownloadManager.STATE_DOWNLOADING);
 
-            // Send GET request to MMSC and retrieve the response data.
-            byte[] resp = getPdu(mContentLocation);
+                // Send GET request to MMSC and retrieve the response data.
+                byte[] resp = getPdu(mContentLocation);
 
-            // Parse M-Retrieve.conf
-            RetrieveConf retrieveConf = (RetrieveConf) new PduParser(resp).parse();
-            if (null == retrieveConf) {
-                throw new MmsException("Invalid M-Retrieve.conf PDU.");
-            }
-
-            Uri msgUri = null;
-            if (isDuplicateMessage(mContext, retrieveConf)) {
-                // Mark this transaction as failed to prevent duplicate
-                // notification to user.
-                mTransactionState.setState(TransactionState.FAILED);
-                mTransactionState.setContentUri(mUri);
-            } else {
-                boolean group;
-
-                try {
-                    group = com.klinker.android.send_message.Transaction.settings.getGroup();
-                } catch (Exception e) {
-                    group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
+                // Parse M-Retrieve.conf
+                RetrieveConf retrieveConf = (RetrieveConf) new PduParser(resp).parse();
+                if (null == retrieveConf) {
+                    throw new MmsException("Invalid M-Retrieve.conf PDU.");
                 }
 
-                // Store M-Retrieve.conf into Inbox
-                PduPersister persister = PduPersister.getPduPersister(mContext);
-                msgUri = persister.persist(retrieveConf, Inbox.CONTENT_URI, true,
-                        group, null);
+                Uri msgUri = null;
+                if (isDuplicateMessage(mContext, retrieveConf)) {
+                    // Mark this transaction as failed to prevent duplicate
+                    // notification to user.
+                    mTransactionState.setState(TransactionState.FAILED);
+                    mTransactionState.setContentUri(mUri);
+                } else {
+                    boolean group;
 
-                // Use local time instead of PDU time
-                ContentValues values = new ContentValues(2);
-                values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
-                values.put(Mms.MESSAGE_SIZE, resp.length);
-                SqliteWrapper.update(mContext, mContext.getContentResolver(),
-                        msgUri, values, null, null);
+                    try {
+                        group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                    } catch (Exception e) {
+                        group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
+                    }
 
-                // The M-Retrieve.conf has been successfully downloaded.
-                mTransactionState.setState(TransactionState.SUCCESS);
-                mTransactionState.setContentUri(msgUri);
-                // Remember the location the message was downloaded from.
-                // Since it's not critical, it won't fail the transaction.
-                // Copy over the locked flag from the M-Notification.ind in case
-                // the user locked the message before activating the download.
-                updateContentLocation(mContext, msgUri, mContentLocation, mLocked);
+                    // Store M-Retrieve.conf into Inbox
+                    PduPersister persister = PduPersister.getPduPersister(mContext);
+                    msgUri = persister.persist(retrieveConf, Inbox.CONTENT_URI, true,
+                            group, null);
+
+                    // Use local time instead of PDU time
+                    ContentValues values = new ContentValues(2);
+                    values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
+                    values.put(Mms.MESSAGE_SIZE, resp.length);
+                    SqliteWrapper.update(mContext, mContext.getContentResolver(),
+                            msgUri, values, null, null);
+
+                    // The M-Retrieve.conf has been successfully downloaded.
+                    mTransactionState.setState(TransactionState.SUCCESS);
+                    mTransactionState.setContentUri(msgUri);
+                    // Remember the location the message was downloaded from.
+                    // Since it's not critical, it won't fail the transaction.
+                    // Copy over the locked flag from the M-Notification.ind in case
+                    // the user locked the message before activating the download.
+                    updateContentLocation(mContext, msgUri, mContentLocation, mLocked);
+                }
+
+                // Delete the corresponding M-Notification.ind.
+                SqliteWrapper.delete(mContext, mContext.getContentResolver(),
+                        mUri, null, null);
+
+                // Send ACK to the Proxy-Relay to indicate we have fetched the
+                // MM successfully.
+                // Don't mark the transaction as failed if we failed to send it.
+                sendAcknowledgeInd(retrieveConf);
+            } catch (Throwable t) {
+                Log.e(TAG, "error", t);
+            } finally {
+                if (mTransactionState.getState() != TransactionState.SUCCESS) {
+                    mTransactionState.setState(TransactionState.FAILED);
+                    mTransactionState.setContentUri(mUri);
+                    Log.e(TAG, "Retrieval failed.");
+                }
+                notifyObservers();
             }
-
-            // Delete the corresponding M-Notification.ind.
-            SqliteWrapper.delete(mContext, mContext.getContentResolver(),
-                                 mUri, null, null);
-
-            // Send ACK to the Proxy-Relay to indicate we have fetched the
-            // MM successfully.
-            // Don't mark the transaction as failed if we failed to send it.
-            sendAcknowledgeInd(retrieveConf);
-        } catch (Throwable t) {
-            Log.e(TAG, "error", t);
-        } finally {
-            if (mTransactionState.getState() != TransactionState.SUCCESS) {
-                mTransactionState.setState(TransactionState.FAILED);
-                mTransactionState.setContentUri(mUri);
-                Log.e(TAG, "Retrieval failed.");
-            }
-            notifyObservers();
-        }
+//        }
     }
 
     private static boolean isDuplicateMessage(Context context, RetrieveConf rc) {
