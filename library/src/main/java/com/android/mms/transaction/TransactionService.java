@@ -179,30 +179,30 @@ public class TransactionService extends Service implements Observer {
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
         if (intent != null) {
-            if (intent.getBooleanExtra(TransactionBundle.LOLLIPOP_RECEIVING, false)) {
-                lollipopReceiving = true;
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.v(TAG, "starting receiving with new lollipop method");
-                        Uri contentUri = Uri.parse(intent.getStringExtra(TransactionBundle.URI));
-                        String downloadLocation = null;
-                        Cursor locationQuery = getContentResolver().query(contentUri, new String[]{Telephony.Mms.CONTENT_LOCATION, Telephony.Mms._ID}, null, null, "date desc");
-
-                        if (locationQuery != null && locationQuery.moveToFirst()) {
-                            Log.v(TAG, "grabbing content location url");
-                            downloadLocation = locationQuery.getString(locationQuery.getColumnIndex(Telephony.Mms.CONTENT_LOCATION));
-                        }
-
-                        Log.v(TAG, "creating request with url: " + downloadLocation);
-                        DownloadRequest request = new DownloadRequest(downloadLocation, contentUri, null, null, null);
-                        MmsNetworkManager manager = new MmsNetworkManager(TransactionService.this);
-                        request.execute(TransactionService.this, manager);
-                        stopSelf();
-                    }
-                }).start();
-                return START_NOT_STICKY;
-            }
+//            if (intent.getBooleanExtra(TransactionBundle.LOLLIPOP_RECEIVING, false)) {
+//                lollipopReceiving = true;
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.v(TAG, "starting receiving with new lollipop method");
+//                        Uri contentUri = Uri.parse(intent.getStringExtra(TransactionBundle.URI));
+//                        String downloadLocation = null;
+//                        Cursor locationQuery = getContentResolver().query(contentUri, new String[]{Telephony.Mms.CONTENT_LOCATION, Telephony.Mms._ID}, null, null, "date desc");
+//
+//                        if (locationQuery != null && locationQuery.moveToFirst()) {
+//                            Log.v(TAG, "grabbing content location url");
+//                            downloadLocation = locationQuery.getString(locationQuery.getColumnIndex(Telephony.Mms.CONTENT_LOCATION));
+//                        }
+//
+//                        Log.v(TAG, "creating request with url: " + downloadLocation);
+//                        DownloadRequest request = new DownloadRequest(downloadLocation, contentUri, null, null, null);
+//                        MmsNetworkManager manager = new MmsNetworkManager(TransactionService.this);
+//                        request.execute(TransactionService.this, manager);
+//                        stopSelf();
+//                    }
+//                }).start();
+//                return START_NOT_STICKY;
+//            }
 
             Message msg = mServiceHandler.obtainMessage(EVENT_NEW_INTENT);
             msg.arg1 = startId;
