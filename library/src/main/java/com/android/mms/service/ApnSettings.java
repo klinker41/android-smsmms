@@ -109,7 +109,7 @@ public class ApnSettings {
                             proxyAddress = NetworkUtils.trimV4AddrZeros(proxyAddress);
                             final String portString =
                                     trimWithNullCheck(cursor.getString(COLUMN_MMSPORT));
-                            if (portString != null) {
+                            if (!TextUtils.isEmpty(portString)) {
                                 try {
                                     proxyPort = Integer.parseInt(portString);
                                 } catch (NumberFormatException e) {
@@ -133,7 +133,7 @@ public class ApnSettings {
         String mmsc = sharedPrefs.getString("mmsc_url", "");
         String mmsProxy = sharedPrefs.getString("mms_proxy", "");
         String mmsPort = sharedPrefs.getString("mms_port", "");
-        return new ApnSettings(mmsc, mmsProxy, Integer.parseInt(mmsPort));
+        return new ApnSettings(mmsc, mmsProxy, parsePort(mmsPort));
     }
 
     private static String trimWithNullCheck(String value) {
@@ -174,6 +174,14 @@ public class ApnSettings {
             }
         }
         return false;
+    }
+
+    private static int parsePort(String port) {
+        if (TextUtils.isEmpty(port)) {
+            return 80;
+        } else {
+            return Integer.parseInt(port);
+        }
     }
 
     public String toString() {

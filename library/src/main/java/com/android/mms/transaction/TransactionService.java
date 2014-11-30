@@ -179,6 +179,15 @@ public class TransactionService extends Service implements Observer {
             return;
         }
 
+        initServiceHandler();
+
+        mReceiver = new ConnectivityBroadcastReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(mReceiver, intentFilter);
+    }
+
+    private void initServiceHandler() {
         // Start up the thread running the service.  Note that we create a
         // separate thread because the service normally runs in the process's
         // main thread, which we don't want to block.
@@ -187,11 +196,6 @@ public class TransactionService extends Service implements Observer {
 
         mServiceLooper = thread.getLooper();
         mServiceHandler = new ServiceHandler(mServiceLooper);
-
-        mReceiver = new ConnectivityBroadcastReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(mReceiver, intentFilter);
     }
 
     @Override
@@ -223,6 +227,10 @@ public class TransactionService extends Service implements Observer {
 //                }).start();
 //                return START_NOT_STICKY;
 //            }
+
+            if (mServiceHandler == null) {
+                initServiceHandler();
+            }
 
             Message msg = mServiceHandler.obtainMessage(EVENT_NEW_INTENT);
             msg.arg1 = startId;

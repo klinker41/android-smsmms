@@ -312,13 +312,11 @@ public class SendRequest extends MmsRequest {
 
     @Override
     protected void revokeUriPermission(Context context) {
-        context.revokeUriPermission(mPduUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-    }
-
-    public void markFinished(Context context) {
-        ContentValues values = new ContentValues(1);
-        values.put(Telephony.Mms.MESSAGE_BOX, Telephony.Mms.MESSAGE_BOX_SENT);
-        context.getContentResolver().update(mPduUri, values, null, null);
+        try {
+            context.revokeUriPermission(mPduUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "error revoking permissions", e);
+        }
     }
 
 }
