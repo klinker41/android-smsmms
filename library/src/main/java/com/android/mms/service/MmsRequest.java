@@ -16,6 +16,7 @@
 
 package com.android.mms.service;
 
+import android.net.*;
 import com.android.mms.service.exception.ApnException;
 import com.android.mms.service.exception.MmsHttpException;
 import com.android.mms.service.exception.MmsNetworkException;
@@ -25,10 +26,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.LinkProperties;
-import android.net.Network;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -214,13 +211,23 @@ public abstract class MmsRequest {
                 // library yet. We have to rely on this API to get things work. Once
                 // a multinet aware HTTP lib is ready, we should switch to that and
                 // remove all the unnecessary code.
-                Method m = connMgr.getClass().getDeclaredMethod("requestRouteToHostAddress", int.class, InetAddress.class);
-                m.setAccessible(true);
-                if (!(Boolean) m.invoke(connMgr,
-                        ConnectivityManager.TYPE_MOBILE_MMS, address)) {
+
+                boolean result;
+
+                try {
+                    Method m = connMgr.getClass().getDeclaredMethod("requestRouteToHostAddress", int.class, InetAddress.class);
+                    m.setAccessible(true);
+                    result = (Boolean) m.invoke(connMgr,
+                            ConnectivityManager.TYPE_MOBILE_MMS, address);
+                } catch (NoSuchMethodException e) {
+                    result = connMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_MMS, NetworkUtils.inetAddressToInt(address));
+                }
+
+                if (!result) {
                     throw new MmsHttpException("MmsRequest: can not request a route for host "
                             + address);
                 }
+
                 return HttpUtils.httpConnection(
                         context,
                         url,
