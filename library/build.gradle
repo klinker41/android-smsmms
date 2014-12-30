@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.14.2'
+        classpath 'com.android.tools.build:gradle:1.0.0'
     }
 }
 
@@ -26,7 +26,7 @@ dependencies {
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.1.2"
 
     sourceSets {
         main {
@@ -37,7 +37,6 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.klinker.android.send_message'
         minSdkVersion 14
         targetSdkVersion 21
     }
