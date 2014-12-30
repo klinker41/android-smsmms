@@ -64,9 +64,9 @@ public class DhcpInfoInternal {
     private int convertToInt(String addr) {
         if (addr != null) {
             try {
-                InetAddress inetAddress = NetworkUtils.numericToInetAddress(addr);
+                InetAddress inetAddress = NetworkUtilsHelper.numericToInetAddress(addr);
                 if (inetAddress instanceof Inet4Address) {
-                    return NetworkUtils.inetAddressToInt(inetAddress);
+                    return NetworkUtilsHelper.inetAddressToInt(inetAddress);
                 }
             } catch (IllegalArgumentException e) {
             }
@@ -84,7 +84,7 @@ public class DhcpInfoInternal {
             }
         }
         try {
-            info.netmask = NetworkUtils.prefixLengthToNetmaskInt(prefixLength);
+            info.netmask = NetworkUtilsHelper.prefixLengthToNetmaskInt(prefixLength);
         } catch (IllegalArgumentException e) {
         }
         info.dns1 = convertToInt(dns1);
@@ -99,7 +99,7 @@ public class DhcpInfoInternal {
             Log.e(TAG, "makeLinkAddress with empty ipAddress");
             return null;
         }
-        return new LinkAddress(NetworkUtils.numericToInetAddress(ipAddress), prefixLength);
+        return new LinkAddress(NetworkUtilsHelper.numericToInetAddress(ipAddress), prefixLength);
     }
 
     public LinkProperties makeLinkProperties() {
@@ -110,12 +110,12 @@ public class DhcpInfoInternal {
         }
         //if empty, connectivity configures default DNS
         if (TextUtils.isEmpty(dns1) == false) {
-            p.addDns(NetworkUtils.numericToInetAddress(dns1));
+            p.addDns(NetworkUtilsHelper.numericToInetAddress(dns1));
         } else {
             Log.d(TAG, "makeLinkProperties with empty dns1!");
         }
         if (TextUtils.isEmpty(dns2) == false) {
-            p.addDns(NetworkUtils.numericToInetAddress(dns2));
+            p.addDns(NetworkUtilsHelper.numericToInetAddress(dns2));
         } else {
             Log.d(TAG, "makeLinkProperties with empty dns2!");
         }

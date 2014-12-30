@@ -29,7 +29,7 @@ import java.util.Collection;
  * <p/>
  * {@hide}
  */
-public class NetworkUtils {
+public class NetworkUtilsHelper {
 
     private static final String TAG = "NetworkUtils";
 

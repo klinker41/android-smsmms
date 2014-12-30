@@ -17,9 +17,7 @@
 package com.android.mms.transaction;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SqliteWrapper;
-import android.net.NetworkUtils;
+import android.net.NetworkUtilsHelper;
 import android.provider.Telephony;
 import android.text.TextUtils;
 import com.klinker.android.logger.Log;
@@ -89,8 +87,8 @@ public class TransactionSettings {
             Transaction.settings = Utils.getDefaultSendSettings(context);
         }
 
-        mServiceCenter = NetworkUtils.trimV4AddrZeros(Transaction.settings.getMmsc());
-        mProxyAddress = NetworkUtils.trimV4AddrZeros(Transaction.settings.getProxy());
+        mServiceCenter = NetworkUtilsHelper.trimV4AddrZeros(Transaction.settings.getMmsc());
+        mProxyAddress = NetworkUtilsHelper.trimV4AddrZeros(Transaction.settings.getProxy());
 
         // Set up the agent, profile url and tag name to be used in the mms request if they are attached in settings
         String agent = Transaction.settings.getAgent();

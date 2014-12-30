@@ -23,15 +23,12 @@ import com.android.mms.service.exception.MmsNetworkException;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Telephony;
 import android.telephony.SmsManager;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.Utils;
-import com.koushikdutta.async.Util;
 
 import java.lang.reflect.Method;
 import java.net.Inet4Address;
@@ -220,7 +217,7 @@ public abstract class MmsRequest {
                     result = (Boolean) m.invoke(connMgr,
                             ConnectivityManager.TYPE_MOBILE_MMS, address);
                 } catch (NoSuchMethodException e) {
-                    result = connMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_MMS, NetworkUtils.inetAddressToInt(address));
+                    result = connMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_MMS, NetworkUtilsHelper.inetAddressToInt(address));
                 }
 
                 if (!result) {

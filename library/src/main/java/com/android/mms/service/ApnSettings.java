@@ -23,7 +23,7 @@ import com.android.mms.service.exception.ApnException;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
-import android.net.NetworkUtils;
+import android.net.NetworkUtilsHelper;
 import android.net.Uri;
 import android.provider.Telephony;
 import android.text.TextUtils;
@@ -98,7 +98,7 @@ public class ApnSettings {
                         if (TextUtils.isEmpty(mmscUrl)) {
                             continue;
                         }
-                        mmscUrl = NetworkUtils.trimV4AddrZeros(mmscUrl);
+                        mmscUrl = NetworkUtilsHelper.trimV4AddrZeros(mmscUrl);
                         try {
                             new URI(mmscUrl);
                         } catch (URISyntaxException e) {
@@ -106,7 +106,7 @@ public class ApnSettings {
                         }
                         proxyAddress = trimWithNullCheck(cursor.getString(COLUMN_MMSPROXY));
                         if (!TextUtils.isEmpty(proxyAddress)) {
-                            proxyAddress = NetworkUtils.trimV4AddrZeros(proxyAddress);
+                            proxyAddress = NetworkUtilsHelper.trimV4AddrZeros(proxyAddress);
                             final String portString =
                                     trimWithNullCheck(cursor.getString(COLUMN_MMSPORT));
                             if (!TextUtils.isEmpty(portString)) {

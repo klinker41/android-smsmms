@@ -86,7 +86,7 @@ public class RouteInfo implements Parcelable {
                 }
             }
         }
-        mDestination = new LinkAddress(NetworkUtils.getNetworkPart(destination.getAddress(),
+        mDestination = new LinkAddress(NetworkUtilsHelper.getNetworkPart(destination.getAddress(),
                 destination.getNetworkPrefixLength()), destination.getNetworkPrefixLength());
         mGateway = gateway;
         mIsDefault = isDefault();
@@ -252,7 +252,7 @@ public class RouteInfo implements Parcelable {
         if (isDefault()) return true;
 
         // match the route destination and destination with prefix length
-        InetAddress dstNet = NetworkUtils.getNetworkPart(destination,
+        InetAddress dstNet = NetworkUtilsHelper.getNetworkPart(destination,
                 mDestination.getNetworkPrefixLength());
 
         return mDestination.getAddress().equals(dstNet);
@@ -272,7 +272,7 @@ public class RouteInfo implements Parcelable {
         RouteInfo bestRoute = null;
         // pick a longest prefix match under same address type
         for (RouteInfo route : routes) {
-            if (NetworkUtils.addressTypeMatches(route.mDestination.getAddress(), dest)) {
+            if (NetworkUtilsHelper.addressTypeMatches(route.mDestination.getAddress(), dest)) {
                 if ((bestRoute != null) &&
                         (bestRoute.mDestination.getNetworkPrefixLength() >=
                                 route.mDestination.getNetworkPrefixLength())) {
