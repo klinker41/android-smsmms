@@ -309,27 +309,32 @@ public class TransactionService extends Service implements Observer {
                                 int failureType = cursor.getInt(
                                         cursor.getColumnIndexOrThrow(
                                                 PendingMessages.ERROR_TYPE));
-                                DownloadManager downloadManager = DownloadManager.getInstance();
-                                boolean autoDownload = downloadManager.isAuto();
-                                if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
-                                    Log.v(TAG, "onNewIntent: failureType=" + failureType +
-                                            " action=" + action + " isTransientFailure:" +
-                                            isTransientFailure(failureType) + " autoDownload=" +
-                                            autoDownload);
-                                }
-                                if (!autoDownload) {
-                                    // If autodownload is turned off, don't process the
-                                    // transaction.
+                                try {
+                                    DownloadManager downloadManager = DownloadManager.getInstance();
+                                    boolean autoDownload = downloadManager.isAuto();
                                     if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
-                                        Log.v(TAG, "onNewIntent: skipping - autodownload off");
+                                        Log.v(TAG, "onNewIntent: failureType=" + failureType +
+                                                " action=" + action + " isTransientFailure:" +
+                                                isTransientFailure(failureType) + " autoDownload=" +
+                                                autoDownload);
                                     }
-                                    // Re-enable "download" button if auto-download is off
-                                    Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
-                                            cursor.getLong(columnIndexOfMsgId));
-                                    downloadManager.markState(uri,
-                                            DownloadManager.STATE_SKIP_RETRYING);
-                                    break;
+                                    if (!autoDownload) {
+                                        // If autodownload is turned off, don't process the
+                                        // transaction.
+                                        if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
+                                            Log.v(TAG, "onNewIntent: skipping - autodownload off");
+                                        }
+                                        // Re-enable "download" button if auto-download is off
+                                        Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
+                                                cursor.getLong(columnIndexOfMsgId));
+                                        downloadManager.markState(uri,
+                                                DownloadManager.STATE_SKIP_RETRYING);
+                                        break;
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
+
                                 // Logic is twisty. If there's no failure or the failure
                                 // is a non-permanent failure, we want to process the transaction.
                                 // Otherwise, break out and skip processing this transaction.
@@ -452,7 +457,10 @@ public class TransactionService extends Service implements Observer {
 
         releaseWakeLock();
 
-        unregisterReceiver(mReceiver);
+        try {
+            unregisterReceiver(mReceiver);
+        } catch (Exception e) {
+        }
 
         mServiceHandler.sendEmptyMessage(EVENT_QUIT);
 
