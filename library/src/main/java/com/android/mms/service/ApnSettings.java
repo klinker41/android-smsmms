@@ -65,6 +65,15 @@ public class ApnSettings {
      */
     public static ApnSettings load(Context context, String apnName)
             throws ApnException {
+
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String mmsc = sharedPrefs.getString("mmsc_url", "");
+        if (!TextUtils.isEmpty(mmsc)) {
+            String mmsProxy = sharedPrefs.getString("mms_proxy", "");
+            String mmsPort = sharedPrefs.getString("mms_port", "");
+            return new ApnSettings(mmsc, mmsProxy, parsePort(mmsPort));
+        }
+
         Log.v(TAG, "ApnSettings: apnName " + apnName);
         // TODO: CURRENT semantics is currently broken in telephony. Revive this when it is fixed.
         //String selection = Telephony.Carriers.CURRENT + " IS NOT NULL";
@@ -129,11 +138,7 @@ public class ApnSettings {
             }
         }
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String mmsc = sharedPrefs.getString("mmsc_url", "");
-        String mmsProxy = sharedPrefs.getString("mms_proxy", "");
-        String mmsPort = sharedPrefs.getString("mms_port", "");
-        return new ApnSettings(mmsc, mmsProxy, parsePort(mmsPort));
+        return new ApnSettings("", "", 80);
     }
 
     private static String trimWithNullCheck(String value) {
