@@ -137,7 +137,7 @@ public class Transaction {
             try { Looper.prepare(); } catch (Exception e) { }
             RateController.init(context);
             DownloadManager.init(context);
-            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getImageNames(), message.getMedia(), message.getMediaMimeType(), message.getSubject());
+            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getImageNames(), message.getParts(), message.getSubject());
         } else {
             if (message.getType() == Message.TYPE_VOICE) {
                 sendVoiceMessage(message.getText(), message.getAddresses(), threadId);
@@ -312,7 +312,7 @@ public class Transaction {
         }
     }
 
-    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, String[] imageNames, byte[] media, String mimeType, String subject) {
+    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, String[] imageNames, List<Message.Part> parts, String subject) {
         // merge the string[] of addresses into a single string so they can be inserted into the database easier
         String address = "";
 
@@ -338,14 +338,20 @@ public class Transaction {
 
         // add any extra media according to their mimeType set in the message
         //      eg. videos, audio, contact cards, location maybe?
-        if (media.length > 0 && mimeType != null) {
-            MMSPart part = new MMSPart();
-            part.MimeType = mimeType;
-            part.Name = mimeType.split("/")[0];
-            part.Data = media;
-            data.add(part);     	
+        if (parts != null) {
+            for (Message.Part p : parts) {
+                MMSPart part = new MMSPart();
+                if (p.getName() != null) {
+                    part.Name = p.getName();
+                } else {
+                    part.Name = p.getContentType().split("/")[0];
+                }
+                part.MimeType = p.getContentType();
+                part.Data = p.getMedia();
+                data.add(part);
+            }
         }
-        
+
         if (!text.equals("")) {
             // add text to the end of the part and send
             MMSPart part = new MMSPart();
@@ -1196,7 +1202,7 @@ public class Transaction {
      */
     public boolean checkMMS(Message message) {
         return message.getImages().length != 0 ||
-                (message.getMedia().length != 0 && message.getMediaMimeType() != null) ||
+                (message.getParts().size() != 0) ||
                 (settings.getSendLongAsMms() && Utils.getNumPages(settings, message.getText()) > settings.getSendLongAsMmsAfter() && message.getType() != Message.TYPE_VOICE) ||
                 (message.getAddresses().length > 1 && settings.getGroup()) ||
                 message.getSubject() != null;
