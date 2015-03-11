@@ -292,14 +292,24 @@ public class Message {
         this.images = new Bitmap[1];
         this.images[0] = image;
     }
-    
+
+    /**
+     * Sets audio file.  Must be in wav format.
+     *
+     * @param audio is the single audio sample to send to recipient
+     */
+    @Deprecated
+    public void setAudio(byte[] audio) {
+        addAudio(audio);
+    }
+
     /**
      * Sets audio file.  Must be in wav format.
      *
      * @param audio is the single audio sample to send to recipient
      */
     public void addAudio(byte[] audio) {
-        this.parts.add(new Part(audio, "audio/wav", null));
+        addMedia(audio, "audio/wav");
     }
 
     /**
@@ -307,12 +317,33 @@ public class Message {
      *
      * @param video is the single video sample to send to recipient
      */
+    @Deprecated
+    public void setVideo(byte[] video) {
+        addVideo(video);
+    }
+
+    /**
+     * Adds video file
+     *
+     * @param video is the single video sample to send to recipient
+     */
     public void addVideo(byte[] video) {
-        this.parts.add(new Part(video, "video/3gpp", null));
+        addMedia(video, "video/3gpp");
     }
 
     /**
      * Sets other media
+     *
+     * @param media is the media you want to send
+     * @param mimeType is the mimeType of the media
+     */
+    @Deprecated
+    public void setMedia(byte[] media, String mimeType) {
+         addMedia(media, mimeType);
+    }
+
+    /**
+     * Adds other media
      *
      * @param media is the media you want to send
      * @param mimeType is the mimeType of the media
