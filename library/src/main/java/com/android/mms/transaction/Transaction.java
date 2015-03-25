@@ -22,6 +22,7 @@ import java.net.UnknownHostException;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 
 import com.android.mms.util.SendingProgressTokenManager;
@@ -170,6 +171,18 @@ public abstract class Transaction extends Observable {
             throw new MmsException();
         }
 
+        if (mmscUrl == null) {
+            throw new IOException("Cannot establish route: mmscUrl is null");
+        }
+
+        if (useWifi(mContext)) {
+            return HttpUtils.httpConnection(
+                    mContext, token,
+                    mmscUrl,
+                    pdu, HttpUtils.HTTP_POST_METHOD,
+                    false, null, 0);
+        }
+
         Utils.ensureRouteToHost(mContext, mmscUrl, mTransactionSettings.getProxyAddress());
         return HttpUtils.httpConnection(
                 mContext, token,
@@ -190,13 +203,45 @@ public abstract class Transaction extends Observable {
      *         an HTTP error code(>=400) returned from the server.
      */
     protected byte[] getPdu(String url) throws IOException {
+        if (url == null) {
+            throw new IOException("Cannot establish route: url is null");
+        }
+
+        if (useWifi(mContext)) {
+            return HttpUtils.httpConnection(
+                    mContext,
+                    SendingProgressTokenManager.NO_TOKEN,
+                    url,
+                    null,
+                    HttpUtils.HTTP_GET_METHOD,
+                    false,
+                    null,
+                    0);
+        }
+
         Utils.ensureRouteToHost(mContext, url, mTransactionSettings.getProxyAddress());
         return HttpUtils.httpConnection(
-                mContext, SendingProgressTokenManager.NO_TOKEN,
-                url, null, HttpUtils.HTTP_GET_METHOD,
+                mContext,
+                SendingProgressTokenManager.NO_TOKEN,
+                url,
+                null,
+                HttpUtils.HTTP_GET_METHOD,
                 mTransactionSettings.isProxySet(),
                 mTransactionSettings.getProxyAddress(),
                 mTransactionSettings.getProxyPort());
+    }
+
+    public static boolean useWifi(Context context) {
+        if (Utils.isMmsOverWifiEnabled(context)) {
+            ConnectivityManager mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (mConnMgr != null) {
+                NetworkInfo niWF = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                if ((niWF != null) && (niWF.isConnected())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

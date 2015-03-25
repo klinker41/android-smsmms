@@ -209,6 +209,20 @@ public abstract class MmsRequest {
                 // a multinet aware HTTP lib is ready, we should switch to that and
                 // remove all the unnecessary code.
 
+                if (useWifi(context)) {
+                    return HttpUtils.httpConnection(
+                            context,
+                            url,
+                            pdu,
+                            method,
+                            false,
+                            null,
+                            0,
+                            netMgr,
+                            address instanceof Inet6Address,
+                            mMmsConfig);
+                }
+
                 boolean result;
 
                 try {
@@ -395,6 +409,19 @@ public abstract class MmsRequest {
         }
 
         revokeUriPermission(context);
+    }
+
+    public static boolean useWifi(Context context) {
+        if (Utils.isMmsOverWifiEnabled(context)) {
+            ConnectivityManager mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (mConnMgr != null) {
+                NetworkInfo niWF = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                if ((niWF != null) && (niWF.isConnected())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

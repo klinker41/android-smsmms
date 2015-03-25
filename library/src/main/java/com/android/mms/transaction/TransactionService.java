@@ -32,10 +32,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.*;
-import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
-import android.provider.Telephony.Mms.Sent;
 import android.provider.Telephony.MmsSms.PendingMessages;
 import android.text.TextUtils;
 import com.android.mms.service.DownloadRequest;
@@ -44,7 +42,6 @@ import com.klinker.android.logger.Log;
 import android.widget.Toast;
 
 import com.android.mms.LogTag;
-import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;
 import com.google.android.mms.pdu_alt.GenericPdu;
@@ -54,7 +51,6 @@ import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.klinker.android.send_message.R;
 import com.klinker.android.send_message.Utils;
-import com.koushikdutta.async.Util;
 
 /**
  * The TransactionService of the MMS Client is responsible for handling requests
@@ -240,6 +236,18 @@ public class TransactionService extends Service implements Observer {
         return Service.START_NOT_STICKY;
     }
 
+    private boolean isNetworkAvailable() {
+        if (mConnMgr == null) {
+            return false;
+        } else if (Utils.isMmsOverWifiEnabled(this)) {
+            NetworkInfo niWF = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            return (niWF == null ? false : niWF.isConnected());
+        } else {
+            NetworkInfo ni = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE_MMS);
+            return (ni == null ? false : ni.isAvailable());
+        }
+    }
+
     public void onNewIntent(Intent intent, int serviceId) {
         mobileDataEnabled = Utils.isMobileDataEnabled(this);
         mConnMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -251,8 +259,8 @@ public class TransactionService extends Service implements Observer {
             stopSelf(serviceId);
             return;
         }
-        NetworkInfo ni = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE_MMS);
-        boolean noNetwork = ni == null || !ni.isAvailable();
+
+        boolean noNetwork = !isNetworkAvailable();
 
         if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
             Log.v(TAG, "onNewIntent: serviceId: " + serviceId + ": " + intent.getExtras() +
@@ -595,6 +603,14 @@ public class TransactionService extends Service implements Observer {
         }
         // Take a wake lock so we don't fall asleep before the message is downloaded.
         createWakeLock();
+
+        if (Utils.isMmsOverWifiEnabled(this)) {
+            NetworkInfo niWF = mConnMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            if ((niWF != null) && (niWF.isConnected())) {
+                Log.v(TAG, "beginMmsConnectivity: Wifi active");
+                return 0;
+            }
+        }
 
         int result = mConnMgr.startUsingNetworkFeature(
                 ConnectivityManager.TYPE_MOBILE, "enableMMS");
