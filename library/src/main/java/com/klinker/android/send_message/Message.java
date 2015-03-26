@@ -20,6 +20,8 @@ import android.graphics.Bitmap;
 import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to hold all relevant message information to send
@@ -28,13 +30,34 @@ import java.io.ByteArrayOutputStream;
  */
 public class Message {
 
+    public static final class Part {
+        private byte[] media;
+        private String contentType;
+        private String name;
+        public Part(byte[] media, String contentType, String name) {
+            this.media = media;
+            this.contentType = contentType;
+            this.name = name;
+        }
+
+        public byte[] getMedia() {
+            return media;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
     private String text;
     private String subject;
     private String[] addresses;
     private Bitmap[] images;
     private String[] imageNames;
-    private byte[] media;
-    private String mediaMimeType;
+    private List<Part> parts = new ArrayList<Part>();
     private boolean save;
     private int type;
     private int delay;
@@ -88,8 +111,6 @@ public class Message {
         this.addresses = addresses;
         this.images = new Bitmap[0];
         this.subject = null;
-        this.media = new byte[0];
-        this.mediaMimeType = null;
         this.save = true;
         this.type = TYPE_SMSMMS;
         this.delay = 0;
@@ -107,8 +128,6 @@ public class Message {
         this.addresses = addresses;
         this.images = new Bitmap[0];
         this.subject = subject;
-        this.media = new byte[0];
-        this.mediaMimeType = null;
         this.save = true;
         this.type = TYPE_SMSMMS;
         this.delay = 0;
@@ -195,8 +214,6 @@ public class Message {
         this.addresses = addresses;
         this.images = images;
         this.subject = null;
-        this.media = new byte[0];
-        this.mediaMimeType = null;
         this.save = true;
         this.type = TYPE_SMSMMS;
         this.delay = 0;
@@ -215,8 +232,6 @@ public class Message {
         this.addresses = addresses;
         this.images = images;
         this.subject = subject;
-        this.media = new byte[0];
-        this.mediaMimeType = null;
         this.save = true;
         this.type = TYPE_SMSMMS;
         this.delay = 0;
@@ -277,15 +292,24 @@ public class Message {
         this.images = new Bitmap[1];
         this.images[0] = image;
     }
-    
+
     /**
-     * Sets audio file
+     * Sets audio file.  Must be in wav format.
      *
      * @param audio is the single audio sample to send to recipient
      */
+    @Deprecated
     public void setAudio(byte[] audio) {
-        this.media = audio;
-        this.mediaMimeType = "audio/wav";
+        addAudio(audio);
+    }
+
+    /**
+     * Sets audio file.  Must be in wav format.
+     *
+     * @param audio is the single audio sample to send to recipient
+     */
+    public void addAudio(byte[] audio) {
+        addMedia(audio, "audio/wav");
     }
 
     /**
@@ -293,9 +317,18 @@ public class Message {
      *
      * @param video is the single video sample to send to recipient
      */
+    @Deprecated
     public void setVideo(byte[] video) {
-        this.media = video;
-        this.mediaMimeType = "video/3gpp";
+        addVideo(video);
+    }
+
+    /**
+     * Adds video file
+     *
+     * @param video is the single video sample to send to recipient
+     */
+    public void addVideo(byte[] video) {
+        addMedia(video, "video/3gpp");
     }
 
     /**
@@ -304,9 +337,19 @@ public class Message {
      * @param media is the media you want to send
      * @param mimeType is the mimeType of the media
      */
+    @Deprecated
     public void setMedia(byte[] media, String mimeType) {
-        this.media = media;
-        this.mediaMimeType = mimeType;
+         addMedia(media, mimeType);
+    }
+
+    /**
+     * Adds other media
+     *
+     * @param media is the media you want to send
+     * @param mimeType is the mimeType of the media
+     */
+    public void addMedia(byte[] media, String mimeType) {
+        this.parts.add(new Part(media, mimeType, null));
     }
 
     /**
@@ -430,17 +473,8 @@ public class Message {
      *
      * @return an array of bytes with audio information for the message
      */
-    public byte[] getMedia() {
-        return this.media;
-    }
-
-    /**
-     * Gets the mimetype of the extra media (eg, audio or video)
-     *
-     * @return a string of the mimetype
-     */
-    public String getMediaMimeType() {
-        return this.mediaMimeType;
+    public List<Part> getParts() {
+        return this.parts;
     }
 
     /**
