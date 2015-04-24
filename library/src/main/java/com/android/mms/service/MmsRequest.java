@@ -231,7 +231,19 @@ public abstract class MmsRequest {
                     result = (Boolean) m.invoke(connMgr,
                             ConnectivityManager.TYPE_MOBILE_MMS, address);
                 } catch (NoSuchMethodException e) {
-                    result = connMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_MMS, NetworkUtilsHelper.inetAddressToInt(address));
+                    Log.e(TAG, "Error requesting route", e);
+
+                    try {
+                        result = connMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_MMS, NetworkUtilsHelper.inetAddressToInt(address));
+                    } catch (IllegalArgumentException f) {
+                        Log.e(TAG, "Still can't request route, lets see if it's reachable", f);
+                        try {
+                            result = address.isReachable(1000);
+                        } catch (Exception g) {
+                            Log.e(TAG, "Well, that sucks.", g);
+                            result = true;
+                        }
+                    }
                 }
 
                 if (!result) {
