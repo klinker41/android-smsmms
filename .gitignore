@@ -3,3 +3,5 @@
 build/
 gen/
 *.iml
+**/.DS_STORE
+local.properties

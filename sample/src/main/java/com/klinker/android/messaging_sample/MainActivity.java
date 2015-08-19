@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Telephony;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -35,6 +36,7 @@ import com.klinker.android.send_message.Message;
 import com.klinker.android.send_message.Transaction;
 import com.klinker.android.send_message.Utils;
 
+import java.security.Permission;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
@@ -55,6 +57,14 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean("request_permissions", true)) {
+            startActivity(new Intent(this, PermissionActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         initSettings();
