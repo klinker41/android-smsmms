@@ -59,6 +59,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -136,9 +140,20 @@ public final class NetworkAwareHttpClient implements HttpClient {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http",
                 PlainSocketFactory.getSocketFactory(), 80));
-        schemeRegistry.register(new Scheme("https",
-                SSLCertificateSocketFactory.getHttpSocketFactory(
-                SOCKET_OPERATION_TIMEOUT, sessionCache), 443));
+
+//        try {
+//            schemeRegistry.register(new Scheme("https",
+//                    new org.apache.http.conn.ssl.SSLSocketFactory(
+//                            SSLCertificateSocketFactory.getDefault(SOCKET_OPERATION_TIMEOUT, sessionCache)), 443));
+//        } catch (NoSuchAlgorithmException e) {
+//            Log.e(TAG, "error configuring ssl", e);
+//        } catch (KeyManagementException e) {
+//            Log.e(TAG, "error configuring ssl", e);
+//        } catch (KeyStoreException e) {
+//            Log.e(TAG, "error configuring ssl", e);
+//        } catch (UnrecoverableKeyException e) {
+//            Log.e(TAG, "error configuring ssl", e);
+//        }
 
         /*
          * CHANGE FOR MmsService: using a different ClientConnectionManager which
