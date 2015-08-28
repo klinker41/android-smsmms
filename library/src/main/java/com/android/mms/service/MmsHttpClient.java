@@ -27,6 +27,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Protocol;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.internal.Internal;
 import com.squareup.okhttp.internal.huc.HttpURLConnectionImpl;
 import com.squareup.okhttp.internal.huc.HttpsURLConnectionImpl;
 
@@ -38,15 +39,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.ResponseCache;
+import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -270,7 +274,10 @@ public class MmsHttpClient {
                     return null;
                 }
             });
-            okHttpClient.setConnectionSpecs(new ArrayList<ConnectionSpec>());
+            okHttpClient.setConnectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT));
+            okHttpClient.setConnectionPool(new ConnectionPool(3, 60000));
+            okHttpClient.setSocketFactory(SocketFactory.getDefault());
+            Internal.instance.setNetwork(okHttpClient, mHostResolver);
 
             if (proxy != null) {
                 okHttpClient.setProxy(proxy);
@@ -305,7 +312,9 @@ public class MmsHttpClient {
                     return null;
                 }
             });
-            okHttpClient.setConnectionSpecs(new ArrayList<ConnectionSpec>());
+            okHttpClient.setConnectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT));
+            okHttpClient.setConnectionPool(new ConnectionPool(3, 60000));
+            Internal.instance.setNetwork(okHttpClient, mHostResolver);
 
             return new HttpsURLConnectionImpl(url, okHttpClient);
         } else {

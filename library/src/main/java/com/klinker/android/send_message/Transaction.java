@@ -420,13 +420,11 @@ public class Transaction {
         } else {
             Log.v(TAG, "using lollipop method for sending sms");
 
-            SmsManager.getDefault().sendMultimediaMessage(context, info.location, null, null, null);
-
-//            MmsRequestManager requestManager = new MmsRequestManager(context, info.bytes);
-//            SendRequest request = new SendRequest(requestManager, Utils.getDefaultSubscriptionId(),
-//                    info.location, null, null, null, null);
-//            MmsNetworkManager manager = new MmsNetworkManager(context, Utils.getDefaultSubscriptionId());
-//            request.execute(context, manager);
+            MmsRequestManager requestManager = new MmsRequestManager(context, info.bytes);
+            SendRequest request = new SendRequest(requestManager, Utils.getDefaultSubscriptionId(),
+                    info.location, null, null, null, null);
+            MmsNetworkManager manager = new MmsNetworkManager(context, Utils.getDefaultSubscriptionId());
+            request.execute(context, manager);
         }
     }
 

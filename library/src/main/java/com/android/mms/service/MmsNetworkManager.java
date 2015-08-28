@@ -47,7 +47,7 @@ import javax.net.SocketFactory;
 /**
  * Manages the MMS network connectivity
  */
-public class MmsNetworkManager  {
+public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
     private static final String TAG = "MmsNetworkManager";
     // Timeout used to call ConnectivityManager.requestNetwork
     private static final int NETWORK_REQUEST_TIMEOUT_MILLIS = 60 * 1000;
@@ -241,7 +241,8 @@ public class MmsNetworkManager  {
 
     private static final InetAddress[] EMPTY_ADDRESS_ARRAY = new InetAddress[0];
 
-    public InetAddress[] getAllByName(String host) throws UnknownHostException {
+    @Override
+    public InetAddress[] resolveInetAddresses(String host) throws UnknownHostException {
         Network network = null;
         synchronized (this) {
             if (mNetwork == null) {
@@ -317,4 +318,5 @@ public class MmsNetworkManager  {
         Log.d(TAG, "MmsNetworkManager: getApnName: " + apnName);
         return apnName;
     }
+
 }
