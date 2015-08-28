@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007 Esmertec AG.
- * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -162,7 +161,7 @@ public class PduBody {
      * Get pdu part by Content-Location. Content-Location of part is
      * the same as filename and name(param of content-type).
      *
-     * @param fileName the value of filename.
+     * @param contentLocation the value of filename.
      * @return the pdu part.
      */
     public PduPart getPartByContentLocation(String contentLocation) {
@@ -172,7 +171,7 @@ public class PduBody {
     /**
      * Get pdu part by name.
      *
-     * @param fileName the value of filename.
+     * @param name the value of filename.
      * @return the pdu part.
      */
     public PduPart getPartByName(String name) {
@@ -182,7 +181,7 @@ public class PduBody {
     /**
      * Get pdu part by filename.
      *
-     * @param fileName the value of filename.
+     * @param filename the value of filename.
      * @return the pdu part.
      */
     public PduPart getPartByFileName(String filename) {

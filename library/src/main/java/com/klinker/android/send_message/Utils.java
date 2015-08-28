@@ -15,7 +15,10 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
+import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import com.klinker.android.logger.Log;
@@ -27,6 +30,7 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -43,6 +47,7 @@ public class Utils {
      */
     public static final String GSM_CHARACTERS_REGEX = "^[A-Za-z0-9 \\r\\n@Ł$ĽčéůěňÇŘřĹĺ\u0394_\u03A6\u0393\u039B\u03A9\u03A0\u03A8\u03A3\u0398\u039EĆćßÉ!\"#$%&'()*+,\\-./:;<=>?ĄÄÖŃÜ§żäöńüŕ^{}\\\\\\[~\\]|\u20AC]*$";
     private static final String TAG = "Utils";
+    public static final int DEFAULT_SUBSCRIPTION_ID = 1;
 
     /**
      * Gets the current users phone number
@@ -219,6 +224,39 @@ public class Utils {
         } catch (Exception e) {
             Log.e(TAG, "exception thrown", e);
             return null;
+        }
+    }
+
+    /**
+     * Checks mobile data enabled based on telephonymanager
+     *
+     * @param telephonyManager the telephony manager
+     */
+    public static boolean isDataEnabled(TelephonyManager telephonyManager) {
+        try {
+            Class<?> c = telephonyManager.getClass();
+            Method m = c.getMethod("getDataEnabled");
+            return (boolean) m.invoke(telephonyManager);
+        } catch (Exception e) {
+            Log.e(TAG, "exception thrown", e);
+            return true;
+        }
+    }
+
+    /**
+     * Checks mobile data enabled based on telephonymanager and sim card
+     *
+     * @param telephonyManager the telephony manager
+     * @param subId the sim card id
+     */
+    public static boolean isDataEnabled(TelephonyManager telephonyManager, int subId) {
+        try {
+            Class<?> c = telephonyManager.getClass();
+            Method m = c.getMethod("getDataEnabled", int.class);
+            return (boolean) m.invoke(telephonyManager, subId);
+        } catch (Exception e) {
+            Log.e(TAG, "exception thrown", e);
+            return true;
         }
     }
 
@@ -424,5 +462,13 @@ public class Utils {
      */
     public static boolean isMmsOverWifiEnabled(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context).getBoolean("mms_over_wifi", false);
+    }
+
+    public static int getDefaultSubscriptionId() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            return SmsManager.getDefaultSmsSubscriptionId();
+        } else {
+            return DEFAULT_SUBSCRIPTION_ID;
+        }
     }
 }

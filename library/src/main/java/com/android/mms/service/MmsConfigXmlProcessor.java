@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,8 +62,8 @@ public class MmsConfigXmlProcessor {
      *
      * @param eventType
      * @return The final event type we meet
-     * @throws org.xmlpull.v1.XmlPullParserException
-     * @throws java.io.IOException
+     * @throws XmlPullParserException
+     * @throws IOException
      */
     private int advanceToNextEvent(int eventType) throws XmlPullParserException, IOException {
         for (;;) {
@@ -142,8 +142,8 @@ public class MmsConfigXmlProcessor {
     /**
      * Process one mms_config.
      *
-     * @throws java.io.IOException
-     * @throws org.xmlpull.v1.XmlPullParserException
+     * @throws IOException
+     * @throws XmlPullParserException
      */
     private void processMmsConfig()
             throws IOException, XmlPullParserException {
@@ -167,8 +167,8 @@ public class MmsConfigXmlProcessor {
     /**
      * Process one mms_config key/value pair
      *
-     * @throws java.io.IOException
-     * @throws org.xmlpull.v1.XmlPullParserException
+     * @throws IOException
+     * @throws XmlPullParserException
      */
     private void processMmsConfigKeyValue() throws IOException, XmlPullParserException {
         final String key = mInputParser.getAttributeValue(null, "name");

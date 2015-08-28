@@ -93,7 +93,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
         attach(RetryScheduler.getInstance(context));
     }
 
-    private String getContentLocation(Context context, Uri uri)
+    public String getContentLocation(Context context, Uri uri)
             throws MmsException {
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
                             uri, PROJECTION, null, null, null);

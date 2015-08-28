@@ -17,8 +17,12 @@
 package com.klinker.android.messaging_sample;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
@@ -29,6 +33,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+
+import com.android.mms.service.MmsConfigManager;
 import com.klinker.android.logger.Log;
 import com.klinker.android.logger.OnLogListener;
 import com.klinker.android.send_message.ApnUtils;
@@ -174,6 +180,29 @@ public class MainActivity extends Activity {
     }
 
     public void sendMessage() {
+        MmsConfigManager.getInstance().init(MainActivity.this);
+
+        if (!android.provider.Settings.System.canWrite(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            new AlertDialog.Builder(this)
+                    .setMessage(com.klinker.android.send_message.R.string.write_settings_permission)
+                    .setPositiveButton(com.klinker.android.send_message.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                            intent.setData(Uri.parse("package:" + getPackageName()));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                            try {
+                                startActivity(intent);
+                            } catch (Exception e) {
+                                Log.e("MainActivity", "error starting permission intent", e);
+                            }
+                        }
+                    })
+                    .show();
+            return;
+        }
+
         new Thread(new Runnable() {
             @Override
             public void run() {

@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -126,7 +125,7 @@ public class EncodedStringValue implements Cloneable {
     }
 
     /**
-     * Convert this object to a {@link java.lang.String}. If the encoding of
+     * Convert this object to a {@link String}. If the encoding of
      * the EncodedStringValue is null or unsupported, it will be
      * treated as iso-8859-1 encoding.
      *

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,40 +16,70 @@
 
 package com.android.mms.service;
 
-import android.net.*;
-import com.android.mms.service.exception.ApnException;
-import com.android.mms.service.exception.MmsHttpException;
-import com.android.mms.service.exception.MmsNetworkException;
-
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.service.carrier.CarrierMessagingService;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.Utils;
 
-import java.lang.reflect.Method;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
+import com.android.mms.service.exception.ApnException;
+import com.android.mms.service.exception.MmsHttpException;
+import com.android.mms.service.exception.MmsNetworkException;
 
 /**
  * Base class for MMS requests. This has the common logic of sending/downloading MMS.
  */
 public abstract class MmsRequest {
     private static final String TAG = "MmsRequest";
+
     private static final int RETRY_TIMES = 3;
-    protected static final int TASK_TIMEOUT_MS = 30 * 1000;
 
-    protected static final String EXTRA_MESSAGE_REF = "messageref";
+    /**
+     * Interface for certain functionalities from MmsService
+     */
+    public static interface RequestManager {
+        /**
+         * Enqueue an MMS request
+         *
+         * @param request the request to enqueue
+         */
+        public void addSimRequest(MmsRequest request);
 
-    // The URI of persisted message
-    protected Uri mMessageUri;
+        /*
+         * @return Whether to auto persist received MMS
+         */
+        public boolean getAutoPersistingPref();
+
+        /**
+         * Read pdu (up to maxSize bytes) from supplied content uri
+         * @param contentUri content uri from which to read
+         * @param maxSize maximum number of bytes to read
+         * @return read pdu (else null in case of error or too big)
+         */
+        public byte[] readPduFromContentUri(final Uri contentUri, final int maxSize);
+
+        /**
+         * Write pdu to supplied content uri
+         * @param contentUri content uri to which bytes should be written
+         * @param pdu pdu bytes to write
+         * @return true in case of success (else false)
+         */
+        public boolean writePduToContentUri(final Uri contentUri, final byte[] pdu);
+    }
+
+    // The reference to the pending requests manager (i.e. the MmsService)
+    protected RequestManager mRequestManager;
+    // The SIM id
+    protected int mSubId;
     // The creator app
     protected String mCreator;
     // MMS config
@@ -59,56 +89,43 @@ public abstract class MmsRequest {
 
     private boolean mobileDataEnabled;
 
-    // Intent result receiver for carrier app
-//    protected final BroadcastReceiver mCarrierAppResultReceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            final String action = intent.getAction();
-//            if (action.equals(Telephony.Mms.Intents.MMS_SEND_ACTION) ||
-//                    action.equals(Telephony.Mms.Intents.MMS_DOWNLOAD_ACTION)) {
-//                Log.d(TAG, "Carrier app result for " + action);
-//                final int rc = getResultCode();
-//                if (rc == Activity.RESULT_OK) {
-//                    // Handled by carrier app, waiting for result
-//                    Log.d(TAG, "Sending/downloading MMS by IP pending.");
-//                    final Bundle resultExtras = getResultExtras(false);
-//                    if (resultExtras != null && resultExtras.containsKey(EXTRA_MESSAGE_REF)) {
-//                        final int ref = resultExtras.getInt(EXTRA_MESSAGE_REF);
-//                        Log.d(TAG, "messageref = " + ref);
-//                        mRequestManager.addPending(ref, MmsRequest.this);
-//                    } else {
-//                        // Bad, no message ref provided
-//                        Log.e(TAG, "Can't find messageref in result extras.");
-//                    }
-//                } else {
-//                    // No carrier app present, sending normally
-//                    Log.d(TAG, "Sending/downloading MMS by IP failed.");
-//                    mRequestManager.addRunning(MmsRequest.this);
-//                }
-//            } else {
-//                Log.e(TAG, "unexpected BroadcastReceiver action: " + action);
-//            }
-//
-//        }
-//    };
-
-    public MmsRequest(Uri messageUri,
-            String creator, Bundle configOverrides) {
-        mMessageUri = messageUri;
+    public MmsRequest(RequestManager requestManager, int subId, String creator,
+            Bundle configOverrides) {
+        mRequestManager = requestManager;
+        mSubId = subId;
         mCreator = creator;
         mMmsConfigOverrides = configOverrides;
         mMmsConfig = null;
     }
 
-    private boolean ensureMmsConfigLoaded(Context context) {
+    public int getSubId() {
+        return mSubId;
+    }
+
+    private boolean ensureMmsConfigLoaded() {
         if (mMmsConfig == null) {
             // Not yet retrieved from mms config manager. Try getting it.
-            final MmsConfig config = new MmsConfig(context);
+            final MmsConfig config = MmsConfigManager.getInstance().getMmsConfigBySubId(mSubId);
             if (config != null) {
                 mMmsConfig = new MmsConfig.Overridden(config, mMmsConfigOverrides);
             }
         }
         return mMmsConfig != null;
+    }
+
+    private static boolean inAirplaneMode(final Context context) {
+        return Settings.System.getInt(context.getContentResolver(),
+                Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
+    }
+
+    private static boolean isMobileDataEnabled(final Context context, final int subId) {
+        final TelephonyManager telephonyManager =
+                (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        return Utils.isDataEnabled(telephonyManager, subId);
+    }
+
+    private static boolean isDataNetworkAvailable(final Context context, final int subId) {
+        return !inAirplaneMode(context) && isMobileDataEnabled(context, subId);
     }
 
     /**
@@ -118,48 +135,57 @@ public abstract class MmsRequest {
      * @param networkManager The network manager to use
      */
     public void execute(Context context, MmsNetworkManager networkManager) {
-        mobileDataEnabled = Utils.isMobileDataEnabled(context);
-        Log.v(TAG, "mobile data enabled: " + mobileDataEnabled);
-
-        if (!mobileDataEnabled) {
-            Log.v(TAG, "mobile data not enabled, so forcing it to enable");
-            Utils.setMobileDataEnabled(context, true);
-        }
-
         int result = SmsManager.MMS_ERROR_UNSPECIFIED;
+        int httpStatusCode = 0;
         byte[] response = null;
-        if (!ensureMmsConfigLoaded(context)) { // Check mms config
-            Log.e(TAG, "MmsRequest: mms config is not loaded yet");
-            result = SmsManager.MMS_ERROR_CONFIGURATION_ERROR;
-        } else if (!prepareForHttpRequest(context)) { // Prepare request, like reading pdu data from user
-            Log.e(TAG, "MmsRequest: failed to prepare for request");
-            result = SmsManager.MMS_ERROR_IO_ERROR;
-        } else { // Execute
+
+        // attempt to use wifi if this is set up... jump right into it.
+        if (useWifi(context)) {
             long retryDelaySecs = 2;
             // Try multiple times of MMS HTTP request
             for (int i = 0; i < RETRY_TIMES; i++) {
                 try {
-                    networkManager.acquireNetwork();
-                    networkManager.acquireNetwork();
-                    final ApnSettings apn = ApnSettings.load(context, null/*apnName*/);
-                    Log.v(TAG, "MmsRequest: apns: " + apn);
-                    response = doHttp(context, networkManager, apn);
-                    result = Activity.RESULT_OK;
-                    networkManager.releaseNetwork();
-                    Log.v(TAG, "MmsRequest: Success! Releasing request");
-                    // Success
-                    break;
+                    try {
+                        networkManager.acquireNetwork();
+                    } catch (Exception e) {
+                        Log.e(TAG, "error acquiring network", e);
+                    }
+
+                    final String apnName = networkManager.getApnName();
+                    try {
+                        ApnSettings apn = null;
+                        try {
+                            apn = ApnSettings.load(context, apnName, mSubId);
+                        } catch (ApnException e) {
+                            // If no APN could be found, fall back to trying without the APN name
+                            if (apnName == null) {
+                                // If the APN name was already null then don't need to retry
+                                throw (e);
+                            }
+                            Log.i(TAG, "MmsRequest: No match with APN name:"
+                                    + apnName + ", try with no name");
+                            apn = ApnSettings.load(context, null, mSubId);
+                        }
+                        Log.i(TAG, "MmsRequest: using " + apn.toString());
+                        response = doHttp(context, networkManager, apn);
+                        result = Activity.RESULT_OK;
+                        // Success
+                        break;
+                    } finally {
+                        networkManager.releaseNetwork();
+                    }
                 } catch (ApnException e) {
                     Log.e(TAG, "MmsRequest: APN failure", e);
                     result = SmsManager.MMS_ERROR_INVALID_APN;
                     break;
-                } catch (MmsNetworkException e) {
-                    Log.e(TAG, "MmsRequest: MMS network acquiring failure", e);
-                    result = SmsManager.MMS_ERROR_UNABLE_CONNECT_MMS;
-                    // Retry
+//                } catch (MmsNetworkException e) {
+//                    Log.e(TAG, "MmsRequest: MMS network acquiring failure", e);
+//                    result = SmsManager.MMS_ERROR_UNABLE_CONNECT_MMS;
+//                    // Retry
                 } catch (MmsHttpException e) {
                     Log.e(TAG, "MmsRequest: HTTP or network I/O failure", e);
                     result = SmsManager.MMS_ERROR_HTTP_FAILURE;
+                    httpStatusCode = e.getStatusCode();
                     // Retry
                 } catch (Exception e) {
                     Log.e(TAG, "MmsRequest: unexpected failure", e);
@@ -168,235 +194,107 @@ public abstract class MmsRequest {
                 }
                 try {
                     Thread.sleep(retryDelaySecs * 1000, 0/*nano*/);
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                }
                 retryDelaySecs <<= 1;
             }
-        }
+        } else {
+            mobileDataEnabled = Utils.isMobileDataEnabled(context);
+            Log.v(TAG, "mobile data enabled: " + mobileDataEnabled);
 
-        if (!mobileDataEnabled) {
-            Log.v(TAG, "setting mobile data back to disabled");
-            Utils.setMobileDataEnabled(context, false);
-        }
+            if (!mobileDataEnabled) {
+                Log.v(TAG, "mobile data not enabled, so forcing it to enable");
+                Utils.setMobileDataEnabled(context, true);
+            }
 
-        processResult(context, result, response);
-    }
-
-    /**
-     * Try running MMS HTTP request for all the addresses that we can resolve to
-     *
-     * @param context The context
-     * @param netMgr The {@link com.android.mms.service.MmsNetworkManager}
-     * @param url The HTTP URL
-     * @param pdu The PDU to send
-     * @param method The HTTP method to use
-     * @param apn The APN setting to use
-     * @return The response data
-     * @throws com.android.mms.service.exception.MmsHttpException If there is any HTTP/network failure
-     */
-    protected byte[] doHttpForResolvedAddresses(Context context, MmsNetworkManager netMgr,
-            String url, byte[] pdu, int method, ApnSettings apn) throws MmsHttpException {
-        MmsHttpException lastException = null;
-        final ConnectivityManager connMgr =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        // Do HTTP on all the addresses we can resolve to
-        for (final InetAddress address : resolveDestination(connMgr, netMgr, url, apn)) {
-            try {
-                // TODO: we have to use a deprecated API here because with the new
-                // ConnectivityManager APIs in LMP, we need to either use a bound process
-                // or a bound socket. The former can not be used since we share the
-                // phone process with others. The latter is not supported by any HTTP
-                // library yet. We have to rely on this API to get things work. Once
-                // a multinet aware HTTP lib is ready, we should switch to that and
-                // remove all the unnecessary code.
-
-                if (useWifi(context)) {
-                    return HttpUtils.httpConnection(
-                            context,
-                            url,
-                            pdu,
-                            method,
-                            false,
-                            null,
-                            0,
-                            netMgr,
-                            address instanceof Inet6Address,
-                            mMmsConfig);
-                }
-
-                boolean result;
-
-                try {
-                    Method m = connMgr.getClass().getDeclaredMethod("requestRouteToHostAddress", int.class, InetAddress.class);
-                    m.setAccessible(true);
-                    result = (Boolean) m.invoke(connMgr,
-                            ConnectivityManager.TYPE_MOBILE_MMS, address);
-                } catch (NoSuchMethodException e) {
-                    Log.e(TAG, "Error requesting route", e);
-
+            if (!ensureMmsConfigLoaded()) { // Check mms config
+                Log.e(TAG, "MmsRequest: mms config is not loaded yet");
+                result = SmsManager.MMS_ERROR_CONFIGURATION_ERROR;
+            } else if (!prepareForHttpRequest()) { // Prepare request, like reading pdu data from user
+                Log.e(TAG, "MmsRequest: failed to prepare for request");
+                result = SmsManager.MMS_ERROR_IO_ERROR;
+            } else if (!isDataNetworkAvailable(context, mSubId)) {
+                Log.e(TAG, "MmsRequest: in airplane mode or mobile data disabled");
+                result = SmsManager.MMS_ERROR_NO_DATA_NETWORK;
+            } else { // Execute
+                long retryDelaySecs = 2;
+                // Try multiple times of MMS HTTP request
+                for (int i = 0; i < RETRY_TIMES; i++) {
                     try {
-                        result = connMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_MMS, NetworkUtilsHelper.inetAddressToInt(address));
-                    } catch (IllegalArgumentException f) {
-                        Log.e(TAG, "Still can't request route, lets see if it's reachable", f);
                         try {
-                            result = address.isReachable(1000);
-                        } catch (Exception g) {
-                            Log.e(TAG, "Well, that sucks.", g);
-                            result = true;
+                            networkManager.acquireNetwork();
+                        } catch (Exception e) {
+                            Log.e(TAG, "error acquiring network", e);
                         }
-                    }
-                }
 
-                if (!result) {
-                    throw new MmsHttpException("MmsRequest: can not request a route for host "
-                            + address);
-                }
-
-                return HttpUtils.httpConnection(
-                        context,
-                        url,
-                        pdu,
-                        method,
-                        apn.isProxySet(),
-                        apn.getProxyAddress(),
-                        apn.getProxyPort(),
-                        netMgr,
-                        address instanceof Inet6Address,
-                        mMmsConfig);
-            } catch (MmsHttpException e) {
-                lastException = e;
-                Log.e(TAG, "MmsRequest: failure in trying address " + address, e);
-            } catch (Exception e) {
-                Log.e(TAG, "MmsRequest: failure in trying address " + address, e);
-            }
-        }
-        if (lastException != null) {
-            throw lastException;
-        } else {
-            // Should not reach here
-            throw new MmsHttpException("MmsRequest: unknown failure");
-        }
-    }
-
-    /**
-     * Resolve the name of the host we are about to connect to, which can be the URL host or
-     * the proxy host. We only resolve to the supported address types (IPv4 or IPv6 or both)
-     * based on the MMS network interface's address type, i.e. we only need addresses that
-     * match the link address type.
-     *
-     * @param connMgr The connectivity manager
-     * @param netMgr The current {@link MmsNetworkManager}
-     * @param url The HTTP URL
-     * @param apn The APN setting to use
-     * @return A list of matching resolved addresses
-     * @throws com.android.mms.service.exception.MmsHttpException For any network failure
-     */
-    private static List<InetAddress> resolveDestination(ConnectivityManager connMgr,
-            MmsNetworkManager netMgr, String url, ApnSettings apn) throws MmsHttpException {
-        Log.d(TAG, "MmsRequest: resolve url " + url);
-        // Find the real host to connect to
-        String host = null;
-        if (apn.isProxySet()) {
-            host = apn.getProxyAddress();
-        } else {
-            final Uri uri = Uri.parse(url);
-            host = uri.getHost();
-        }
-        // Find out the link address types: ipv4 or ipv6 or both
-        final int addressTypes = getMmsLinkAddressTypes(connMgr, netMgr.getNetwork());
-        Log.d(TAG, "MmsRequest: addressTypes=" + addressTypes);
-        // Resolve the host to a list of addresses based on supported address types
-        return resolveHostName(netMgr, host, addressTypes);
-    }
-
-    // Address type masks
-    private static final int ADDRESS_TYPE_IPV4 = 1;
-    private static final int ADDRESS_TYPE_IPV6 = 1 << 1;
-
-    /**
-     * Try to find out if we should use IPv6 or IPv4 for MMS. Basically we check if the MMS
-     * network interface has IPv6 address or not. If so, we will use IPv6. Otherwise, use
-     * IPv4.
-     *
-     * @param connMgr The connectivity manager
-     * @return A bit mask indicating what address types we have
-     */
-    private static int getMmsLinkAddressTypes(ConnectivityManager connMgr, Network network) {
-        int result = 0;
-        // Return none if network is not available
-        if (network == null) {
-            return result;
-        }
-
-        try {
-            // This function is available in the SDK down to 14, it is just hidden, so use reflection to grab it
-            Method linkPropMethod = connMgr.getClass().getMethod("getLinkProperties", Network.class);
-            linkPropMethod.setAccessible(true);
-            final LinkProperties linkProperties = (LinkProperties) linkPropMethod.invoke(connMgr, network);
-            if (linkProperties != null) {
-                    Method method = linkProperties.getClass().getMethod("getAddresses");
-                    method.setAccessible(true);
-                    List<InetAddress> addresses = (List<InetAddress>) method.invoke(linkProperties);
-                    for (InetAddress addr : addresses) {
-                        if (addr instanceof Inet4Address) {
-                            result |= ADDRESS_TYPE_IPV4;
-                        } else if (addr instanceof Inet6Address) {
-                            result |= ADDRESS_TYPE_IPV6;
+                        final String apnName = networkManager.getApnName();
+                        try {
+                            ApnSettings apn = null;
+                            try {
+                                apn = ApnSettings.load(context, apnName, mSubId);
+                            } catch (ApnException e) {
+                                // If no APN could be found, fall back to trying without the APN name
+                                if (apnName == null) {
+                                    // If the APN name was already null then don't need to retry
+                                    throw (e);
+                                }
+                                Log.i(TAG, "MmsRequest: No match with APN name:"
+                                        + apnName + ", try with no name");
+                                apn = ApnSettings.load(context, null, mSubId);
+                            }
+                            Log.i(TAG, "MmsRequest: using " + apn.toString());
+                            response = doHttp(context, networkManager, apn);
+                            result = Activity.RESULT_OK;
+                            // Success
+                            break;
+                        } finally {
+                            networkManager.releaseNetwork();
                         }
+                    } catch (ApnException e) {
+                        Log.e(TAG, "MmsRequest: APN failure", e);
+                        result = SmsManager.MMS_ERROR_INVALID_APN;
+                        break;
+//                    } catch (MmsNetworkException e) {
+//                        Log.e(TAG, "MmsRequest: MMS network acquiring failure", e);
+//                        result = SmsManager.MMS_ERROR_UNABLE_CONNECT_MMS;
+//                        // Retry
+                    } catch (MmsHttpException e) {
+                        Log.e(TAG, "MmsRequest: HTTP or network I/O failure", e);
+                        result = SmsManager.MMS_ERROR_HTTP_FAILURE;
+                        httpStatusCode = e.getStatusCode();
+                        // Retry
+                    } catch (Exception e) {
+                        Log.e(TAG, "MmsRequest: unexpected failure", e);
+                        result = SmsManager.MMS_ERROR_UNSPECIFIED;
+                        break;
                     }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "error finding addresses", e);
-        }
-        return result;
-    }
-
-    /**
-     * Resolve host name to address by specified address types.
-     *
-     * @param netMgr The current {@link MmsNetworkManager}
-     * @param host The host name
-     * @param addressTypes The required address type in a bit mask
-     *  (0x01: IPv4, 0x10: IPv6, 0x11: both)
-     * @return
-     * @throws com.android.mms.service.exception.MmsHttpException
-     */
-    private static List<InetAddress> resolveHostName(MmsNetworkManager netMgr, String host,
-            int addressTypes) throws MmsHttpException {
-        final List<InetAddress> resolved = new ArrayList<InetAddress>();
-        try {
-            if (addressTypes != 0) {
-                for (final InetAddress addr : netMgr.getAllByName(host)) {
-                    if ((addressTypes & ADDRESS_TYPE_IPV6) != 0
-                            && addr instanceof Inet6Address) {
-                        // Should use IPv6 and this is IPv6 address, add it
-                        resolved.add(addr);
-                    } else if ((addressTypes & ADDRESS_TYPE_IPV4) != 0
-                            && addr instanceof Inet4Address) {
-                        // Should use IPv4 and this is IPv4 address, add it
-                        resolved.add(addr);
+                    try {
+                        Thread.sleep(retryDelaySecs * 1000, 0/*nano*/);
+                    } catch (InterruptedException e) {
                     }
+                    retryDelaySecs <<= 1;
                 }
             }
-            if (resolved.size() < 1) {
-                throw new MmsHttpException("Failed to resolve " + host
-                        + " for allowed address types: " + addressTypes);
+
+            if (!mobileDataEnabled) {
+                Log.v(TAG, "setting mobile data back to disabled");
+                Utils.setMobileDataEnabled(context, false);
             }
-            return resolved;
-        } catch (final UnknownHostException e) {
-            throw new MmsHttpException("Failed to resolve " + host, e);
         }
+
+        processResult(context, result, response, httpStatusCode);
     }
 
     /**
      * Process the result of the completed request, including updating the message status
      * in database and sending back the result via pending intents.
-     *
-     * @param context The context
+     *  @param context The context
      * @param result The result code of execution
      * @param response The response body
+     * @param httpStatusCode The optional http status code in case of http failure
      */
-    public void processResult(Context context, int result, byte[] response) {
-        updateStatus(context, result, response);
+    public void processResult(Context context, int result, byte[] response, int httpStatusCode) {
+        final Uri messageUri = persistIfRequired(context, result, response);
 
         // Return MMS HTTP request result via PendingIntent
         final PendingIntent pendingIntent = getPendingIntent();
@@ -405,10 +303,13 @@ public abstract class MmsRequest {
             // Extra information to send back with the pending intent
             Intent fillIn = new Intent();
             if (response != null) {
-                succeeded = transferResponse(context, fillIn, response);
+                succeeded = transferResponse(fillIn, response);
             }
-            if (mMessageUri != null) {
-                fillIn.putExtra("uri", mMessageUri.toString());
+            if (messageUri != null) {
+                fillIn.putExtra("uri", messageUri.toString());
+            }
+            if (result == SmsManager.MMS_ERROR_HTTP_FAILURE && httpStatusCode != 0) {
+                fillIn.putExtra(SmsManager.EXTRA_MMS_HTTP_STATUS, httpStatusCode);
             }
             try {
                 if (!succeeded) {
@@ -423,6 +324,11 @@ public abstract class MmsRequest {
         revokeUriPermission(context);
     }
 
+    /**
+     * are we set up to use wifi? if so, send mms over it.
+     * @param context
+     * @return
+     */
     public static boolean useWifi(Context context) {
         if (Utils.isMmsOverWifiEnabled(context)) {
             ConnectivityManager mConnMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -437,13 +343,44 @@ public abstract class MmsRequest {
     }
 
     /**
+     * Returns true if sending / downloading using the carrier app has failed and completes the
+     * action using platform API's, otherwise false.
+     */
+    protected boolean maybeFallbackToRegularDelivery(int carrierMessagingAppResult) {
+        if (carrierMessagingAppResult
+                == CarrierMessagingService.SEND_STATUS_RETRY_ON_CARRIER_NETWORK
+                || carrierMessagingAppResult
+                        == CarrierMessagingService.DOWNLOAD_STATUS_RETRY_ON_CARRIER_NETWORK) {
+            Log.d(TAG, "Sending/downloading MMS by IP failed.");
+            mRequestManager.addSimRequest(MmsRequest.this);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Converts from {@code carrierMessagingAppResult} to a platform result code.
+     */
+    protected static int toSmsManagerResult(int carrierMessagingAppResult) {
+        switch (carrierMessagingAppResult) {
+            case CarrierMessagingService.SEND_STATUS_OK:
+                return Activity.RESULT_OK;
+            case CarrierMessagingService.SEND_STATUS_RETRY_ON_CARRIER_NETWORK:
+                return SmsManager.MMS_ERROR_RETRY;
+            default:
+                return SmsManager.MMS_ERROR_UNSPECIFIED;
+        }
+    }
+
+    /**
      * Making the HTTP request to MMSC
      *
      * @param context The context
      * @param netMgr The current {@link MmsNetworkManager}
      * @param apn The APN setting
      * @return The HTTP response data
-     * @throws com.android.mms.service.exception.MmsHttpException If any network error happens
+     * @throws MmsHttpException If any network error happens
      */
     protected abstract byte[] doHttp(Context context, MmsNetworkManager netMgr, ApnSettings apn)
             throws MmsHttpException;
@@ -454,24 +391,26 @@ public abstract class MmsRequest {
     protected abstract PendingIntent getPendingIntent();
 
     /**
-     * @return The running queue should be used by this request
+     * @return The queue should be used by this request, 0 is sending and 1 is downloading
      */
-    protected abstract int getRunningQueue();
+    protected abstract int getQueueType();
 
     /**
-     * Update database status of the message represented by this request
+     * Persist message into telephony if required (i.e. when auto-persisting is on or
+     * the calling app is non-default sms app for sending)
      *
      * @param context The context
      * @param result The result code of execution
      * @param response The response body
+     * @return The persisted URI of the message or null if we don't persist or fail
      */
-    protected abstract void updateStatus(Context context, int result, byte[] response);
+    protected abstract Uri persistIfRequired(Context context, int result, byte[] response);
 
     /**
      * Prepare to make the HTTP request - will download message for sending
      * @return true if preparation succeeds (and request can proceed) else false
      */
-    protected abstract boolean prepareForHttpRequest(Context context);
+    protected abstract boolean prepareForHttpRequest();
 
     /**
      * Transfer the received response to the caller
@@ -480,7 +419,7 @@ public abstract class MmsRequest {
      * @param response the pdu to transfer
      * @return true if response transfer succeeds else false
      */
-    protected abstract boolean transferResponse(Context context, Intent fillIn, byte[] response);
+    protected abstract boolean transferResponse(Intent fillIn, byte[] response);
 
     /**
      * Revoke the content URI permission granted by the MMS app to the phone package.
@@ -488,4 +427,5 @@ public abstract class MmsRequest {
      * @param context The context
      */
     protected abstract void revokeUriPermission(Context context);
+
 }

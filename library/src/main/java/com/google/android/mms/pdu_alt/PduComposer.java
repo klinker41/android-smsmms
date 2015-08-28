@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -156,8 +155,7 @@ public class PduComposer {
         /* make the message */
         switch (type) {
             case PduHeaders.MESSAGE_TYPE_SEND_REQ:
-            case PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF:
-                if (makeSendRetrievePdu(type) != PDU_COMPOSE_SUCCESS) {
+                if (makeSendReqPdu() != PDU_COMPOSE_SUCCESS) {
                     return null;
                 }
                 break;
@@ -566,7 +564,6 @@ public class PduComposer {
             case PduHeaders.PRIORITY:
             case PduHeaders.DELIVERY_REPORT:
             case PduHeaders.READ_REPORT:
-            case PduHeaders.RETRIEVE_STATUS:
                 int octet = mPduHeader.getOctet(field);
                 if (0 == octet) {
                     return PDU_COMPOSE_FIELD_NOT_SET;
@@ -587,7 +584,6 @@ public class PduComposer {
                 break;
 
             case PduHeaders.SUBJECT:
-            case PduHeaders.RETRIEVE_TEXT:
                 EncodedStringValue enString =
                     mPduHeader.getEncodedStringValue(field);
                 if (null == enString) {
@@ -761,7 +757,7 @@ public class PduComposer {
     /**
      * Make Send.req.
      */
-    private int makeSendRetrievePdu(int type) {
+    private int makeSendReqPdu() {
         if (mMessage == null) {
             mMessage = new ByteArrayOutputStream();
             mPosition = 0;
@@ -769,7 +765,7 @@ public class PduComposer {
 
         // X-Mms-Message-Type
         appendOctet(PduHeaders.MESSAGE_TYPE);
-        appendOctet(type);
+        appendOctet(PduHeaders.MESSAGE_TYPE_SEND_REQ);
 
         // X-Mms-Transaction-ID
         appendOctet(PduHeaders.TRANSACTION_ID);
@@ -835,24 +831,17 @@ public class PduComposer {
         // X-Mms-Read-Report Optional
         appendHeader(PduHeaders.READ_REPORT);
 
-        if (type == PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF) {
-            // X-Mms-Retrieve-Status Optional
-            appendHeader(PduHeaders.RETRIEVE_STATUS);
-            // X-Mms-Retrieve-Text Optional
-            appendHeader(PduHeaders.RETRIEVE_TEXT);
-        }
-
         //    Content-Type
         appendOctet(PduHeaders.CONTENT_TYPE);
 
         //  Message body
-        return makeMessageBody(type);
+        return makeMessageBody();
     }
 
     /**
      * Make message body.
      */
-    private int makeMessageBody(int type) {
+    private int makeMessageBody() {
         // 1. add body informations
         mStack.newbuf();  // Switching buffer because we need to
 
@@ -869,12 +858,7 @@ public class PduComposer {
         appendShortInteger(contentTypeIdentifier.intValue());
 
         // content-type parameter: start
-        PduBody body;
-        if (type == PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF) {
-            body = ((RetrieveConf) mPdu).getBody();
-        } else {
-            body = ((SendReq) mPdu).getBody();
-        }
+        PduBody body = ((SendReq) mPdu).getBody();
         if (null == body || body.getPartsNum() == 0) {
             // empty message
             appendUintvarInteger(0);

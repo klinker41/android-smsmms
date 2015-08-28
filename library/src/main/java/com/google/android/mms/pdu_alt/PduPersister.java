@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,9 +35,9 @@ import android.database.sqlite.SQLiteException;
 import android.drm.DrmManagerClient;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
+import android.provider.Telephony.Threads;
 import android.provider.Telephony.Mms.Addr;
 import android.provider.Telephony.Mms.Part;
 import android.provider.Telephony.MmsSms.PendingMessages;
@@ -57,11 +56,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-
-import com.klinker.android.send_message.Utils;
 
 /**
  * This class is the high-level manager of PDU storage.
@@ -292,7 +288,10 @@ public class PduPersister {
 
     /** Get(or create if not exist) an instance of PduPersister */
     public static PduPersister getPduPersister(Context context) {
-        if ((sPersister == null) || !context.equals(sPersister.mContext)) {
+        if ((sPersister == null)) {
+            sPersister = new PduPersister(context);
+        } else if (!context.equals(sPersister.mContext)) {
+            sPersister.release();
             sPersister = new PduPersister(context);
         }
 
@@ -792,7 +791,10 @@ public class PduPersister {
                     || ContentType.APP_SMIL.equals(contentType)
                     || ContentType.TEXT_HTML.equals(contentType)) {
                 ContentValues cv = new ContentValues();
-                cv.put(Telephony.Mms.Part.TEXT, new EncodedStringValue(data).getString());
+                if (data == null) {
+                    data = new String("").getBytes(CharacterSets.DEFAULT_CHARSET_NAME);
+                }
+                cv.put(Part.TEXT, new EncodedStringValue(data).getString());
                 if (mContentResolver.update(uri, cv, null, null) != 1) {
                     throw new MmsException("unable to update " + uri.toString());
                 }
@@ -974,7 +976,7 @@ public class PduPersister {
      * Update headers of a SendReq.
      *
      * @param uri The PDU which need to be updated.
-     * @param pdu New headers.
+     * @param sendReq New headers.
      * @throws MmsException Bad URI or updating failed.
      */
     public void updateHeaders(Uri uri, SendReq sendReq) {
@@ -1075,7 +1077,7 @@ public class PduPersister {
             }
         }
         if (!recipients.isEmpty()) {
-            long threadId = Utils.getOrCreateThreadId(mContext, recipients);
+            long threadId = Threads.getOrCreateThreadId(mContext, recipients);
             values.put(Mms.THREAD_ID, threadId);
         }
 
@@ -1176,8 +1178,7 @@ public class PduPersister {
             for (int i = 0; i < partsNum; i++) {
                 PduPart part = body.getPart(i);
                 Uri partUri = part.getDataUri();
-                if ((partUri == null) || TextUtils.isEmpty(partUri.getAuthority())
-                        || !partUri.getAuthority().startsWith("mms")) {
+                if ((partUri == null) || !partUri.getAuthority().startsWith("mms")) {
                     toBeCreated.add(part);
                 } else {
                     toBeUpdated.put(partUri, part);
@@ -1208,7 +1209,7 @@ public class PduPersister {
             }
 
             // Update the modified parts.
-            for (Map.Entry<Uri, PduPart> e : toBeUpdated.entrySet()) {
+            for (Entry<Uri, PduPart> e : toBeUpdated.entrySet()) {
                 updatePart(e.getKey(), e.getValue(), preOpenedFiles);
             }
         } finally {
@@ -1234,13 +1235,6 @@ public class PduPersister {
 
     public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId, boolean groupMmsEnabled,
             HashMap<Uri, InputStream> preOpenedFiles)
-            throws MmsException {
-        return persist(pdu, uri, createThreadId, groupMmsEnabled, preOpenedFiles,
-                DEFAULT_SUBSCRIPTION);
-    }
-
-    public Uri persist(GenericPdu pdu, Uri uri, boolean createThreadId, boolean groupMmsEnabled,
-            HashMap<Uri, InputStream> preOpenedFiles, int subscription)
             throws MmsException {
         if (uri == null) {
             throw new MmsException("Uri may not be null.");
@@ -1351,10 +1345,14 @@ public class PduPersister {
                     // message with the thread composed of all the recipients -- all but our own
                     // number, that is. This includes the person who sent the
                     // message or the FROM field (above) in addition to the other people the message
-                    // was addressed to or the TO & CC fields. Our own number is in that TO field
-                    // and we have to ignore it in loadRecipients.
+                    // was addressed to or the TO field. Our own number is in that TO field and
+                    // we have to ignore it in loadRecipients.
                     if (groupMmsEnabled) {
                         loadRecipients(PduHeaders.TO, recipients, addressMap, true);
+
+                        // Also load any numbers in the CC field to address group messaging
+                        // compatibility issues with devices that place numbers in this field
+                        // for group messages.
                         loadRecipients(PduHeaders.CC, recipients, addressMap, true);
                     }
                     break;
@@ -1366,7 +1364,7 @@ public class PduPersister {
             if (createThreadId && !recipients.isEmpty()) {
                 // Given all the recipients associated with this message, find (or create) the
                 // correct thread.
-                threadId = Utils.getOrCreateThreadId(mContext, recipients);
+                threadId = Threads.getOrCreateThreadId(mContext, recipients);
             }
             values.put(Mms.THREAD_ID, threadId);
         }
@@ -1377,6 +1375,9 @@ public class PduPersister {
 
         // Figure out if this PDU is a text-only message
         boolean textOnly = true;
+
+        // Sum up the total message size
+        int messageSize = 0;
 
         // Get body if the PDU is a RetrieveConf or SendReq.
         if (pdu instanceof MultimediaMessagePdu) {
@@ -1393,6 +1394,7 @@ public class PduPersister {
                 }
                 for (int i = 0; i < partsNum; i++) {
                     PduPart part = body.getPart(i);
+                    messageSize += part.getDataLength();
                     persistPart(part, dummyId, preOpenedFiles);
 
                     // If we've got anything besides text/plain or SMIL part, then we've got
@@ -1407,9 +1409,12 @@ public class PduPersister {
         }
         // Record whether this mms message is a simple plain text or not. This is a hint for the
         // UI.
-        //values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
-
-        // Update subscription for MMS message
+        // values.put(Mms.TEXT_ONLY, textOnly ? 1 : 0);
+        // The message-size might already have been inserted when parsing the
+        // PDU header. If not, then we insert the message size as well.
+        if (values.getAsInteger(Mms.MESSAGE_SIZE) == null) {
+            values.put(Mms.MESSAGE_SIZE, messageSize);
+        }
 
         Uri res = null;
         if (existingUri) {
@@ -1453,8 +1458,8 @@ public class PduPersister {
     /**
      * For a given address type, extract the recipients from the headers.
      *
-     * @param addressType can be PduHeaders.FROM or PduHeaders.TO
-     * @param recipients a HashSet that is loaded with the recipients from the FROM or TO headers
+     * @param addressType can be PduHeaders.FROM, PduHeaders.TO or PduHeaders.CC
+     * @param recipients a HashSet that is loaded with the recipients from the FROM, TO or CC headers
      * @param addressMap a HashMap of the addresses from the ADDRESS_FIELDS header
      * @param excludeMyNumber if true, the number of this phone will be excluded from recipients
      */

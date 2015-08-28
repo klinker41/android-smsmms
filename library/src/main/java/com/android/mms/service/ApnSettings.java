@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,18 +16,18 @@
 
 package com.android.mms.service;
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import com.android.mms.service.exception.ApnException;
-
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.NetworkUtilsHelper;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.provider.Telephony;
 import android.text.TextUtils;
 import com.klinker.android.logger.Log;
+
+import com.android.mms.service.exception.ApnException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,17 +44,45 @@ public class ApnSettings {
     private final String mProxyAddress;
     // MMSC proxy port
     private final int mProxyPort;
+    // Debug text for this APN: a concatenation of interesting columns of this APN
+    private final String mDebugText;
 
     private static final String[] APN_PROJECTION = {
-            Telephony.Carriers.TYPE,            // 0
-            Telephony.Carriers.MMSC,            // 1
-            Telephony.Carriers.MMSPROXY,        // 2
-            Telephony.Carriers.MMSPORT          // 3
+            Telephony.Carriers.TYPE,
+            Telephony.Carriers.MMSC,
+            Telephony.Carriers.MMSPROXY,
+            Telephony.Carriers.MMSPORT,
+            Telephony.Carriers.NAME,
+            Telephony.Carriers.APN,
+            Telephony.Carriers.BEARER,
+            Telephony.Carriers.PROTOCOL,
+            Telephony.Carriers.ROAMING_PROTOCOL,
+            Telephony.Carriers.AUTH_TYPE,
+            Telephony.Carriers.MVNO_TYPE,
+            Telephony.Carriers.MVNO_MATCH_DATA,
+            Telephony.Carriers.PROXY,
+            Telephony.Carriers.PORT,
+            Telephony.Carriers.SERVER,
+            Telephony.Carriers.USER,
+            Telephony.Carriers.PASSWORD,
     };
     private static final int COLUMN_TYPE         = 0;
     private static final int COLUMN_MMSC         = 1;
     private static final int COLUMN_MMSPROXY     = 2;
     private static final int COLUMN_MMSPORT      = 3;
+    private static final int COLUMN_NAME         = 4;
+    private static final int COLUMN_APN          = 5;
+    private static final int COLUMN_BEARER       = 6;
+    private static final int COLUMN_PROTOCOL     = 7;
+    private static final int COLUMN_ROAMING_PROTOCOL = 8;
+    private static final int COLUMN_AUTH_TYPE    = 9;
+    private static final int COLUMN_MVNO_TYPE    = 10;
+    private static final int COLUMN_MVNO_MATCH_DATA = 11;
+    private static final int COLUMN_PROXY        = 12;
+    private static final int COLUMN_PORT         = 13;
+    private static final int COLUMN_SERVER       = 14;
+    private static final int COLUMN_USER         = 15;
+    private static final int COLUMN_PASSWORD     = 16;
 
 
     /**
@@ -63,15 +91,14 @@ public class ApnSettings {
      * @param context
      * @param apnName the optional APN name to match
      */
-    public static ApnSettings load(Context context, String apnName)
+    public static ApnSettings load(Context context, String apnName, int subId)
             throws ApnException {
-
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         String mmsc = sharedPrefs.getString("mmsc_url", "");
         if (!TextUtils.isEmpty(mmsc)) {
             String mmsProxy = sharedPrefs.getString("mms_proxy", "");
             String mmsPort = sharedPrefs.getString("mms_port", "");
-            return new ApnSettings(mmsc, mmsProxy, parsePort(mmsPort));
+            return new ApnSettings(mmsc, mmsProxy, parsePort(mmsPort), "Default from settings");
         }
 
         Log.v(TAG, "ApnSettings: apnName " + apnName);
@@ -90,7 +117,7 @@ public class ApnSettings {
             cursor = SqliteWrapper.query(
                     context,
                     context.getContentResolver(),
-                    Uri.withAppendedPath(Telephony.Carriers.CONTENT_URI, "/subId/" + 1),
+                    Uri.withAppendedPath(Telephony.Carriers.CONTENT_URI, "/subId/" + subId),
                     APN_PROJECTION,
                     selection,
                     selectionArgs,
@@ -118,7 +145,7 @@ public class ApnSettings {
                             proxyAddress = NetworkUtilsHelper.trimV4AddrZeros(proxyAddress);
                             final String portString =
                                     trimWithNullCheck(cursor.getString(COLUMN_MMSPORT));
-                            if (!TextUtils.isEmpty(portString)) {
+                            if (portString != null) {
                                 try {
                                     proxyPort = Integer.parseInt(portString);
                                 } catch (NumberFormatException e) {
@@ -127,7 +154,8 @@ public class ApnSettings {
                                 }
                             }
                         }
-                        return new ApnSettings(mmscUrl, proxyAddress, proxyPort);
+                        return new ApnSettings(
+                                mmscUrl, proxyAddress, proxyPort, getDebugText(cursor));
                     }
                 }
 
@@ -138,17 +166,36 @@ public class ApnSettings {
             }
         }
 
-        return new ApnSettings("", "", 80);
+        return new ApnSettings("", "", 80, "Failed to find APNs :(");
+    }
+
+    private static String getDebugText(Cursor cursor) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("APN [");
+        for (int i = 0; i < cursor.getColumnCount(); i++) {
+            final String name = cursor.getColumnName(i);
+            final String value = cursor.getString(i);
+            if (TextUtils.isEmpty(value)) {
+                continue;
+            }
+            if (i > 0) {
+                sb.append(' ');
+            }
+            sb.append(name).append('=').append(value);
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     private static String trimWithNullCheck(String value) {
         return value != null ? value.trim() : null;
     }
 
-    public ApnSettings(String mmscUrl, String proxyAddr, int proxyPort) {
+    public ApnSettings(String mmscUrl, String proxyAddr, int proxyPort, String debugText) {
         mServiceCenter = mmscUrl;
         mProxyAddress = proxyAddr;
         mProxyPort = proxyPort;
+        mDebugText = debugText;
    }
 
     public String getMmscUrl() {
@@ -190,11 +237,6 @@ public class ApnSettings {
     }
 
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("APN:");
-        sb.append(" mmsc=").append(mServiceCenter);
-        sb.append(" proxy=").append(mProxyAddress);
-        sb.append(" port=").append(mProxyPort);
-        return sb.toString();
+        return mDebugText;
     }
 }

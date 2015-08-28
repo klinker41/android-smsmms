@@ -34,6 +34,7 @@ import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import com.android.mms.service.MmsNetworkManager;
+import com.android.mms.service.MmsRequestManager;
 import com.android.mms.service.SendRequest;
 import com.klinker.android.logger.Log;
 import android.widget.Toast;
@@ -418,13 +419,19 @@ public class Transaction {
             }
         } else {
             Log.v(TAG, "using lollipop method for sending sms");
-            SendRequest request = new SendRequest(info.location, info.location, null, null, null, null, info.bytes);
-            MmsNetworkManager manager = new MmsNetworkManager(context);
-            request.execute(context, manager);
+
+            SmsManager.getDefault().sendMultimediaMessage(context, info.location, null, null, null);
+
+//            MmsRequestManager requestManager = new MmsRequestManager(context, info.bytes);
+//            SendRequest request = new SendRequest(requestManager, Utils.getDefaultSubscriptionId(),
+//                    info.location, null, null, null, null);
+//            MmsNetworkManager manager = new MmsNetworkManager(context, Utils.getDefaultSubscriptionId());
+//            request.execute(context, manager);
         }
     }
 
-    public static MessageInfo getBytes(Context context, boolean saveMessage, String[] recipients, MMSPart[] parts, String subject)
+    public static MessageInfo getBytes(Context context, boolean saveMessage, String[] recipients,
+                                       MMSPart[] parts, String subject)
                 throws MmsException {
         final SendReq sendRequest = new SendReq();
 

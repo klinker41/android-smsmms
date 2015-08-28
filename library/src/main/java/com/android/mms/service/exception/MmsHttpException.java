@@ -20,20 +20,31 @@ package com.android.mms.service.exception;
  * HTTP exception
  */
 public class MmsHttpException extends Exception {
+    // Optional HTTP status code. 0 means ignore. Otherwise this
+    // should be a valid HTTP status code.
+    private final int mStatusCode;
 
-    public MmsHttpException() {
+    public MmsHttpException(int statusCode) {
         super();
+        mStatusCode = statusCode;
     }
 
-    public MmsHttpException(String message) {
+    public MmsHttpException(int statusCode, String message) {
         super(message);
+        mStatusCode = statusCode;
     }
 
-    public MmsHttpException(Throwable cause) {
+    public MmsHttpException(int statusCode, Throwable cause) {
         super(cause);
+        mStatusCode = statusCode;
     }
 
-    public MmsHttpException(String message, Throwable cause) {
+    public MmsHttpException(int statusCode, String message, Throwable cause) {
         super(message, cause);
+        mStatusCode = statusCode;
+    }
+
+    public int getStatusCode() {
+        return mStatusCode;
     }
 }

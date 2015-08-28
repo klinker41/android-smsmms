@@ -1,18 +1,17 @@
 /*
- * Copyright (C) 2012 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 package com.google.android.mms.util_alt;
 
@@ -75,7 +74,7 @@ public class DrmConvertSession {
     /**
      * Convert a buffer of data to protected format.
      *
-     * @param buffer Buffer filled with data to convert.
+     * @param inBuffer Buffer filled with data to convert.
      * @param size The number of bytes that shall be converted.
      * @return A Buffer filled with converted data, if execution is ok, in all
      *         other case null.
@@ -114,7 +113,7 @@ public class DrmConvertSession {
     /**
      * Ends a conversion session of a file.
      *
-     * @param fileName The filename of the converted file.
+     * @param filename The filename of the converted file.
      * @return Downloads.Impl.STATUS_SUCCESS if execution is ok.
      *         Downloads.Impl.STATUS_FILE_ERROR in case converted file can not
      *         be accessed. Downloads.Impl.STATUS_NOT_ACCEPTABLE if a problem

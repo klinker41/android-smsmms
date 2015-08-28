@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2007-2008 Esmertec AG.
- * Copyright (C) 2007-2008 The Android Open Source Project
+ * Copyright (C) 2015 Jacob Klinker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -86,12 +85,28 @@ public class PduParser {
     private static final boolean LOCAL_LOGV = false;
 
     /**
+     * Whether to parse content-disposition part header
+     */
+    private final boolean mParseContentDisposition;
+
+    /**
      * Constructor.
      *
      * @param pduDataStream pdu data to be parsed
+     * @param parseContentDisposition whether to parse the Content-Disposition part header
+     */
+    public PduParser(byte[] pduDataStream, boolean parseContentDisposition) {
+        mPduDataStream = new ByteArrayInputStream(pduDataStream);
+        mParseContentDisposition = parseContentDisposition;
+    }
+
+    /**
+     * Constructor. Default the parsing content disposition.
+     *
+     * @param pduDataStream pdu data to be parsed.
      */
     public PduParser(byte[] pduDataStream) {
-        mPduDataStream = new ByteArrayInputStream(pduDataStream);
+        this(pduDataStream, true);
     }
 
     /**
@@ -825,7 +840,7 @@ public class PduParser {
      * @param pduDataStream pdu data input stream
      * @return parts in PduBody structure
      */
-    protected static PduBody parseParts(ByteArrayInputStream pduDataStream) {
+    protected PduBody parseParts(ByteArrayInputStream pduDataStream) {
         if (pduDataStream == null) {
             return null;
         }
@@ -1584,7 +1599,7 @@ public class PduParser {
      * @param length length of the headers
      * @return true if parse successfully, false otherwise
      */
-    protected static boolean parsePartHeaders(ByteArrayInputStream pduDataStream,
+    protected boolean parsePartHeaders(ByteArrayInputStream pduDataStream,
             PduPart part, int length) {
         assert(null != pduDataStream);
         assert(null != part);
@@ -1658,9 +1673,7 @@ public class PduParser {
                          * some carrier mmsc servers do not support content_disposition
                          * field correctly
                          */
-                        boolean contentDisposition = true;
-
-                        if (contentDisposition) {
+                        if (mParseContentDisposition) {
                             int len = parseValueLength(pduDataStream);
                             pduDataStream.mark(1);
                             int thisStartPos = pduDataStream.available();

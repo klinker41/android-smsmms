@@ -41,5 +41,8 @@ limitations under the License.
     <string name="auto_select_apn">Automatically Select APNs</string>
     <string name="auto_select_failed">Auto-select APNs has failed, try picking your carrier from the preset list instead
         in MMS settings</string>
+    <string name="write_settings_permission">Starting with Android Marshmallow, multimedia messaging applications can no longer directly request
+        to send messages over your mobile data, which is a requirement for sending things like pictures.\n\nTo be able to send messages, the app
+        will need the write settings permission, which must be explicitly granted. Without this, multimedia messages will fail to send.</string>
 
 </resources>
