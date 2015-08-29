@@ -30,4 +30,7 @@
 
     <!-- Maximum width for an attached image -->
     <int name="maxImageWidth">2592</int>
+
+    <!-- Content-Disposition header is not supported -->
+    <bool name="supportMmsContentDisposition">false</bool>
 </mms_config>

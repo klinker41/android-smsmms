@@ -90,6 +90,6 @@
     <bool name="enableMMSDeliveryReports">false</bool>
 
     <!-- Reference for additional http parameters used in MMS http request. -->
-    <string name="httpParams">X-CS3G-MDN: 1##LINE1##</string>
+    <string name="httpParams">X-CS3G-MDN: 1##LINE1NOCOUNTRYCODE##</string>
 
 </mms_config>

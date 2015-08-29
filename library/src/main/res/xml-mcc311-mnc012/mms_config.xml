@@ -35,7 +35,7 @@
 
     <!-- Additional http parameters used in MMS http request.
          Parameters are seperated by '|'. Optional. -->
-    <string name="httpParams">x-up-calling-line-id: 1##LINE1##|X-VzW-MDN: 1##LINE1##</string>
+    <string name="httpParams">x-up-calling-line-id: 1##LINE1NOCOUNTRYCODE##|X-VzW-MDN: 1##LINE1NOCOUNTRYCODE##</string>
 
     <!-- Maximum height for an attached image -->
     <int name="maxImageHeight">1944</int>

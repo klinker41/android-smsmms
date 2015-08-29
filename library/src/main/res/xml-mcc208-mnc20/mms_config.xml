@@ -19,9 +19,10 @@
         version 2 - added recipientLimit.
         version 3 - added min/max recycler values.
         version 4 - added sms to mms text threshold.
+        version 5 - added supportHttpCharsetHeader.
 -->
 
-<mms_config version="4">
+<mms_config version="5">
     <!-- Maximum message size in bytes for a MMS message -->
     <int name="maxMessageSize">614400</int>
 
@@ -30,4 +31,7 @@
 
     <!-- Maximum width for an attached image -->
     <int name="maxImageWidth">2592</int>
+
+    <!-- Flag indicating whether charset should be added to Content-Type header-->
+    <bool name="supportHttpCharsetHeader">false</bool>
 </mms_config>
