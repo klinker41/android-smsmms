@@ -17,6 +17,7 @@
 package com.android.mms.service;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -37,20 +38,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Authenticator;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.ProxySelector;
-import java.net.ResponseCache;
-import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

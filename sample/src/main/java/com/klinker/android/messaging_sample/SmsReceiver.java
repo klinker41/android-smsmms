@@ -42,6 +42,7 @@ public class SmsReceiver extends BroadcastReceiver {
                 .setContentText(body)
                 .setContentTitle("New Message")
                 .setSmallIcon(R.drawable.ic_alert)
+                .setStyle(new Notification.BigTextStyle().bigText(body))
                 .build();
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
         notificationManagerCompat.notify(1, notification);

@@ -102,7 +102,9 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
         mSubId = subId;
         mNetworkRequest = new NetworkRequest.Builder()
                 .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                .removeTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_MMS)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .setNetworkSpecifier(Integer.toString(mSubId))
                 .build();
     }

@@ -638,7 +638,7 @@ public class TransactionService extends Service implements Observer {
 
             // cancel timer for renewal of lease
             mServiceHandler.removeMessages(EVENT_CONTINUE_MMS_CONNECTIVITY);
-            if (mConnMgr != null) {
+            if (mConnMgr != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                 mConnMgr.stopUsingNetworkFeature(
                         ConnectivityManager.TYPE_MOBILE,
                         "enableMMS");

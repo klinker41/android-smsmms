@@ -126,24 +126,24 @@ public class DownloadRequest extends MmsRequest {
             }
             final RetrieveConf retrieveConf = (RetrieveConf) pdu;
             final int status = retrieveConf.getRetrieveStatus();
-            if (status != PduHeaders.RETRIEVE_STATUS_OK) {
-                Log.e(TAG, "DownloadRequest.persistIfRequired: retrieve failed "
-                        + status);
-                // Update the retrieve status of the NotificationInd
-                final ContentValues values = new ContentValues(1);
-                values.put(Telephony.Mms.RETRIEVE_STATUS, status);
-                SqliteWrapper.update(
-                        context,
-                        context.getContentResolver(),
-                        Telephony.Mms.CONTENT_URI,
-                        values,
-                        LOCATION_SELECTION,
-                        new String[]{
-                                Integer.toString(PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND),
-                                mLocationUrl
-                        });
-                return null;
-            }
+//            if (status != PduHeaders.RETRIEVE_STATUS_OK) {
+//                Log.e(TAG, "DownloadRequest.persistIfRequired: retrieve failed "
+//                        + status);
+//                // Update the retrieve status of the NotificationInd
+//                final ContentValues values = new ContentValues(1);
+//                values.put(Telephony.Mms.RETRIEVE_STATUS, status);
+//                SqliteWrapper.update(
+//                        context,
+//                        context.getContentResolver(),
+//                        Telephony.Mms.CONTENT_URI,
+//                        values,
+//                        LOCATION_SELECTION,
+//                        new String[]{
+//                                Integer.toString(PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND),
+//                                mLocationUrl
+//                        });
+//                return null;
+//            }
             // Store the downloaded message
             final PduPersister persister = PduPersister.getPduPersister(context);
             final Uri messageUri = persister.persist(
