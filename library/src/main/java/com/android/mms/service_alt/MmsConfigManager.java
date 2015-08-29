@@ -79,7 +79,7 @@ public class MmsConfigManager {
         try {
             context.registerReceiver(mReceiver, intentFilterLoaded);
         } catch (Exception e) {
-            Log.v(TAG, "error registering intent", e);
+
         }
 
         load(context);

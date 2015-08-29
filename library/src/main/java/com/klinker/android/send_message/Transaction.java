@@ -28,6 +28,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
@@ -366,7 +367,8 @@ public class Transaction {
         MessageInfo info;
 
         try {
-            info = getBytes(context, saveMessage, address.split(" "), data.toArray(new MMSPart[data.size()]), subject);
+            info = getBytes(context, saveMessage, address.split(" "),
+                    data.toArray(new MMSPart[data.size()]), subject);
         } catch (MmsException e) {
             Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
             return;
@@ -401,7 +403,9 @@ public class Transaction {
                                 // receiver is not registered force close error... hmm.
                             }
                         } else if (progress == ProgressCallbackEntity.PROGRESS_ABORT) {
-                            // This seems to get called only after the progress has reached 100 and then something else goes wrong, so here we will try and send again and see if it works
+                            // This seems to get called only after the progress has reached 100 and
+                            // then something else goes wrong, so here we will try and send again
+                            // and see if it works
                             Log.v("sending_mms_library", "sending aborted for some reason...");
                         }
                     }

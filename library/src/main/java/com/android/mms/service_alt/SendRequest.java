@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -108,17 +109,17 @@ public class SendRequest extends MmsRequest {
                 Log.d(TAG, "SendRequest.persistIfRequired: not SendReq");
                 return null;
             }
-            final PduPersister persister = PduPersister.getPduPersister(context);
-            final Uri messageUri = persister.persist(
-                    pdu,
-                    Telephony.Mms.Sent.CONTENT_URI,
-                    true/*createThreadId*/,
-                    true/*groupMmsEnabled*/,
-                    null/*preOpenedFiles*/);
-            if (messageUri == null) {
-                Log.e(TAG, "SendRequest.persistIfRequired: can not persist message");
-                return null;
-            }
+//            final PduPersister persister = PduPersister.getPduPersister(context);
+//            final Uri messageUri = persister.persist(
+//                    pdu,
+//                    Telephony.Mms.Sent.CONTENT_URI,
+//                    true/*createThreadId*/,
+//                    true/*groupMmsEnabled*/,
+//                    null/*preOpenedFiles*/);
+//            if (messageUri == null) {
+//                Log.e(TAG, "SendRequest.persistIfRequired: can not persist message");
+//                return null;
+//            }
             // Update the additional columns based on the send result
             final ContentValues values = new ContentValues();
             SendConf sendConf = null;
@@ -137,6 +138,8 @@ public class SendRequest extends MmsRequest {
                 // it to cause any serious problem
                 // TODO: we should add a "failed" URI for this in MmsProvider?
                 values.put(Telephony.Mms.MESSAGE_BOX, Telephony.Mms.MESSAGE_BOX_FAILED);
+            } else {
+                values.put(Telephony.Mms.MESSAGE_BOX, Telephony.Mms.MESSAGE_BOX_SENT);
             }
             if (sendConf != null) {
                 values.put(Telephony.Mms.RESPONSE_STATUS, sendConf.getResponseStatus());
@@ -149,14 +152,16 @@ public class SendRequest extends MmsRequest {
             if (!TextUtils.isEmpty(mCreator)) {
                 values.put(Telephony.Mms.CREATOR, mCreator);
             }
-            values.put(Telephony.Mms.SUBSCRIPTION_ID, mSubId);
-            if (SqliteWrapper.update(context, context.getContentResolver(), messageUri, values,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                values.put(Telephony.Mms.SUBSCRIPTION_ID, mSubId);
+            }
+            if (SqliteWrapper.update(context, context.getContentResolver(), mPduUri, values,
                     null/*where*/, null/*selectionArg*/) != 1) {
                 Log.e(TAG, "SendRequest.persistIfRequired: failed to update message");
             }
-            return messageUri;
-        } catch (MmsException e) {
-            Log.e(TAG, "SendRequest.persistIfRequired: can not persist message", e);
+            return mPduUri;
+//        } catch (MmsException e) {
+//            Log.e(TAG, "SendRequest.persistIfRequired: can not persist message", e);
         } catch (RuntimeException e) {
             Log.e(TAG, "SendRequest.persistIfRequired: unexpected parsing failure", e);
         } finally {
