@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.Telephony.Mms;
 import com.klinker.android.logger.Log;
 
@@ -45,11 +46,13 @@ public class MmsSystemEventReceiver extends BroadcastReceiver {
     private static ConnectivityManager mConnMgr = null;
 
     public static void wakeUpService(Context context) {
-        if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
-            Log.v(TAG, "wakeUpService: start transaction service ...");
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
+                Log.v(TAG, "wakeUpService: start transaction service ...");
+            }
 
-        context.startService(new Intent(context, TransactionService.class));
+            context.startService(new Intent(context, TransactionService.class));
+        }
     }
 
     @Override

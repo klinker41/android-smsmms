@@ -46,16 +46,19 @@ public class MmsConfigManager {
     }
 
     // Map the various subIds to their corresponding MmsConfigs.
-    private final Map<Integer, MmsConfig> mSubIdConfigMap = new ArrayMap<Integer, MmsConfig>();
+    private final Map<Integer, MmsConfig> mSubIdConfigMap;
     private Context mContext;
     private SubscriptionManager mSubscriptionManager;
+
+    private MmsConfigManager() {
+        mSubIdConfigMap = new ArrayMap<Integer, MmsConfig>();
+    }
 
     /**
      * This receiver listens for changes made to SubInfoRecords and for a broadcast telling us
      * the TelephonyManager has loaded the information needed in order to get the mcc/mnc's for
      * each subscription Id. When either of these broadcasts are received, we rebuild the
      * MmsConfig table.
-     *
      */
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {

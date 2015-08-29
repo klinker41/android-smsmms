@@ -24,6 +24,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 
@@ -114,6 +115,19 @@ public class DownloadRequest extends MmsRequest {
         Log.d(TAG, "DownloadRequest.persistIfRequired");
         if (response == null || response.length < 1) {
             Log.e(TAG, "DownloadRequest.persistIfRequired: empty response");
+            // Update the retrieve status of the NotificationInd
+            final ContentValues values = new ContentValues(1);
+            values.put(Telephony.Mms.RETRIEVE_STATUS, PduHeaders.RETRIEVE_STATUS_ERROR_END);
+            SqliteWrapper.update(
+                    context,
+                    context.getContentResolver(),
+                    Telephony.Mms.CONTENT_URI,
+                    values,
+                    LOCATION_SELECTION,
+                    new String[]{
+                            Integer.toString(PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND),
+                            mLocationUrl
+                    });
             return null;
         }
         final long identity = Binder.clearCallingIdentity();
@@ -164,7 +178,11 @@ public class DownloadRequest extends MmsRequest {
             if (!TextUtils.isEmpty(mCreator)) {
                 values.put(Telephony.Mms.CREATOR, mCreator);
             }
-            values.put(Telephony.Mms.SUBSCRIPTION_ID, mSubId);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                values.put(Telephony.Mms.SUBSCRIPTION_ID, mSubId);
+            }
+
             if (SqliteWrapper.update(
                     context,
                     context.getContentResolver(),

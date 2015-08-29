@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.service.carrier.CarrierMessagingService;
@@ -138,6 +140,13 @@ public abstract class MmsRequest {
         int httpStatusCode = 0;
         byte[] response = null;
 
+        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        boolean isWifiEnabled = wifi.isWifiEnabled();
+
+        if (!useWifi(context)) {
+            wifi.setWifiEnabled(false);
+        }
+
         mobileDataEnabled = Utils.isMobileDataEnabled(context);
         Log.v(TAG, "mobile data enabled: " + mobileDataEnabled);
 
@@ -154,7 +163,11 @@ public abstract class MmsRequest {
             result = SmsManager.MMS_ERROR_IO_ERROR;
         } else if (!isDataNetworkAvailable(context, mSubId)) {
             Log.e(TAG, "MmsRequest: in airplane mode or mobile data disabled");
-            result = SmsManager.MMS_ERROR_NO_DATA_NETWORK;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                result = SmsManager.MMS_ERROR_NO_DATA_NETWORK;
+            } else {
+                result = 8;
+            }
         } else { // Execute
             long retryDelaySecs = 2;
             // Try multiple times of MMS HTTP request
@@ -220,6 +233,10 @@ public abstract class MmsRequest {
             Utils.setMobileDataEnabled(context, false);
         }
 
+        if (!useWifi(context)) {
+            wifi.setWifiEnabled(isWifiEnabled);
+        }
+
         processResult(context, result, response, httpStatusCode);
     }
 
@@ -247,7 +264,11 @@ public abstract class MmsRequest {
                 fillIn.putExtra("uri", messageUri.toString());
             }
             if (result == SmsManager.MMS_ERROR_HTTP_FAILURE && httpStatusCode != 0) {
-                fillIn.putExtra(SmsManager.EXTRA_MMS_HTTP_STATUS, httpStatusCode);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                    fillIn.putExtra(SmsManager.EXTRA_MMS_HTTP_STATUS, httpStatusCode);
+                } else {
+                    fillIn.putExtra("android.telephony.extra.MMS_HTTP_STATUS", httpStatusCode);
+                }
             }
             try {
                 if (!succeeded) {
@@ -264,8 +285,6 @@ public abstract class MmsRequest {
 
     /**
      * are we set up to use wifi? if so, send mms over it.
-     * @param context
-     * @return
      */
     public static boolean useWifi(Context context) {
         if (Utils.isMmsOverWifiEnabled(context)) {
