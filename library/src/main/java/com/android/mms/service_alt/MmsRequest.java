@@ -138,8 +138,24 @@ public abstract class MmsRequest {
         int httpStatusCode = 0;
         byte[] response = null;
 
-        // attempt to use wifi if this is set up... jump right into it.
-        if (useWifi(context)) {
+        mobileDataEnabled = Utils.isMobileDataEnabled(context);
+        Log.v(TAG, "mobile data enabled: " + mobileDataEnabled);
+
+        if (!mobileDataEnabled && !useWifi(context)) {
+            Log.v(TAG, "mobile data not enabled, so forcing it to enable");
+            Utils.setMobileDataEnabled(context, true);
+        }
+
+        if (!ensureMmsConfigLoaded()) { // Check mms config
+            Log.e(TAG, "MmsRequest: mms config is not loaded yet");
+            result = SmsManager.MMS_ERROR_CONFIGURATION_ERROR;
+        } else if (!prepareForHttpRequest()) { // Prepare request, like reading pdu data from user
+            Log.e(TAG, "MmsRequest: failed to prepare for request");
+            result = SmsManager.MMS_ERROR_IO_ERROR;
+        } else if (!isDataNetworkAvailable(context, mSubId)) {
+            Log.e(TAG, "MmsRequest: in airplane mode or mobile data disabled");
+            result = SmsManager.MMS_ERROR_NO_DATA_NETWORK;
+        } else { // Execute
             long retryDelaySecs = 2;
             // Try multiple times of MMS HTTP request
             for (int i = 0; i < RETRY_TIMES; i++) {
@@ -177,10 +193,10 @@ public abstract class MmsRequest {
                     Log.e(TAG, "MmsRequest: APN failure", e);
                     result = SmsManager.MMS_ERROR_INVALID_APN;
                     break;
-//                } catch (MmsNetworkException e) {
-//                    Log.e(TAG, "MmsRequest: MMS network acquiring failure", e);
-//                    result = SmsManager.MMS_ERROR_UNABLE_CONNECT_MMS;
-//                    // Retry
+//                    } catch (MmsNetworkException e) {
+//                        Log.e(TAG, "MmsRequest: MMS network acquiring failure", e);
+//                        result = SmsManager.MMS_ERROR_UNABLE_CONNECT_MMS;
+//                        // Retry
                 } catch (MmsHttpException e) {
                     Log.e(TAG, "MmsRequest: HTTP or network I/O failure", e);
                     result = SmsManager.MMS_ERROR_HTTP_FAILURE;
@@ -197,88 +213,11 @@ public abstract class MmsRequest {
                 }
                 retryDelaySecs <<= 1;
             }
-        } else {
-            mobileDataEnabled = Utils.isMobileDataEnabled(context);
-            Log.v(TAG, "mobile data enabled: " + mobileDataEnabled);
+        }
 
-            if (!mobileDataEnabled) {
-                Log.v(TAG, "mobile data not enabled, so forcing it to enable");
-                Utils.setMobileDataEnabled(context, true);
-            }
-
-            if (!ensureMmsConfigLoaded()) { // Check mms config
-                Log.e(TAG, "MmsRequest: mms config is not loaded yet");
-                result = SmsManager.MMS_ERROR_CONFIGURATION_ERROR;
-            } else if (!prepareForHttpRequest()) { // Prepare request, like reading pdu data from user
-                Log.e(TAG, "MmsRequest: failed to prepare for request");
-                result = SmsManager.MMS_ERROR_IO_ERROR;
-            } else if (!isDataNetworkAvailable(context, mSubId)) {
-                Log.e(TAG, "MmsRequest: in airplane mode or mobile data disabled");
-                result = SmsManager.MMS_ERROR_NO_DATA_NETWORK;
-            } else { // Execute
-                long retryDelaySecs = 2;
-                // Try multiple times of MMS HTTP request
-                for (int i = 0; i < RETRY_TIMES; i++) {
-                    try {
-                        try {
-                            networkManager.acquireNetwork();
-                        } catch (Exception e) {
-                            Log.e(TAG, "error acquiring network", e);
-                        }
-
-                        final String apnName = networkManager.getApnName();
-                        try {
-                            ApnSettings apn = null;
-                            try {
-                                apn = ApnSettings.load(context, apnName, mSubId);
-                            } catch (ApnException e) {
-                                // If no APN could be found, fall back to trying without the APN name
-                                if (apnName == null) {
-                                    // If the APN name was already null then don't need to retry
-                                    throw (e);
-                                }
-                                Log.i(TAG, "MmsRequest: No match with APN name:"
-                                        + apnName + ", try with no name");
-                                apn = ApnSettings.load(context, null, mSubId);
-                            }
-                            Log.i(TAG, "MmsRequest: using " + apn.toString());
-                            response = doHttp(context, networkManager, apn);
-                            result = Activity.RESULT_OK;
-                            // Success
-                            break;
-                        } finally {
-                            networkManager.releaseNetwork();
-                        }
-                    } catch (ApnException e) {
-                        Log.e(TAG, "MmsRequest: APN failure", e);
-                        result = SmsManager.MMS_ERROR_INVALID_APN;
-                        break;
-//                    } catch (MmsNetworkException e) {
-//                        Log.e(TAG, "MmsRequest: MMS network acquiring failure", e);
-//                        result = SmsManager.MMS_ERROR_UNABLE_CONNECT_MMS;
-//                        // Retry
-                    } catch (MmsHttpException e) {
-                        Log.e(TAG, "MmsRequest: HTTP or network I/O failure", e);
-                        result = SmsManager.MMS_ERROR_HTTP_FAILURE;
-                        httpStatusCode = e.getStatusCode();
-                        // Retry
-                    } catch (Exception e) {
-                        Log.e(TAG, "MmsRequest: unexpected failure", e);
-                        result = SmsManager.MMS_ERROR_UNSPECIFIED;
-                        break;
-                    }
-                    try {
-                        Thread.sleep(retryDelaySecs * 1000, 0/*nano*/);
-                    } catch (InterruptedException e) {
-                    }
-                    retryDelaySecs <<= 1;
-                }
-            }
-
-            if (!mobileDataEnabled) {
-                Log.v(TAG, "setting mobile data back to disabled");
-                Utils.setMobileDataEnabled(context, false);
-            }
+        if (!mobileDataEnabled) {
+            Log.v(TAG, "setting mobile data back to disabled");
+            Utils.setMobileDataEnabled(context, false);
         }
 
         processResult(context, result, response, httpStatusCode);

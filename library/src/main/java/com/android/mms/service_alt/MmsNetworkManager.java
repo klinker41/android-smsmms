@@ -86,13 +86,21 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
         mConnectionPool = null;
         mMmsHttpClient = null;
         mSubId = subId;
-        mNetworkRequest = new NetworkRequest.Builder()
-                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-                .removeTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_MMS)
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .setNetworkSpecifier(Integer.toString(mSubId))
-                .build();
+
+        if (!MmsRequest.useWifi(context)) {
+            mNetworkRequest = new NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    .removeTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_MMS)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .setNetworkSpecifier(Integer.toString(mSubId))
+                    .build();
+        } else {
+            mNetworkRequest = new NetworkRequest.Builder()
+                    .setNetworkSpecifier(Integer.toString(mSubId))
+                    .build();
+        }
+        
         MmsConfigManager.getInstance().init(context);
     }
 
