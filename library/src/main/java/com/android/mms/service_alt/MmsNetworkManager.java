@@ -23,6 +23,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.net.NetworkInfo;
 import android.net.SSLCertificateSocketFactory;
+import android.os.Build;
 import android.os.SystemClock;
 
 import com.klinker.android.logger.Log;

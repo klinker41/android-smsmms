@@ -64,7 +64,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         if (PreferenceManager.getDefaultSharedPreferences(this)
-                .getBoolean("request_permissions", true)) {
+                .getBoolean("request_permissions", true) &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             startActivity(new Intent(this, PermissionActivity.class));
             finish();
             return;
@@ -179,7 +180,7 @@ public class MainActivity extends Activity {
     }
 
     public void sendMessage() {
-        if (!android.provider.Settings.System.canWrite(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.System.canWrite(this)) {
             new AlertDialog.Builder(this)
                     .setMessage(com.klinker.android.send_message.R.string.write_settings_permission)
                     .setPositiveButton(com.klinker.android.send_message.R.string.ok, new DialogInterface.OnClickListener() {

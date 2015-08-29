@@ -206,6 +206,26 @@ public class MmsConfig {
     }
 
     /**
+     * This class manages a cached copy of current MMS configuration key values for a particular
+     * subscription id. (See the {@link SubscriptionManager}).
+     *
+     * @param context Context of the particular subscription to load. The context's mcc/mnc
+     * should be set to that of the subscription id\
+     */
+    public MmsConfig(Context context) {
+        mSubId = -1;
+        // Load defaults
+        mKeyValues.clear();
+        mKeyValues.putAll(DEFAULTS);
+        // Load User-Agent and UA profile URL settings
+        loadDeviceUaSettings(context);
+        Log.v(TAG, "MmsConfig: mUserAgent=" + mUserAgent + ", mUaProfUrl=" + mUaProfUrl);
+        // Load mms_config.xml resource overlays
+        loadFromResources(context);
+        Log.v(TAG, "MmsConfig: all settings -- " + mKeyValues);
+    }
+
+    /**
      * Return the subscription ID associated with this MmsConfig
      *
      * @return subId the subId associated with this MmsConfig
@@ -321,6 +341,9 @@ public class MmsConfig {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mUserAgent = telephonyManager.getMmsUserAgent();
             mUaProfUrl = telephonyManager.getMmsUAProfUrl();
+            // defaults for nexus 6, seems to work well.
+            //mUserAgent = "nexus6";
+            //mUaProfUrl = "http://uaprof.motorola.com/phoneconfig/nexus6/Profile/nexus6.rdf";
         } else {
             mUserAgent = "Android Messaging";
             mUaProfUrl = "http://www.gstatic.com/android/hangouts/hangouts_mms_ua_profile.xml";
@@ -535,11 +558,15 @@ public class MmsConfig {
             final TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(
                     Context.TELEPHONY_SERVICE);
 
-            try {
-                Method method = telephonyManager.getClass().getMethod("getLine1NumberForSubscriber", int.class);
-                return (String) method.invoke(telephonyManager, subId);
-            } catch (Exception e) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
                 return telephonyManager.getLine1Number();
+            } else {
+                try {
+                    Method method = telephonyManager.getClass().getMethod("getLine1NumberForSubscriber", int.class);
+                    return (String) method.invoke(telephonyManager, subId);
+                } catch (Exception e) {
+                    return telephonyManager.getLine1Number();
+                }
             }
         }
 
@@ -561,12 +588,16 @@ public class MmsConfig {
 
             String nai = "";
 
-            try {
-                Method method = telephonyManager.getClass().getMethod("getNai", int.class);
-                Method getSlotId = SubscriptionManager.class.getMethod("getSlotId", int.class);
-                nai = (String) method.invoke(telephonyManager, getSlotId.invoke(null, subId));
-            } catch (Exception e) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
                 nai = SystemPropertiesProxy.get(context, "persist.radio.cdma.nai");
+            } else {
+                try {
+                    Method method = telephonyManager.getClass().getMethod("getNai", int.class);
+                    Method getSlotId = SubscriptionManager.class.getMethod("getSlotId", int.class);
+                    nai = (String) method.invoke(telephonyManager, getSlotId.invoke(null, subId));
+                } catch (Exception e) {
+                    nai = SystemPropertiesProxy.get(context, "persist.radio.cdma.nai");
+                }
             }
 
             if (Log.isLoggable(TAG, Log.VERBOSE)) {

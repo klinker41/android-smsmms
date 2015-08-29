@@ -105,8 +105,14 @@ public abstract class MmsRequest {
 
     private boolean ensureMmsConfigLoaded() {
         if (mMmsConfig == null) {
-            // Not yet retrieved from mms config manager. Try getting it.
-            final MmsConfig config = MmsConfigManager.getInstance().getMmsConfigBySubId(mSubId);
+            final MmsConfig config;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                // Not yet retrieved from mms config manager. Try getting it.
+                config = MmsConfigManager.getInstance().getMmsConfigBySubId(mSubId);
+            } else {
+                config = MmsConfigManager.getInstance().getMmsConfig();
+            }
+
             if (config != null) {
                 mMmsConfig = new MmsConfig.Overridden(config, mMmsConfigOverrides);
             }
