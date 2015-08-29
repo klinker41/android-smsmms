@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.mms.service;
+package com.android.mms.service_alt;
 
 import android.content.Context;
-import android.net.ConnectivityManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.android.mms.service.exception.MmsHttpException;
+import com.android.mms.service_alt.exception.MmsHttpException;
 import com.squareup.okhttp.ConnectionPool;
 import com.squareup.okhttp.ConnectionSpec;
 import com.squareup.okhttp.OkHttpClient;

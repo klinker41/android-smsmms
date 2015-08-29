@@ -14,39 +14,25 @@
  * limitations under the License.
  */
 
-package com.android.mms.service;
+package com.android.mms.service_alt;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.net.NetworkInfo;
 import android.net.SSLCertificateSocketFactory;
-import android.net.Uri;
-import android.os.Build;
 import android.os.SystemClock;
-import android.provider.Settings;
 
 import com.klinker.android.logger.Log;
 
-import com.android.mms.service.exception.MmsNetworkException;
-import com.klinker.android.send_message.R;
+import com.android.mms.service_alt.exception.MmsNetworkException;
 import com.squareup.okhttp.ConnectionPool;
 
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.net.UnknownHostException;
 
-import javax.net.SocketFactory;
-
-/**
- * Manages the MMS network connectivity
- */
 public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
     private static final String TAG = "MmsNetworkManager";
     // Timeout used to call ConnectivityManager.requestNetwork
@@ -107,6 +93,7 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .setNetworkSpecifier(Integer.toString(mSubId))
                 .build();
+        MmsConfigManager.getInstance().init(context);
     }
 
     /**

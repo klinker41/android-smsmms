@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package com.android.mms.service.exception;
+package com.android.mms.service_alt.exception;
 
 /**
- * MMS network exception
+ * APN exception
  */
-public class MmsNetworkException extends Exception {
+public class ApnException extends Exception {
 
-    public MmsNetworkException() {
+    public ApnException() {
         super();
     }
 
-    public MmsNetworkException(String message) {
+    public ApnException(String message) {
         super(message);
     }
 
-    public MmsNetworkException(Throwable cause) {
+    public ApnException(Throwable cause) {
         super(cause);
     }
 
-    public MmsNetworkException(String message, Throwable cause) {
+    public ApnException(String message, Throwable cause) {
         super(message, cause);
     }
 }

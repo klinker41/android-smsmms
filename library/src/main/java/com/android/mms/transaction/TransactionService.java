@@ -37,8 +37,7 @@ import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.MmsSms.PendingMessages;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
-import com.android.mms.service.DownloadRequest;
-import com.android.mms.service.MmsNetworkManager;
+
 import com.klinker.android.logger.Log;
 import android.widget.Toast;
 

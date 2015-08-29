@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.mms.service.exception;
+package com.android.mms.service_alt.exception;
 
 /**
  * HTTP exception

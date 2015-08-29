@@ -34,7 +34,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import com.android.mms.service.MmsConfigManager;
+import com.android.mms.service_alt.MmsConfigManager;
 import com.klinker.android.logger.Log;
 import com.klinker.android.logger.OnLogListener;
 import com.klinker.android.send_message.ApnUtils;
@@ -42,7 +42,6 @@ import com.klinker.android.send_message.Message;
 import com.klinker.android.send_message.Transaction;
 import com.klinker.android.send_message.Utils;
 
-import java.security.Permission;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
@@ -180,8 +179,6 @@ public class MainActivity extends Activity {
     }
 
     public void sendMessage() {
-        MmsConfigManager.getInstance().init(MainActivity.this);
-
         if (!android.provider.Settings.System.canWrite(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             new AlertDialog.Builder(this)
                     .setMessage(com.klinker.android.send_message.R.string.write_settings_permission)

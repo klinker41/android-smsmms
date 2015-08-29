@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.mms.service;
+package com.android.mms.service_alt;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -75,7 +75,14 @@ public class MmsConfigManager {
         // TODO: When this object "finishes" we should unregister.
         IntentFilter intentFilterLoaded =
                 new IntentFilter("LOADED");
-        context.registerReceiver(mReceiver, intentFilterLoaded);
+
+        try {
+            context.registerReceiver(mReceiver, intentFilterLoaded);
+        } catch (Exception e) {
+            Log.v(TAG, "error registering intent", e);
+        }
+
+        load(context);
 
         // TODO: When this object "finishes" we should unregister by invoking
         // SubscriptionManager.getInstance(mContext).unregister(mOnSubscriptionsChangedListener);
@@ -84,13 +91,13 @@ public class MmsConfigManager {
 
         // Register for SubscriptionInfo list changes which is guaranteed
         // to invoke onSubscriptionsChanged the first time.
-        SubscriptionManager.from(mContext).addOnSubscriptionsChangedListener(
-                new OnSubscriptionsChangedListener() {
-                    @Override
-                    public void onSubscriptionsChanged() {
-                        loadInBackground();
-                    }
-                });
+//        SubscriptionManager.from(mContext).addOnSubscriptionsChangedListener(
+//                new OnSubscriptionsChangedListener() {
+//                    @Override
+//                    public void onSubscriptionsChanged() {
+//                        loadInBackground();
+//                    }
+//                });
     }
 
     private void loadInBackground() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.mms.service;
+package com.android.mms.service_alt;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -31,9 +31,8 @@ import android.telephony.TelephonyManager;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.Utils;
 
-import com.android.mms.service.exception.ApnException;
-import com.android.mms.service.exception.MmsHttpException;
-import com.android.mms.service.exception.MmsNetworkException;
+import com.android.mms.service_alt.exception.ApnException;
+import com.android.mms.service_alt.exception.MmsHttpException;
 
 /**
  * Base class for MMS requests. This has the common logic of sending/downloading MMS.

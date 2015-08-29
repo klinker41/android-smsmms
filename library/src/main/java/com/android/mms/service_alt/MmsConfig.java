@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.mms.service;
+package com.android.mms.service_alt;
 
 import android.content.Context;
 import android.content.res.XmlResourceParser;

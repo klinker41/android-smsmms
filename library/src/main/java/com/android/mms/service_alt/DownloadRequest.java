@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.mms.service;
+package com.android.mms.service_alt;
 
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -30,7 +30,7 @@ import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.android.mms.service.exception.MmsHttpException;
+import com.android.mms.service_alt.exception.MmsHttpException;
 
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.GenericPdu;

@@ -33,9 +33,10 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import com.android.mms.service.MmsNetworkManager;
-import com.android.mms.service.MmsRequestManager;
-import com.android.mms.service.SendRequest;
+
+import com.android.mms.service_alt.MmsNetworkManager;
+import com.android.mms.service_alt.MmsRequestManager;
+import com.android.mms.service_alt.SendRequest;
 import com.klinker.android.logger.Log;
 import android.widget.Toast;
 import com.android.mms.dom.smil.parser.SmilXmlSerializer;

@@ -33,10 +33,9 @@ import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
 
-import com.android.mms.service.DownloadRequest;
-import com.android.mms.service.MmsNetworkManager;
-import com.android.mms.service.MmsRequestManager;
-import com.android.mms.service.SendRequest;
+import com.android.mms.service_alt.DownloadRequest;
+import com.android.mms.service_alt.MmsNetworkManager;
+import com.android.mms.service_alt.MmsRequestManager;
 import com.klinker.android.logger.Log;
 
 import com.android.mms.LogTag;

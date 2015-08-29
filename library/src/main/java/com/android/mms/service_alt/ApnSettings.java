@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.mms.service;
+package com.android.mms.service_alt;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -27,7 +27,7 @@ import android.provider.Telephony;
 import android.text.TextUtils;
 import com.klinker.android.logger.Log;
 
-import com.android.mms.service.exception.ApnException;
+import com.android.mms.service_alt.exception.ApnException;
 
 import java.net.URI;
 import java.net.URISyntaxException;

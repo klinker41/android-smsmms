@@ -30,7 +30,7 @@ import android.widget.Toast;
 
 import com.android.internal.telephony.TelephonyProperties;
 import com.android.mms.LogTag;
-import com.android.mms.service.SystemPropertiesProxy;
+import com.android.mms.service_alt.SystemPropertiesProxy;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.EncodedStringValue;
 import com.google.android.mms.pdu_alt.NotificationInd;
