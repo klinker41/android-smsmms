@@ -105,7 +105,9 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                     // Get the locked flag from the M-Notification.ind so it can be transferred
                     // to the real message after the download.
                     mLocked = cursor.getInt(COLUMN_LOCKED) == 1;
-                    return cursor.getString(COLUMN_CONTENT_LOCATION);
+                    String location = cursor.getString(COLUMN_CONTENT_LOCATION);
+                    cursor.close();
+                    return location;
                 }
             } finally {
                 cursor.close();
@@ -221,7 +223,12 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                     if (cursor.getCount() > 0) {
                         // A message with identical message ID and type found.
                         // Do some additional checks to be sure it's a duplicate.
-                        return isDuplicateMessageExtra(cursor, rc);
+                        boolean dup = isDuplicateMessageExtra(cursor, rc);
+                        if (!cursor.isClosed()) {
+                            cursor.close();
+                        }
+
+                        return dup;
                     }
                 } finally {
                     cursor.close();

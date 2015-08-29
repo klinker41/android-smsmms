@@ -83,6 +83,8 @@ public class SentReceiver extends BroadcastReceiver {
                         values.put("read", 1);
                         values.put("error_code", getResultCode());
                         context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+
+                        query.close();
                     }
                 }
 
@@ -105,8 +107,8 @@ public class SentReceiver extends BroadcastReceiver {
             values.put("type", 2);
             values.put("read", 1);
             context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
-        }
 
-        query.close();
+            query.close();
+        }
     }
 }

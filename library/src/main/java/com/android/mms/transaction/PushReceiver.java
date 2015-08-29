@@ -242,9 +242,9 @@ public class PushReceiver extends BroadcastReceiver {
         if (cursor != null) {
             try {
                 if ((cursor.getCount() == 1) && cursor.moveToFirst()) {
-                    // Get the locked flag from the M-Notification.ind so it can be transferred
-                    // to the real message after the download.
-                    return cursor.getString(COLUMN_CONTENT_LOCATION);
+                    String location = cursor.getString(COLUMN_CONTENT_LOCATION);
+                    cursor.close();
+                    return location;
                 }
             } finally {
                 cursor.close();
@@ -280,7 +280,9 @@ public class PushReceiver extends BroadcastReceiver {
         if (cursor != null) {
             try {
                 if ((cursor.getCount() == 1) && cursor.moveToFirst()) {
-                    return cursor.getLong(0);
+                    long id = cursor.getLong(0);
+                    cursor.close();
+                    return id;
                 }
             } finally {
                 cursor.close();
@@ -305,6 +307,7 @@ public class PushReceiver extends BroadcastReceiver {
                 try {
                     if (cursor.getCount() > 0) {
                         // We already received the same notification before.
+                        cursor.close();
                         return true;
                     }
                 } finally {

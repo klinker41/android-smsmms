@@ -107,7 +107,9 @@ public class RateController {
         if (c != null) {
             try {
                 if (c.moveToFirst()) {
-                    return c.getInt(0) >= RATE_LIMIT;
+                    boolean limit = c.getInt(0) >= RATE_LIMIT;
+                    c.close();
+                    return limit;
                 }
             } finally {
                 c.close();

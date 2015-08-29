@@ -358,7 +358,9 @@ public class Utils {
         if (cursor != null) {
             try {
                 if (cursor.moveToFirst()) {
-                    return cursor.getLong(0);
+                    long id = cursor.getLong(0);
+                    cursor.close();
+                    return id;
                 } else {
 
                 }

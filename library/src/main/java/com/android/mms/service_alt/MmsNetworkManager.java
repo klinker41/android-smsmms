@@ -100,7 +100,7 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
                     .setNetworkSpecifier(Integer.toString(mSubId))
                     .build();
         }
-        
+
         MmsConfigManager.getInstance().init(context);
     }
 

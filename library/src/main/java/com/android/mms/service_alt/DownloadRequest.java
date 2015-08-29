@@ -201,7 +201,7 @@ public class DownloadRequest extends MmsRequest {
         context.sendBroadcast(
                 new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS)
         );
-        
+
         // TODO, not sure what this is doing... sending a broadcast that
         // the download has finished from a specific user account I believe.
 //        final Intent intent = new Intent("android.provider.Telephony.MMS_DOWNLOADED");
@@ -285,7 +285,9 @@ public class DownloadRequest extends MmsRequest {
         if (cursor != null) {
             try {
                 if ((cursor.getCount() == 1) && cursor.moveToFirst()) {
-                    return cursor.getString(COLUMN_CONTENT_LOCATION);
+                    String location = cursor.getString(COLUMN_CONTENT_LOCATION);
+                    cursor.close();
+                    return location;
                 }
             } finally {
                 cursor.close();

@@ -206,7 +206,9 @@ public class DownloadManager {
         if (cursor != null) {
             try {
                 if (cursor.moveToFirst()) {
-                    return cursor.getInt(0) & ~DEFERRED_MASK;
+                    int state = cursor.getInt(0) & ~DEFERRED_MASK;
+                    cursor.close();
+                    return state;
                 }
             } finally {
                 cursor.close();

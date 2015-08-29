@@ -190,6 +190,7 @@ public class Transaction {
                 Cursor query = context.getContentResolver().query(messageUri, new String[] {"_id"}, null, null, null);
                 if (query != null && query.moveToFirst()) {
                     messageId = query.getInt(0);
+                    query.close();
                 }
 
                 Log.v("send_transaction", "message id: " + messageId);
@@ -309,6 +310,7 @@ public class Transaction {
     private boolean checkIfMessageExistsAfterDelay(Uri messageUti) {
         Cursor query = context.getContentResolver().query(messageUti, new String[] {"_id"}, null, null, null);
         if (query != null && query.moveToFirst()) {
+            query.close();
             return true;
         } else {
             return false;
@@ -530,6 +532,7 @@ public class Transaction {
             Cursor query = context.getContentResolver().query(info.location, new String[] {"thread_id"}, null, null, null);
             if (query != null && query.moveToFirst()) {
                 info.token = query.getLong(query.getColumnIndex("thread_id"));
+                query.close();
             } else {
                 // just default sending token for what I had before
                 info.token = 4444L;
@@ -1005,15 +1008,15 @@ public class Transaction {
             Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
             // mark message as failed
-            if (query.moveToFirst()) {
+            if (query != null && query.moveToFirst()) {
                 String id = query.getString(query.getColumnIndex("_id"));
                 ContentValues values = new ContentValues();
                 values.put("type", "5");
                 values.put("read", true);
                 context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
-            }
 
-            query.close();
+                query.close();
+            }
         }
 
         context.sendBroadcast(new Intent(REFRESH));
