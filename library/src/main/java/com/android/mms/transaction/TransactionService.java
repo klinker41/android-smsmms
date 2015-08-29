@@ -38,6 +38,9 @@ import android.provider.Telephony.MmsSms.PendingMessages;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
 
+import com.android.mms.service_alt.DownloadRequest;
+import com.android.mms.service_alt.MmsNetworkManager;
+import com.android.mms.service_alt.MmsRequestManager;
 import com.klinker.android.logger.Log;
 import android.widget.Toast;
 
@@ -298,6 +301,25 @@ public class TransactionService extends Service implements Observer {
                     while (cursor.moveToNext()) {
                         int msgType = cursor.getInt(columnIndexOfMsgType);
                         int transactionType = getTransactionType(msgType);
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            try {
+                                Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
+                                        cursor.getLong(columnIndexOfMsgId));
+                                MmsRequestManager requestManager = new MmsRequestManager(this);
+                                DownloadRequest request = new DownloadRequest(requestManager,
+                                        Utils.getDefaultSubscriptionId(),
+                                        PushReceiver.getContentLocation(this, uri), uri, null, null,
+                                        null, this);
+                                MmsNetworkManager manager = new MmsNetworkManager(this, Utils.getDefaultSubscriptionId());
+                                request.execute(this, manager);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            continue;
+                        }
+
                         if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
                             Log.v(TAG, "onNewIntent: msgType=" + msgType + " transactionType=" +
                                     transactionType);

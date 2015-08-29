@@ -234,7 +234,7 @@ public class PushReceiver extends BroadcastReceiver {
         }
     }
 
-    public String getContentLocation(Context context, Uri uri)
+    public static String getContentLocation(Context context, Uri uri)
             throws MmsException {
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
                 uri, PROJECTION, null, null, null);
