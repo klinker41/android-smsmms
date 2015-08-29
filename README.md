@@ -2,7 +2,7 @@
 
 ![Promo](https://raw.githubusercontent.com/klinker41/android-smsmms/master/android-messaging.png)
 
-These are the APIs that Google has so far left out of the Android ecosystem for easily sending any type of message without digging through source code and what not. 
+These are the APIs that Google has so far left out of the Android ecosystem for easily sending any type of message without digging through source code and what not.
 
 ##### This library is still in __BETA__ and has a long way to go... APIs may not be final and things will most likely change.
 
@@ -84,19 +84,19 @@ You'll also need to register a few receivers for when the messages have been sen
 <receiver android:name="com.klinker.android.send_message.SentReceiver" >
 	<intent-filter>
 		<action android:name="[insert package name here].SMS_SENT" />
-	</intent-filter> 
+	</intent-filter>
 </receiver>
-        
+
 <receiver android:name="com.klinker.android.send_message.DeliveredReceiver" >
 	<intent-filter>
                 <action android:name="[insert package name here].SMS_DELIVERED" />
-	</intent-filter> 
+	</intent-filter>
 </receiver>
 ```
 
 Be sure to replace the [insert package name here] with your package name defined in the manifest. For example, Sliding Messaging's is com.klinker.android.messaging_donate.
 
-Lastly, you'll need to include permissions in your manifest depending on what you want to do. Here are all of them:
+Lastly, you'll need to include permissions in your manifest depending on what you want to do. Here are all of them (there are a lot unfortunately):
 
 ```xml
 <uses-permission android:name="android.permission.SEND_SMS"/>
@@ -114,6 +114,7 @@ Lastly, you'll need to include permissions in your manifest depending on what yo
 <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
 <uses-permission android:name="android.permission.USE_CREDENTIALS" />
 <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+<uses-permission android:name="android.permission.WRITE_SETTINGS" />
 ```
 
 ---
