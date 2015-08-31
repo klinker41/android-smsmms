@@ -24,7 +24,6 @@ dependencies {
     compile 'com.koushikdutta.ion:ion:1.1.7'
     compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.5.0'
-    compile project(':phoneutil')
 }
 
 android {
