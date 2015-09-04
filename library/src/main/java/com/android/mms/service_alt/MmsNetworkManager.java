@@ -61,7 +61,7 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
     // If mMmsRequestCount is 0, we should release the MMS network.
     private int mMmsRequestCount;
     // This is really just for using the capability
-    private final NetworkRequest mNetworkRequest;
+    private NetworkRequest mNetworkRequest;
     // The callback to register when we request MMS network
     private ConnectivityManager.NetworkCallback mNetworkCallback;
 
@@ -91,9 +91,7 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
         if (!MmsRequest.useWifi(context)) {
             mNetworkRequest = new NetworkRequest.Builder()
                     .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-                    .removeTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                     .addCapability(NetworkCapabilities.NET_CAPABILITY_MMS)
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     .setNetworkSpecifier(Integer.toString(mSubId))
                     .build();
         } else {
@@ -164,6 +162,7 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
     private void newRequest() {
         final ConnectivityManager connectivityManager = getConnectivityManager();
         mNetworkCallback = new ConnectivityManager.NetworkCallback() {
+
             @Override
             public void onAvailable(Network network) {
                 super.onAvailable(network);
@@ -303,6 +302,10 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
         synchronized (this) {
             if (mNetwork == null) {
                 Log.d(TAG, "MmsNetworkManager: getApnName: network not available");
+                mNetworkRequest = new NetworkRequest.Builder()
+                        .setNetworkSpecifier(Integer.toString(mSubId))
+                        .build();
+                newRequest();
                 return null;
             }
             network = mNetwork;

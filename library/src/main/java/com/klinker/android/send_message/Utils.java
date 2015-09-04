@@ -256,7 +256,7 @@ public class Utils {
             return (boolean) m.invoke(telephonyManager, subId);
         } catch (Exception e) {
             Log.e(TAG, "exception thrown", e);
-            return true;
+            return isDataEnabled(telephonyManager);
         }
     }
 
