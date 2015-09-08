@@ -96,7 +96,7 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
                     .build();
         } else {
             mNetworkRequest = new NetworkRequest.Builder()
-                    .setNetworkSpecifier(Integer.toString(mSubId))
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     .build();
         }
 
@@ -303,7 +303,7 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
             if (mNetwork == null) {
                 Log.d(TAG, "MmsNetworkManager: getApnName: network not available");
                 mNetworkRequest = new NetworkRequest.Builder()
-                        .setNetworkSpecifier(Integer.toString(mSubId))
+                        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                         .build();
                 newRequest();
                 return null;
