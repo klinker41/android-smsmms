@@ -208,6 +208,7 @@ public class MainActivity extends Activity {
                 sendSettings.setMmsc(settings.getMmsc());
                 sendSettings.setProxy(settings.getMmsProxy());
                 sendSettings.setPort(settings.getMmsPort());
+                sendSettings.setUseSystemSending(true);
 
                 Transaction transaction = new Transaction(MainActivity.this, sendSettings);
 

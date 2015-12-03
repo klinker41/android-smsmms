@@ -143,6 +143,7 @@ public class SendRequest extends MmsRequest {
             }
             if (sendConf != null) {
                 values.put(Telephony.Mms.RESPONSE_STATUS, sendConf.getResponseStatus());
+                Log.v(TAG, "response status: " + sendConf.getResponseStatus());
                 values.put(Telephony.Mms.MESSAGE_ID,
                         PduPersister.toIsoString(sendConf.getMessageId()));
             }

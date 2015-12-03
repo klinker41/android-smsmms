@@ -28,7 +28,6 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
@@ -55,6 +54,8 @@ import com.koushikdutta.ion.Ion;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -366,18 +367,12 @@ public class Transaction {
             data.add(part);
         }
 
-        MessageInfo info;
-
-        try {
-            info = getBytes(context, saveMessage, address.split(" "),
-                    data.toArray(new MMSPart[data.size()]), subject);
-        } catch (MmsException e) {
-            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
+            MessageInfo info = null;
+
             try {
+                info = getBytes(context, saveMessage, address.split(" "),
+                        data.toArray(new MMSPart[data.size()]), subject);
                 MmsMessageSender sender = new MmsMessageSender(context, info.location, info.bytes.length);
                 sender.sendMessage(info.token);
 
@@ -427,11 +422,22 @@ public class Transaction {
         } else {
             Log.v(TAG, "using lollipop method for sending sms");
 
-            MmsRequestManager requestManager = new MmsRequestManager(context, info.bytes);
-            SendRequest request = new SendRequest(requestManager, Utils.getDefaultSubscriptionId(),
-                    info.location, null, null, null, null);
-            MmsNetworkManager manager = new MmsNetworkManager(context, Utils.getDefaultSubscriptionId());
-            request.execute(context, manager);
+            if (settings.getUseSystemSending()) {
+                Log.v(TAG, "using system method for sending");
+                sendMmsThroughSystem(context, subject, data, addresses);
+            } else {
+                try {
+                    MessageInfo info = getBytes(context, saveMessage, address.split(" "),
+                            data.toArray(new MMSPart[data.size()]), subject);
+                    MmsRequestManager requestManager = new MmsRequestManager(context, info.bytes);
+                    SendRequest request = new SendRequest(requestManager, Utils.getDefaultSubscriptionId(),
+                            info.location, null, null, null, null);
+                    MmsNetworkManager manager = new MmsNetworkManager(context, Utils.getDefaultSubscriptionId());
+                    request.execute(context, manager);
+                } catch (Exception e) {
+                    Log.e(TAG, "error sending mms", e);
+                }
+            }
         }
     }
 
@@ -458,7 +464,7 @@ public class Transaction {
         try {
             sendRequest.setFrom(new EncodedStringValue(Utils.getMyPhoneNumber(context)));
         } catch (Exception e) {
-            // my number is nothing
+            Log.e(TAG, "error getting from address", e);
         }
 
         final PduBody pduBody = new PduBody();
@@ -502,6 +508,13 @@ public class Transaction {
         Log.v(TAG, "setting message size to " + size + " bytes");
         sendRequest.setMessageSize(size);
 
+        // add everything else that could be set
+        sendRequest.setPriority(PduHeaders.PRIORITY_NORMAL);
+        sendRequest.setDeliveryReport(PduHeaders.VALUE_NO);
+        sendRequest.setExpiry(1000 * 60 * 60 * 24 * 7);
+        sendRequest.setMessageClass(PduHeaders.MESSAGE_CLASS_PERSONAL_STR.getBytes());
+        sendRequest.setReadReport(PduHeaders.VALUE_NO);
+
         // create byte array which will actually be sent
         final PduComposer composer = new PduComposer(context, sendRequest);
         final byte[] bytesToSend;
@@ -543,6 +556,142 @@ public class Transaction {
         }
 
         return info;
+    }
+
+    public static final long DEFAULT_EXPIRY_TIME = 7 * 24 * 60 * 60;
+    public static final int DEFAULT_PRIORITY = PduHeaders.PRIORITY_NORMAL;
+
+    private static void sendMmsThroughSystem(Context context, String subject, List<MMSPart> parts,
+                                             String[] addresses) {
+        try {
+            final String fileName = "send." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
+            File mSendFile = new File(context.getCacheDir(), fileName);
+
+            SendReq sendReq = buildPdu(context, addresses, subject, parts);
+            PduPersister persister = PduPersister.getPduPersister(context);
+            Uri messageUri = persister.persist(sendReq, Uri.parse("content://mms/outbox"),
+                    true, settings.getGroup(), null);
+
+            Intent intent = new Intent(MmsSentReceiver.MMS_SENT);
+            intent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
+            intent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
+            final PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    context, 0, intent, 0);
+
+            Uri writerUri = (new Uri.Builder())
+                    .authority("com.klinker.android.messaging.MmsFileProvider")
+                    .path(fileName)
+                    .scheme(ContentResolver.SCHEME_CONTENT)
+                    .build();
+            FileOutputStream writer = null;
+            Uri contentUri = null;
+            try {
+                writer = new FileOutputStream(mSendFile);
+                writer.write(new PduComposer(context, sendReq).make());
+                contentUri = writerUri;
+            } catch (final IOException e) {
+                Log.e(TAG, "Error writing send file", e);
+            } finally {
+                if (writer != null) {
+                    try {
+                        writer.close();
+                    } catch (IOException e) {
+                    }
+                }
+            }
+
+            if (contentUri != null) {
+                SmsManager.getDefault().sendMultimediaMessage(context,
+                        contentUri, null, null, pendingIntent);
+            } else {
+                Log.e(TAG, "Error writing sending Mms");
+                try {
+                    pendingIntent.send(SmsManager.MMS_ERROR_IO_ERROR);
+                } catch (PendingIntent.CanceledException ex) {
+                    Log.e(TAG, "Mms pending intent cancelled?", ex);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "error using system sending method", e);
+        }
+    }
+
+    private static SendReq buildPdu(Context context, String[] recipients, String subject,
+                                    List<MMSPart> parts) {
+        final SendReq req = new SendReq();
+        // From, per spec
+        final String lineNumber = Utils.getMyPhoneNumber(context);
+        if (!TextUtils.isEmpty(lineNumber)) {
+            req.setFrom(new EncodedStringValue(lineNumber));
+        }
+        // To
+        for (String recipient : recipients) {
+            req.addTo(new EncodedStringValue(recipient));
+        }
+        // Subject
+        if (!TextUtils.isEmpty(subject)) {
+            req.setSubject(new EncodedStringValue(subject));
+        }
+        // Date
+        req.setDate(System.currentTimeMillis() / 1000);
+        // Body
+        PduBody body = new PduBody();
+        // Add text part. Always add a smil part for compatibility, without it there
+        // may be issues on some carriers/client apps
+        int size = 0;
+        for (int i = 0; i < parts.size(); i++) {
+            MMSPart part = parts.get(i);
+            size += addTextPart(body, part, i);
+        }
+
+        // add a SMIL document for compatibility
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmilXmlSerializer.serialize(SmilHelper.createSmilDocument(body), out);
+        PduPart smilPart = new PduPart();
+        smilPart.setContentId("smil".getBytes());
+        smilPart.setContentLocation("smil.xml".getBytes());
+        smilPart.setContentType(ContentType.APP_SMIL.getBytes());
+        smilPart.setData(out.toByteArray());
+        body.addPart(0, smilPart);
+
+        req.setBody(body);
+        // Message size
+        req.setMessageSize(size);
+        // Message class
+        req.setMessageClass(PduHeaders.MESSAGE_CLASS_PERSONAL_STR.getBytes());
+        // Expiry
+        req.setExpiry(DEFAULT_EXPIRY_TIME);
+        try {
+            // Priority
+            req.setPriority(DEFAULT_PRIORITY);
+            // Delivery report
+            req.setDeliveryReport(PduHeaders.VALUE_NO);
+            // Read report
+            req.setReadReport(PduHeaders.VALUE_NO);
+        } catch (InvalidHeaderValueException e) {}
+
+        return req;
+    }
+
+    private static int addTextPart(PduBody pb, MMSPart p, int id) {
+        String filename = p.MimeType.split("/")[0] + "_" + id + ".mms";
+        final PduPart part = new PduPart();
+        // Set Charset if it's a text media.
+        if (p.MimeType.startsWith("text")) {
+            part.setCharset(CharacterSets.UTF_8);
+        }
+        // Set Content-Type.
+        part.setContentType(p.MimeType.getBytes());
+        // Set Content-Location.
+        part.setContentLocation(filename.getBytes());
+        int index = filename.lastIndexOf(".");
+        String contentId = (index == -1) ? filename
+                : filename.substring(0, index);
+        part.setContentId(contentId.getBytes());
+        part.setData(p.Data);
+        pb.addPart(part);
+
+        return part.getData().length;
     }
 
     public static class MessageInfo {

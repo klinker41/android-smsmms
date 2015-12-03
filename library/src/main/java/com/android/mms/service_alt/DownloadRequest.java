@@ -106,12 +106,19 @@ public class DownloadRequest extends MmsRequest {
 
     @Override
     protected Uri persistIfRequired(Context context, int result, byte[] response) {
+        if (!mRequestManager.getAutoPersistingPref()) {
+            notifyOfDownload(context);
+            return null;
+        }
+
+        return persist(context, response, mMmsConfig, mLocationUrl, mSubId, mCreator);
+    }
+
+    public static Uri persist(Context context, byte[] response, MmsConfig.Overridden mmsConfig,
+                              String locationUrl, int subId, String creator) {
         // Let any mms apps running as secondary user know that a new mms has been downloaded.
         notifyOfDownload(context);
 
-        if (!mRequestManager.getAutoPersistingPref()) {
-            return null;
-        }
         Log.d(TAG, "DownloadRequest.persistIfRequired");
         if (response == null || response.length < 1) {
             Log.e(TAG, "DownloadRequest.persistIfRequired: empty response");
@@ -126,14 +133,14 @@ public class DownloadRequest extends MmsRequest {
                     LOCATION_SELECTION,
                     new String[]{
                             Integer.toString(PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND),
-                            mLocationUrl
+                            locationUrl
                     });
             return null;
         }
         final long identity = Binder.clearCallingIdentity();
         try {
             final GenericPdu pdu =
-                    (new PduParser(response, mMmsConfig.getSupportMmsContentDisposition())).parse();
+                    (new PduParser(response, mmsConfig.getSupportMmsContentDisposition())).parse();
             if (pdu == null || !(pdu instanceof RetrieveConf)) {
                 Log.e(TAG, "DownloadRequest.persistIfRequired: invalid parsed PDU");
                 return null;
@@ -175,12 +182,12 @@ public class DownloadRequest extends MmsRequest {
             values.put(Telephony.Mms.DATE, System.currentTimeMillis() / 1000L);
             values.put(Telephony.Mms.READ, 0);
             values.put(Telephony.Mms.SEEN, 0);
-            if (!TextUtils.isEmpty(mCreator)) {
-                values.put(Telephony.Mms.CREATOR, mCreator);
+            if (!TextUtils.isEmpty(creator)) {
+                values.put(Telephony.Mms.CREATOR, creator);
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-                values.put(Telephony.Mms.SUBSCRIPTION_ID, mSubId);
+                values.put(Telephony.Mms.SUBSCRIPTION_ID, subId);
             }
 
             if (SqliteWrapper.update(
@@ -199,7 +206,7 @@ public class DownloadRequest extends MmsRequest {
                     LOCATION_SELECTION,
                     new String[]{
                             Integer.toString(PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND),
-                            mLocationUrl
+                            locationUrl
                     });
 
             return messageUri;
@@ -215,7 +222,7 @@ public class DownloadRequest extends MmsRequest {
         return null;
     }
 
-    private void notifyOfDownload(Context context) {
+    private static void notifyOfDownload(Context context) {
         context.sendBroadcast(
                 new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS)
         );

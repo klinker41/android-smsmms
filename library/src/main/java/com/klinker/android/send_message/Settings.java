@@ -17,6 +17,8 @@
 package com.klinker.android.send_message;
 
 import android.net.wifi.WifiInfo;
+import android.os.Build;
+
 import com.klinker.android.logger.Log;
 
 /**
@@ -34,6 +36,7 @@ public class Settings {
     private String uaProfUrl;
     private String uaProfTagName;
     private boolean group;
+    private boolean useSystemSending;
 
     // SMS options
     private boolean deliveryReports;
@@ -98,7 +101,10 @@ public class Settings {
      * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
      * @deprecated Construtor to create object of all values
      */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
+    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix,
+                    boolean deliveryReports, boolean split, boolean splitCounter,
+                    boolean stripUnicode, String signature, String preText, boolean sendLongAsMms,
+                    int sendLongAsMmsAfter, String account, String rnrSe) {
         this.mmsc = mmsc;
         this.proxy = proxy;
         this.port = port;
@@ -117,6 +123,9 @@ public class Settings {
         this.sendLongAsMmsAfter = sendLongAsMmsAfter;
         this.account = account;
         this.rnrSe = rnrSe;
+
+        // default to true
+        setUseSystemSending(true);
     }
 
     /**
@@ -438,6 +447,25 @@ public class Settings {
      */
     public boolean getWifiMmsFix() {
         return this.wifiMmsFix;
+    }
+
+    /**
+     * @param useSystemSending whether or not to use the system sending method on Lollipop+ devices
+     */
+    public void setUseSystemSending(boolean useSystemSending) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            this.useSystemSending = useSystemSending;
+        } else {
+            this.useSystemSending = false;
+            Log.e("Settings", "System sending only available on Lollipop+ devices");
+        }
+    }
+
+    /**
+     * @return whether or not to use the system sending method on Lollipop+ devices
+     */
+    public boolean getUseSystemSending() {
+        return useSystemSending;
     }
 
     /**

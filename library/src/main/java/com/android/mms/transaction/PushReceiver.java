@@ -21,6 +21,7 @@ import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IN
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
 
+import android.app.PendingIntent;
 import android.content.*;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -32,6 +33,7 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
+import android.telephony.SmsManager;
 
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsNetworkManager;
@@ -49,7 +51,12 @@ import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadOrigInd;
+import com.klinker.android.send_message.MmsReceivedReceiver;
+import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Utils;
+
+import java.io.File;
+import java.util.Random;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
@@ -154,14 +161,34 @@ public class PushReceiver extends BroadcastReceiver {
                                     null);
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                Log.v(TAG, "receiving with lollipop method");
-                                MmsRequestManager requestManager = new MmsRequestManager(mContext);
-                                DownloadRequest request = new DownloadRequest(requestManager,
-                                        Utils.getDefaultSubscriptionId(),
-                                        getContentLocation(mContext, uri), uri, null, null,
-                                        null, mContext);
-                                MmsNetworkManager manager = new MmsNetworkManager(mContext, Utils.getDefaultSubscriptionId());
-                                request.execute(mContext, manager);
+                                if (com.klinker.android.send_message.Transaction.settings
+                                        .getUseSystemSending()) {
+                                    Log.v(TAG, "receiving with system method");
+                                    final String fileName = "download." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
+                                    File mDownloadFile = new File(mContext.getCacheDir(), fileName);
+                                    Uri contentUri = (new Uri.Builder())
+                                            .authority("com.klinker.android.messaging.MmsFileProvider")
+                                            .path(fileName)
+                                            .scheme(ContentResolver.SCHEME_CONTENT)
+                                            .build();
+                                    String location = getContentLocation(mContext, uri);
+                                    Intent download = new Intent(MmsReceivedReceiver.MMS_RECEIVED);
+                                    download.putExtra(MmsReceivedReceiver.EXTRA_FILE_PATH, mDownloadFile.getPath());
+                                    download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, location);
+                                    final PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                                            mContext, 0, download, 0);
+                                    SmsManager.getDefault().downloadMultimediaMessage(mContext,
+                                            location, contentUri, null, pendingIntent);
+                                } else {
+                                    Log.v(TAG, "receiving with lollipop method");
+                                    MmsRequestManager requestManager = new MmsRequestManager(mContext);
+                                    DownloadRequest request = new DownloadRequest(requestManager,
+                                            Utils.getDefaultSubscriptionId(),
+                                            getContentLocation(mContext, uri), uri, null, null,
+                                            null, mContext);
+                                    MmsNetworkManager manager = new MmsNetworkManager(mContext, Utils.getDefaultSubscriptionId());
+                                    request.execute(mContext, manager);
+                                }
                             } else {
                                 if (NotificationTransaction.allowAutoDownload(mContext)) {
                                     // Start service to finish the notification transaction.
