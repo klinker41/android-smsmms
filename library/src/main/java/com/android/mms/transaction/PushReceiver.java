@@ -17,6 +17,7 @@
 package com.android.mms.transaction;
 
 import static android.provider.Telephony.Sms.Intents.WAP_PUSH_DELIVER_ACTION;
+import static android.provider.Telephony.Sms.Intents.WAP_PUSH_RECEIVED_ACTION;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
@@ -242,7 +243,7 @@ public class PushReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.v(TAG, intent.getAction() + " " + intent.getType());
-        if (intent.getAction().equals(WAP_PUSH_DELIVER_ACTION)
+        if ((intent.getAction().equals(WAP_PUSH_DELIVER_ACTION) || intent.getAction().equals(WAP_PUSH_RECEIVED_ACTION))
                 && ContentType.MMS_MESSAGE.equals(intent.getType())) {
             if (LOCAL_LOGV) {
                 Log.v(TAG, "Received PUSH Intent: " + intent);
