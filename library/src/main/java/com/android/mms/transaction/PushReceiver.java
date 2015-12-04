@@ -65,7 +65,7 @@ import java.util.Random;
 public class PushReceiver extends BroadcastReceiver {
     private static final String TAG = LogTag.TAG;
     private static final boolean DEBUG = false;
-    private static final boolean LOCAL_LOGV = false;
+    private static final boolean LOCAL_LOGV = true;
 
     static final String[] PROJECTION = new String[] {
             Mms.CONTENT_LOCATION,
@@ -241,6 +241,7 @@ public class PushReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.v(TAG, intent.getAction() + " " + intent.getType());
         if (intent.getAction().equals(WAP_PUSH_DELIVER_ACTION)
                 && ContentType.MMS_MESSAGE.equals(intent.getType())) {
             if (LOCAL_LOGV) {
