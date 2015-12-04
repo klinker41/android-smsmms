@@ -82,6 +82,7 @@ public class PushReceiver extends BroadcastReceiver {
 
         @Override
         protected Void doInBackground(Intent... intents) {
+            Log.v(TAG, "receiving a new mms message");
             Intent intent = intents[0];
 
             // Get raw PDU push-data from the message and parse it
@@ -161,6 +162,7 @@ public class PushReceiver extends BroadcastReceiver {
                                     null);
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                Log.v(TAG, "receiving on a lollipop+ device");
                                 boolean useSystem = true;
 
                                 if (com.klinker.android.send_message.Transaction.settings != null) {
