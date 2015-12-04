@@ -161,8 +161,17 @@ public class PushReceiver extends BroadcastReceiver {
                                     null);
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                if (com.klinker.android.send_message.Transaction.settings
-                                        .getUseSystemSending()) {
+                                boolean useSystem = true;
+
+                                if (com.klinker.android.send_message.Transaction.settings != null) {
+                                    useSystem = com.klinker.android.send_message.Transaction.settings
+                                            .getUseSystemSending();
+                                } else {
+                                    useSystem = PreferenceManager.getDefaultSharedPreferences(mContext)
+                                            .getBoolean("system_mms_sending", useSystem);
+                                }
+
+                                if (useSystem) {
                                     Log.v(TAG, "receiving with system method");
                                     final String fileName = "download." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
                                     File mDownloadFile = new File(mContext.getCacheDir(), fileName);
