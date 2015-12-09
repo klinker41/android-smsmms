@@ -57,7 +57,9 @@ import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Utils;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
@@ -74,6 +76,8 @@ public class PushReceiver extends BroadcastReceiver {
     };
 
     static final int COLUMN_CONTENT_LOCATION      = 0;
+
+    private static Set<String> downloadedUrls = new HashSet<String>();
 
     private class ReceivePushTask extends AsyncTask<Intent,Void,Void> {
         private Context mContext;
@@ -162,6 +166,14 @@ public class PushReceiver extends BroadcastReceiver {
                                     group,
                                     null);
 
+                            String location = getContentLocation(mContext, uri);
+                            if (downloadedUrls.contains(location)) {
+                                Log.v(TAG, "already added this download, don't download again");
+                                return null;
+                            } else {
+                                downloadedUrls.add(location);
+                            }
+
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 Log.v(TAG, "receiving on a lollipop+ device");
                                 boolean useSystem = true;
@@ -183,7 +195,6 @@ public class PushReceiver extends BroadcastReceiver {
                                             .path(fileName)
                                             .scheme(ContentResolver.SCHEME_CONTENT)
                                             .build();
-                                    String location = getContentLocation(mContext, uri);
                                     Intent download = new Intent(MmsReceivedReceiver.MMS_RECEIVED);
                                     download.putExtra(MmsReceivedReceiver.EXTRA_FILE_PATH, mDownloadFile.getPath());
                                     download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, location);
@@ -196,7 +207,7 @@ public class PushReceiver extends BroadcastReceiver {
                                     MmsRequestManager requestManager = new MmsRequestManager(mContext);
                                     DownloadRequest request = new DownloadRequest(requestManager,
                                             Utils.getDefaultSubscriptionId(),
-                                            getContentLocation(mContext, uri), uri, null, null,
+                                            location, uri, null, null,
                                             null, mContext);
                                     MmsNetworkManager manager = new MmsNetworkManager(mContext, Utils.getDefaultSubscriptionId());
                                     request.execute(mContext, manager);
