@@ -30,6 +30,7 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
@@ -200,6 +201,10 @@ public class PushReceiver extends BroadcastReceiver {
                                     download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, location);
                                     final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                                             mContext, 0, download, 0);
+
+                                    Bundle configOverrides = new Bundle();
+                                    configOverrides.putBoolean(SmsManager.MMS_CONFIG_GROUP_MMS_ENABLED, group);
+
                                     SmsManager.getDefault().downloadMultimediaMessage(mContext,
                                             location, contentUri, null, pendingIntent);
                                 } else {

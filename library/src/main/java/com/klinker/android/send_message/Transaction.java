@@ -26,6 +26,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.telephony.PhoneNumberUtils;
@@ -600,9 +601,12 @@ public class Transaction {
                 }
             }
 
+            Bundle configOverrides = new Bundle();
+            configOverrides.putBoolean(SmsManager.MMS_CONFIG_GROUP_MMS_ENABLED, settings.getGroup());
+
             if (contentUri != null) {
                 SmsManager.getDefault().sendMultimediaMessage(context,
-                        contentUri, null, null, pendingIntent);
+                        contentUri, null, configOverrides, pendingIntent);
             } else {
                 Log.e(TAG, "Error writing sending Mms");
                 try {
