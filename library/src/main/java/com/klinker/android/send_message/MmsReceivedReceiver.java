@@ -121,25 +121,28 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
                     Log.v(TAG, "recipient: " + recipient);
                 }
 
-                cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                        uri, new String[]{Telephony.Mms.THREAD_ID},
-                        null, null, null);
+                // if group message
+                if (recipients.size() > 1) {
+                    cursor = SqliteWrapper.query(context, context.getContentResolver(),
+                            uri, new String[]{Telephony.Mms.THREAD_ID},
+                            null, null, null);
 
-                long threadId = -1;
-                long actualThreadId = Utils.getOrCreateThreadId(context, recipients);
-                if (cursor != null && cursor.moveToFirst()) {
-                    threadId = cursor.getLong(0);
-                    cursor.close();
-                }
+                    long threadId = -1;
+                    long actualThreadId = Utils.getOrCreateThreadId(context, recipients);
+                    if (cursor != null && cursor.moveToFirst()) {
+                        threadId = cursor.getLong(0);
+                        cursor.close();
+                    }
 
-                Log.v(TAG, "found " + recipients.size() + " recipients of the message");
-                Log.v(TAG, "thread id should be " + actualThreadId + " and actually is " + threadId);
+                    Log.v(TAG, "found " + recipients.size() + " recipients of the message");
+                    Log.v(TAG, "thread id should be " + actualThreadId + " and actually is " + threadId);
 
-                if (threadId != actualThreadId) {
-                    Log.v(TAG, "thread ids do not match, so switching it to the correct thread");
-                    ContentValues values = new ContentValues(1);
-                    values.put(Telephony.Mms.THREAD_ID, actualThreadId);
-                    context.getContentResolver().update(uri, values, null, null);
+                    if (threadId != actualThreadId && Utils.doesThreadIdExist(context, actualThreadId)) {
+                        Log.v(TAG, "thread ids do not match, so switching it to the correct thread");
+                        ContentValues values = new ContentValues(1);
+                        values.put(Telephony.Mms.THREAD_ID, actualThreadId);
+                        context.getContentResolver().update(uri, values, null, null);
+                    }
                 }
             }
 
