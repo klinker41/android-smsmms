@@ -1471,7 +1471,9 @@ public class PduPersister {
         }
         // If the TO recipients is only a single address, then we can skip loadRecipients when
         // we're excluding our own number because we know that address is our own.
-        if (excludeMyNumber && array.length == 1) {
+        // NOTE: this is not true for project fi users. To fix it, we'll add the final check for the
+        //       TO type. project fi will use the cc field instead.
+        if (excludeMyNumber && array.length == 1 && addressType == PduHeaders.TO) {
             return;
         }
         String myNumber = excludeMyNumber ? mTelephonyManager.getLine1Number() : null;
