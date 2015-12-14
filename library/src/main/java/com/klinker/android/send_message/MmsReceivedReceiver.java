@@ -68,83 +68,7 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
                     intent.getStringExtra(EXTRA_LOCATION_URL),
                     Utils.getDefaultSubscriptionId(), null);
 
-            String msgId = uri.getLastPathSegment();
-            Uri.Builder builder = Telephony.Mms.CONTENT_URI.buildUpon();
-
-            builder.appendPath(msgId).appendPath("addr");
-
-            Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                    builder.build(), new String[]{Telephony.Mms.Addr.ADDRESS,
-                            Telephony.Mms.Addr.CHARSET, Telephony.Mms.Addr.TYPE,
-                            Telephony.Mms.Addr._ID},
-                    null, null, null);
-
-            Set<String> recipients = new HashSet<String>();
-
-            if (cursor != null) {
-                try {
-                    if (cursor.moveToFirst()) {
-                        do {
-                            String from = cursor.getString(0);
-
-                            if (!TextUtils.isEmpty(from)) {
-                                byte[] bytes = PduPersister.getBytes(from);
-                                int charset = cursor.getInt(1);
-                                int type = cursor.getInt(2);
-                                long id = cursor.getLong(3);
-                                Log.v("MMS_address", new EncodedStringValue(charset, bytes)
-                                        .getString() + " " + type + " " + id);
-
-                                if (type == PduHeaders.CC || type == PduHeaders.BCC || type == PduHeaders.FROM || type == PduHeaders.TO) {
-                                    recipients.add(new EncodedStringValue(charset, bytes).getString());
-                                }
-                            }
-                        } while (cursor.moveToNext());
-                    }
-                } finally {
-                    cursor.close();
-                }
-            }
-
-            TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            String carrierName = manager.getNetworkOperatorName();
-
-            if (carrierName.equals("Fi Network")) {
-                Log.v(TAG, "on project fi, which hasn't been working for group messages, so work around it");
-
-                String myPhoneNumber = Utils.getMyPhoneNumber(context);
-                if (!recipients.contains(myPhoneNumber)) {
-                    //recipients.add(myPhoneNumber);
-                }
-
-                for (String recipient : recipients) {
-                    Log.v(TAG, "recipient: " + recipient);
-                }
-
-                // if group message
-                if (recipients.size() > 1) {
-                    cursor = SqliteWrapper.query(context, context.getContentResolver(),
-                            uri, new String[]{Telephony.Mms.THREAD_ID},
-                            null, null, null);
-
-                    long threadId = -1;
-                    long actualThreadId = Utils.getOrCreateThreadId(context, recipients);
-                    if (cursor != null && cursor.moveToFirst()) {
-                        threadId = cursor.getLong(0);
-                        cursor.close();
-                    }
-
-                    Log.v(TAG, "found " + recipients.size() + " recipients of the message");
-                    Log.v(TAG, "thread id should be " + actualThreadId + " and actually is " + threadId);
-
-                    if (threadId != actualThreadId && Utils.doesThreadIdExist(context, actualThreadId)) {
-                        Log.v(TAG, "thread ids do not match, so switching it to the correct thread");
-                        ContentValues values = new ContentValues(1);
-                        values.put(Telephony.Mms.THREAD_ID, actualThreadId);
-                        context.getContentResolver().update(uri, values, null, null);
-                    }
-                }
-            }
+            //workaroundForFi(context, uri);
 
             Log.v(TAG, "response saved successfully");
             Log.v(TAG, "response length: " + response.length);
@@ -153,6 +77,86 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
             Log.e(TAG, "MMS received, file not found exception", e);
         } catch (IOException e) {
             Log.e(TAG, "MMS received, io exception", e);
+        }
+    }
+
+    private void workaroundForFi(Context context, Uri uri) {
+        String msgId = uri.getLastPathSegment();
+        Uri.Builder builder = Telephony.Mms.CONTENT_URI.buildUpon();
+
+        builder.appendPath(msgId).appendPath("addr");
+
+        Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
+                builder.build(), new String[]{Telephony.Mms.Addr.ADDRESS,
+                        Telephony.Mms.Addr.CHARSET, Telephony.Mms.Addr.TYPE,
+                        Telephony.Mms.Addr._ID},
+                null, null, null);
+
+        Set<String> recipients = new HashSet<String>();
+
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    do {
+                        String from = cursor.getString(0);
+
+                        if (!TextUtils.isEmpty(from)) {
+                            byte[] bytes = PduPersister.getBytes(from);
+                            int charset = cursor.getInt(1);
+                            int type = cursor.getInt(2);
+                            long id = cursor.getLong(3);
+                            Log.v("MMS_address", new EncodedStringValue(charset, bytes)
+                                    .getString() + " " + type + " " + id);
+
+                            if (type == PduHeaders.CC || type == PduHeaders.BCC || type == PduHeaders.FROM || type == PduHeaders.TO) {
+                                recipients.add(new EncodedStringValue(charset, bytes).getString());
+                            }
+                        }
+                    } while (cursor.moveToNext());
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+
+        TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        String carrierName = manager.getNetworkOperatorName();
+
+        if (carrierName.equals("Fi Network")) {
+            Log.v(TAG, "on project fi, which hasn't been working for group messages, so work around it");
+
+            String myPhoneNumber = Utils.getMyPhoneNumber(context);
+            if (!recipients.contains(myPhoneNumber)) {
+                //recipients.add(myPhoneNumber);
+            }
+
+            for (String recipient : recipients) {
+                Log.v(TAG, "recipient: " + recipient);
+            }
+
+            // if group message
+            if (recipients.size() > 1) {
+                cursor = SqliteWrapper.query(context, context.getContentResolver(),
+                        uri, new String[]{Telephony.Mms.THREAD_ID},
+                        null, null, null);
+
+                long threadId = -1;
+                long actualThreadId = Utils.getOrCreateThreadId(context, recipients);
+                if (cursor != null && cursor.moveToFirst()) {
+                    threadId = cursor.getLong(0);
+                    cursor.close();
+                }
+
+                Log.v(TAG, "found " + recipients.size() + " recipients of the message");
+                Log.v(TAG, "thread id should be " + actualThreadId + " and actually is " + threadId);
+
+                if (threadId != actualThreadId && Utils.doesThreadIdExist(context, actualThreadId)) {
+                    Log.v(TAG, "thread ids do not match, so switching it to the correct thread");
+                    ContentValues values = new ContentValues(1);
+                    values.put(Telephony.Mms.THREAD_ID, actualThreadId);
+                    context.getContentResolver().update(uri, values, null, null);
+                }
+            }
         }
     }
 
