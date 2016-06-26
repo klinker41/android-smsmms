@@ -92,6 +92,12 @@ You'll also need to register a few receivers for when the messages have been sen
                 <action android:name="[insert package name here].SMS_DELIVERED" />
 	</intent-filter>
 </receiver>
+<!-- Your custom receiver which is child of com.klinker.android.send_message.MmsSentReceiver -->
+<receiver android:name="[insert your custom receiver here. eg. com.example.sms_mms.receivers.MyMmsSentReceiver]" >
+        <intent-filter>
+	        <action android:name="com.klinker.android.messaging.MMS_SENT" />
+        </intent-filter>
+</receiver>
 ```
 
 Be sure to replace the [insert package name here] with your package name defined in the manifest. For example, Sliding Messaging's is com.klinker.android.messaging_donate.
