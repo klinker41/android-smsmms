@@ -6,7 +6,7 @@
     <application>
 
         <provider android:name=".MmsFileProvider"
-                  android:authorities="com.klinker.android.messaging.MmsFileProvider"
+                  android:authorities="${applicationId}.MmsFileProvider"
                   android:enabled="true"
                   android:grantUriPermissions="true"
                   android:exported="false" />
