@@ -164,7 +164,7 @@ That code will then save the RnrSe value so that I don't have to fetch it every 
 To include in your gradle project:
 
 ```groovy
-compile 'com.klinkerapps:android-smsmms:2.3.0'
+compile 'com.klinkerapps:android-smsmms:2.3.1'
 ```
 
 ---
