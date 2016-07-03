@@ -71,14 +71,14 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
     }
 
     public void addItem(String item) {
-        mDataset.add(item);
+        mDataset.add(0, item);
 
         // ensure we are on the ui thread
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 try {
-                    notifyItemInserted(mDataset.size() - 1);
+                    notifyItemInserted(0);
                 } catch (IllegalStateException e) {
                     // Cannot call this method while recyclerview is computing a layout or scrolling
                 }

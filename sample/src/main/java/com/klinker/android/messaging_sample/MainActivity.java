@@ -155,7 +155,7 @@ public class MainActivity extends Activity {
         Log.setLogListener(new OnLogListener() {
             @Override
             public void onLogged(String tag, String message) {
-                logAdapter.addItem(tag + ": " + message);
+                //logAdapter.addItem(tag + ": " + message);
             }
         });
     }
