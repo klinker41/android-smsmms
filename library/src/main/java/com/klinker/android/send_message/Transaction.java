@@ -580,7 +580,7 @@ public class Transaction {
                     context, 0, intent, 0);
 
             Uri writerUri = (new Uri.Builder())
-                    .authority("com.klinker.android.messaging.MmsFileProvider")
+                    .authority(context.getPackageName() + ".MmsFileProvider")
                     .path(fileName)
                     .scheme(ContentResolver.SCHEME_CONTENT)
                     .build();

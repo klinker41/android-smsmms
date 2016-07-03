@@ -192,7 +192,7 @@ public class PushReceiver extends BroadcastReceiver {
                                     final String fileName = "download." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
                                     File mDownloadFile = new File(mContext.getCacheDir(), fileName);
                                     Uri contentUri = (new Uri.Builder())
-                                            .authority("com.klinker.android.messaging.MmsFileProvider")
+                                            .authority(mContext.getPackageName() + ".MmsFileProvider")
                                             .path(fileName)
                                             .scheme(ContentResolver.SCHEME_CONTENT)
                                             .build();
