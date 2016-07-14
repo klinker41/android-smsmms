@@ -63,105 +63,6 @@ public class Utils {
     }
 
     /**
-     * Enable mobile connection for a specific address
-     *
-     * @param address the address to enable
-     * @return true for success, else false
-     */
-    public static void forceMobileConnectionForAddress(ConnectivityManager mConnMgr, String address) {
-        //find the host name to route
-        String hostName = extractAddressFromUrl(address);
-        if (TextUtils.isEmpty(hostName)) hostName = address;
-
-        //create a route for the specified address
-        int hostAddress = lookupHost(hostName);
-        mConnMgr.requestRouteToHost(ConnectivityManager.TYPE_MOBILE_MMS, hostAddress);
-    }
-
-    /**
-     * Function for getting the weird auth token used to send or receive google voice messages
-     *
-     * @param account is the string of the account name to get the auth token for
-     * @param context is the context of the activity or service
-     * @return a string of the auth token to be saved for later
-     * @throws java.io.IOException
-     * @throws android.accounts.OperationCanceledException
-     * @throws android.accounts.AuthenticatorException
-     */
-    public static String getAuthToken(String account, Context context) throws IOException, OperationCanceledException, AuthenticatorException {
-        Bundle bundle = AccountManager.get(context).getAuthToken(new Account(account, "com.google"), "grandcentral", true, null, null).getResult();
-        return bundle.getString(AccountManager.KEY_AUTHTOKEN);
-    }
-
-    /**
-     * This method extracts from address the hostname
-     *
-     * @param url eg. http://some.where.com:8080/sync
-     * @return some.where.com
-     */
-    public static String extractAddressFromUrl(String url) {
-        String urlToProcess = null;
-
-        //find protocol
-        int protocolEndIndex = url.indexOf("://");
-        if (protocolEndIndex > 0) {
-            urlToProcess = url.substring(protocolEndIndex + 3);
-        } else {
-            urlToProcess = url;
-        }
-
-        // If we have port number in the address we strip everything
-        // after the port number
-        int pos = urlToProcess.indexOf(':');
-        if (pos >= 0) {
-            urlToProcess = urlToProcess.substring(0, pos);
-        }
-
-        // If we have resource location in the address then we strip
-        // everything after the '/'
-        pos = urlToProcess.indexOf('/');
-        if (pos >= 0) {
-            urlToProcess = urlToProcess.substring(0, pos);
-        }
-
-        // If we have ? in the address then we strip
-        // everything after the '?'
-        pos = urlToProcess.indexOf('?');
-        if (pos >= 0) {
-            urlToProcess = urlToProcess.substring(0, pos);
-        }
-        return urlToProcess;
-    }
-
-    /**
-     * Transform host name in int value used by ConnectivityManager.requestRouteToHost
-     * method
-     *
-     * @param hostname
-     * @return -1 if the host doesn't exists, elsewhere its translation
-     * to an integer
-     */
-    public static int lookupHost(String hostname) {
-        InetAddress inetAddress;
-
-        try {
-            inetAddress = InetAddress.getByName(hostname);
-        } catch (UnknownHostException e) {
-            return -1;
-        }
-
-        byte[] addrBytes;
-        int addr;
-        addrBytes = inetAddress.getAddress();
-        addr = ((addrBytes[3] & 0xff) << 24)
-                | ((addrBytes[2] & 0xff) << 16)
-                | ((addrBytes[1] & 0xff) << 8)
-                | (addrBytes[0] & 0xff);
-
-        return addr;
-    }
-
-    /**
      * Ensures that the host MMSC is reachable
      *
      * @param context is the context of the activity or service
@@ -442,8 +343,6 @@ public class Utils {
         sendSettings.setSignature(sharedPrefs.getString("signature", ""));
         sendSettings.setSendLongAsMms(true);
         sendSettings.setSendLongAsMmsAfter(3);
-        sendSettings.setAccount(null);
-        sendSettings.setRnrSe(null);
 
         return sendSettings;
     }

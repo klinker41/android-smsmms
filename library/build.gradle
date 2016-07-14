@@ -19,20 +19,18 @@ allprojects {
 apply plugin: 'com.android.library'
 
 dependencies {
-    compile 'com.google.code.gson:gson:2.3'
     compile 'com.klinkerapps:logger:1.0.3-SNAPSHOT'
-    compile 'com.koushikdutta.ion:ion:1.1.7'
     compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.5.0'
 }
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 24
     buildToolsVersion "24.0.0"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 24
     }
 
     lintOptions {

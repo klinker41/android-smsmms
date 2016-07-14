@@ -213,7 +213,6 @@ public class MainActivity extends Activity {
                 Transaction transaction = new Transaction(MainActivity.this, sendSettings);
 
                 Message message = new Message(messageField.getText().toString(), toField.getText().toString());
-                message.setType(Message.TYPE_SMSMMS);
 
                 if (imageToSend.isEnabled()) {
                     message.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.android));

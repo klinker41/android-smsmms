@@ -48,15 +48,11 @@ public class Settings {
     private boolean sendLongAsMms;
     private int sendLongAsMmsAfter;
 
-    // Google Voice settings
-    private String account;
-    private String rnrSe;
-
     /**
      * Default constructor to set everything to default values
      */
     public Settings() {
-        this("", "", "0", true, false, false, false, false, false, "", "", true, 3, "", null);
+        this("", "", "0", true, false, false, false, false, "", "", true, 3, true);
     }
 
     /**
@@ -71,7 +67,6 @@ public class Settings {
         this.uaProfUrl = s.getUserProfileUrl();
         this.uaProfTagName = s.getUaProfTagName();
         this.group = s.getGroup();
-        this.wifiMmsFix = s.getWifiMmsFix();
         this.deliveryReports = s.getDeliveryReports();
         this.split = s.getSplit();
         this.splitCounter = s.getSplitCounter();
@@ -80,8 +75,6 @@ public class Settings {
         this.preText = s.getPreText();
         this.sendLongAsMms = s.getSendLongAsMms();
         this.sendLongAsMmsAfter = s.getSendLongAsMmsAfter();
-        this.account = s.getAccount();
-        this.rnrSe = s.getRnrSe();
     }
 
     /**
@@ -89,7 +82,6 @@ public class Settings {
      * @param proxy              is the proxy address in the apn to send MMS through
      * @param port               is the port from the apn to send MMS through
      * @param group              is a boolean specifying whether or not to send messages with multiple recipients as a group MMS message
-     * @param wifiMmsFix         is a boolean to toggle on and off wifi when sending MMS (MMS will not work currently when WiFi is enabled)
      * @param deliveryReports    is a boolean to retrieve delivery reports from SMS messages
      * @param split              is a boolean to manually split messages (shouldn't be necessary, but some carriers do not split on their own)
      * @param splitCounter       adds a split counter to the front of all split messages
@@ -97,14 +89,11 @@ public class Settings {
      * @param signature          a signature to attach at the end of each message
      * @param sendLongAsMms      if a message is too long to be multiple SMS, convert it to a single MMS
      * @param sendLongAsMmsAfter is an int of how many pages long an SMS must be before it is split
-     * @param account            is the google account to send Google Voice messages through
-     * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
-     * @deprecated Construtor to create object of all values
      */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean wifiMmsFix,
+    public Settings(String mmsc, String proxy, String port, boolean group,
                     boolean deliveryReports, boolean split, boolean splitCounter,
                     boolean stripUnicode, String signature, String preText, boolean sendLongAsMms,
-                    int sendLongAsMmsAfter, String account, String rnrSe) {
+                    int sendLongAsMmsAfter, boolean useSystemSending) {
         this.mmsc = mmsc;
         this.proxy = proxy;
         this.port = port;
@@ -112,7 +101,6 @@ public class Settings {
         this.uaProfUrl = "";
         this.uaProfTagName = "";
         this.group = group;
-        this.wifiMmsFix = wifiMmsFix;
         this.deliveryReports = deliveryReports;
         this.split = split;
         this.splitCounter = splitCounter;
@@ -121,31 +109,7 @@ public class Settings {
         this.preText = preText;
         this.sendLongAsMms = sendLongAsMms;
         this.sendLongAsMmsAfter = sendLongAsMmsAfter;
-        this.account = account;
-        this.rnrSe = rnrSe;
-
-        // default to true
-        setUseSystemSending(true);
-    }
-
-    /**
-     * @param mmsc               is the address contained by the apn to send MMS to
-     * @param proxy              is the proxy address in the apn to send MMS through
-     * @param port               is the port from the apn to send MMS through
-     * @param group              is a boolean specifying whether or not to send messages with multiple recipients as a group MMS message
-     * @param deliveryReports    is a boolean to retrieve delivery reports from SMS messages
-     * @param split              is a boolean to manually split messages (shouldn't be necessary, but some carriers do not split on their own)
-     * @param splitCounter       adds a split counter to the front of all split messages
-     * @param stripUnicode       replaces many unicode characters with their gsm compatible equivalent to allow for sending 160 characters instead of 70
-     * @param signature          a signature to attach at the end of each message
-     * @param preText            text to be inserted before a message
-     * @param sendLongAsMms      if a message is too long to be multiple SMS, convert it to a single MMS
-     * @param sendLongAsMmsAfter is an int of how many pages long an SMS must be before it is split
-     * @param account            is the google account to send Google Voice messages through
-     * @param rnrSe              is the token to use to send Google Voice messages (nullify if you don't know what this is)
-     */
-    public Settings(String mmsc, String proxy, String port, boolean group, boolean deliveryReports, boolean split, boolean splitCounter, boolean stripUnicode, String signature, String preText, boolean sendLongAsMms, int sendLongAsMmsAfter, String account, String rnrSe) {
-        this(mmsc, proxy, port, group, false, deliveryReports, split, splitCounter, stripUnicode, signature, preText, sendLongAsMms, sendLongAsMmsAfter, account, rnrSe);
+        setUseSystemSending(useSystemSending);
     }
 
     /**
@@ -278,24 +242,6 @@ public class Settings {
     }
 
     /**
-     * Sets the Google account to send Voice messages through
-     *
-     * @param account is the google account to send Google Voice messages through
-     */
-    public void setAccount(String account) {
-        this.account = account;
-    }
-
-    /**
-     * Sets the token to use to authenticate voice messages
-     *
-     * @param rnrSe is the token to use to send Google Voice messages (nullify if you don't know what this is)
-     */
-    public void setRnrSe(String rnrSe) {
-        this.rnrSe = rnrSe;
-    }
-
-    /**
      * @return MMSC to send through
      */
     public String getMmsc() {
@@ -392,61 +338,6 @@ public class Settings {
      */
     public int getSendLongAsMmsAfter() {
         return this.sendLongAsMmsAfter;
-    }
-
-    /**
-     * @return Google account to send Voice messages through
-     */
-    public String getAccount() {
-        return this.account;
-    }
-
-    /**
-     * @return auth token to be used for Voice messages
-     */
-    public String getRnrSe() {
-        return this.rnrSe;
-    }
-
-    /**
-     * @deprecated
-     */
-    private boolean wifiMmsFix;
-
-    /**
-     * @deprecated
-     */
-    public WifiInfo currentWifi;
-
-    /**
-     * @deprecated
-     */
-    public boolean currentWifiState;
-
-    /**
-     * @deprecated
-     */
-    public DisconnectWifi discon;
-
-    /**
-     * @deprecated
-     */
-    public boolean currentDataState;
-
-    /**
-     * @param wifiMmsFix is a boolean to toggle on and off wifi when sending MMS
-     * @deprecated Sets wifi mms fix
-     */
-    public void setWifiMmsFix(boolean wifiMmsFix) {
-        this.wifiMmsFix = wifiMmsFix;
-    }
-
-    /**
-     * @return whether or not to toggle wifi when sending MMS
-     * @deprecated
-     */
-    public boolean getWifiMmsFix() {
-        return this.wifiMmsFix;
     }
 
     /**

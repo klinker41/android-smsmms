@@ -28,9 +28,6 @@ import com.klinker.android.logger.Log;
 
 import com.android.mms.LogTag;
 import com.klinker.android.send_message.Utils;
-import com.koushikdutta.async.Util;
-
-import java.lang.reflect.Method;
 
 /**
  * MmsSystemEventReceiver receives the
