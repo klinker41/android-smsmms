@@ -1,4 +1,4 @@
-# Android SMS/MMS/Google Voice Sending Library
+# Android SMS/MMS Sending Library
 
 ![Promo](https://raw.githubusercontent.com/klinker41/android-smsmms/master/android-messaging.png)
 
@@ -18,35 +18,7 @@ First, create a settings object with all of your required information for what y
 
 ``` java
 Settings sendSettings = new Settings();
-
-sendSettings.setMmsc("http://mmsc.cingular.com");
-sendSettings.setProxy("66.209.11.33");
-sendSettings.setPort("80");
-sendSettings.setGroup(true);
-sendSettings.setDeliveryReports(false);
-sendSettings.setSplit(false);
-sendSettings.setSplitCounter(false);
-sendSettings.setStripUnicode(false);
-sendSettings.setSignature("");
-sendSettings.setSendLongAsMms(true);
-sendSettings.setSendLongAsMmsAfter(3);
-sendSettings.setAccount("jklinker1@gmail.com");
-sendSettings.setRnrSe(null);
 ```
-
-* MMSC - the URL of your mms provider, found on your phone's APN settings page
-* Proxy - more mms information that needs to be set for more providers to send
-* Port - again, more mms stuff
-* Group - whether you want to send message to multiple senders as an MMS group message or separate SMS/Voice messages
-* Delivery Reports - request reports for when SMS has been delivered
-* Split - splits SMS messages when sent if they are longer than 160 characters
-* Split Counter - attaches a split counter to message, ex. (1/3) in front of each message
-* Strip Unicode - converts Unicode characters to GSM compatible characters
-* Signature - signature to attach at the end of messages
-* Send Long as MMS - when a message is a certain length, it is sent as MMS instead of SMS
-* Send Long as MMS After - length to convert the long SMS into an MMS
-* Account - this is the email address of the account that you want to send google voice messages from
-* RnrSe - this is a weird token that google requires to send the message, nullifying it will make the library find the token every time, I'll hit later how to save the token and save your users some data down below in the Google Voice section.
 
 Next, attach that settings object to the sender
 
@@ -59,7 +31,6 @@ Now, create the Message you want to send
 ``` java
 Message mMessage = new Message(textToSend, addressToSendTo);
 mMessage.setImage(mBitmap);   // not necessary for voice or sms messages
-mMessage.setType(Message.TYPE_SMSMMS);  // could also be Message.TYPE_VOICE
 ```
 
 And then all you have to do is send the message
@@ -117,45 +88,8 @@ Lastly, you'll need to include permissions in your manifest depending on what yo
 <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
-<uses-permission android:name="android.permission.USE_CREDENTIALS" />
-<uses-permission android:name="android.permission.GET_ACCOUNTS" />
 <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 ```
-
----
-
-## Google Voice Overview
-
-To be able to send Google Voice messages, all you really need to do is add the final 3 permissions above and get the address of the Account that you want to send through.
-
-To get a list of accounts available on the device, you can use the following:
-
-```java
-ArrayList<Account> accounts = new ArrayList<Account>();
-for (Account account : AccountManager.get(context).getAccountsByType("com.google")) {
-	accounts.add(account);
-}
-```
-
-Display those in a list and let the user choose which one they want to use and save that choice to your SharedPreferences.
-
-Next, when you are configuring your send settings, you should register a receiver that listens for the action "com.klinker.android.send_message.RNRSE" like so:
-
-```java
-if (sendSettings.getAccount() != null && sendSettings.getRnrSe() == null) {
-	BroadcastReceiver receiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			sharedPrefs.edit().putString("voice_rnrse", intent.getStringExtra("_rnr_se")).commit();
-		}
-	};
-
-	context.registerReceiver(receiver, new IntentFilter("com.klinker.android.send_message.RNRSE"));
-}
-```
-
-That code will then save the RnrSe value so that I don't have to fetch it every time and waste time and data. After it is saved, just insert that value into the send settings instead and you are good to go.
 
 ---
 
@@ -164,7 +98,7 @@ That code will then save the RnrSe value so that I don't have to fetch it every 
 To include in your gradle project:
 
 ```groovy
-compile 'com.klinkerapps:android-smsmms:2.3.1'
+compile 'com.klinkerapps:android-smsmms:3.0.0'
 ```
 
 ---
