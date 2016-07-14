@@ -91,6 +91,8 @@ Lastly, you'll need to include permissions in your manifest depending on what yo
 <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 ```
 
+Make sure that you check out the sample's `AndroidManifest.xml` for full details on what you'll need!
+
 ---
 
 ### Dependencies Information

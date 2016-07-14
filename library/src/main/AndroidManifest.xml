@@ -11,17 +11,5 @@
                   android:grantUriPermissions="true"
                   android:exported="false" />
 
-        <receiver android:name=".MmsSentReceiver">
-            <intent-filter>
-                <action android:name="com.klinker.android.messaging.MMS_SENT" />
-            </intent-filter>
-        </receiver>
-
-        <receiver android:name=".MmsReceivedReceiver">
-            <intent-filter>
-                <action android:name="com.klinker.android.messaging.MMS_RECEIVED" />
-            </intent-filter>
-        </receiver>
-
     </application>
 </manifest>

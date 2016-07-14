@@ -200,7 +200,7 @@ public class PushReceiver extends BroadcastReceiver {
                                     download.putExtra(MmsReceivedReceiver.EXTRA_FILE_PATH, mDownloadFile.getPath());
                                     download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, location);
                                     final PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                                            mContext, 0, download, 0);
+                                            mContext, 0, download, PendingIntent.FLAG_CANCEL_CURRENT);
 
                                     Bundle configOverrides = new Bundle();
                                     configOverrides.putBoolean(SmsManager.MMS_CONFIG_GROUP_MMS_ENABLED, group);
@@ -364,7 +364,7 @@ public class PushReceiver extends BroadcastReceiver {
                     if (cursor.getCount() > 0) {
                         // We already received the same notification before.
                         cursor.close();
-                        return true;
+                        //return true;
                     }
                 } finally {
                     cursor.close();

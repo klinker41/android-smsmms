@@ -67,6 +67,17 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
+        <receiver android:name="com.klinker.android.send_message.MmsSentReceiver">
+            <intent-filter>
+                <action android:name="com.klinker.android.messaging.MMS_SENT" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name="com.klinker.android.send_message.MmsReceivedReceiver">
+            <intent-filter>
+                <action android:name="com.klinker.android.messaging.MMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".HeadlessSmsSendService"
