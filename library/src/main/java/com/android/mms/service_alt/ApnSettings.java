@@ -52,6 +52,9 @@ public class ApnSettings {
             Telephony.Carriers.MMSC,
             Telephony.Carriers.MMSPROXY,
             Telephony.Carriers.MMSPORT,
+            /* Adding any other fields will trigger the WRITE_APN_SETTINGS permission check.
+             *   Since none of them are used, let's not request them.
+             *   if we need to add them later, we can check to see if we're default msg app
             Telephony.Carriers.NAME,
             Telephony.Carriers.APN,
             Telephony.Carriers.BEARER,
@@ -65,6 +68,7 @@ public class ApnSettings {
             Telephony.Carriers.SERVER,
             Telephony.Carriers.USER,
             Telephony.Carriers.PASSWORD,
+            */
     };
     private static final int COLUMN_TYPE         = 0;
     private static final int COLUMN_MMSC         = 1;
