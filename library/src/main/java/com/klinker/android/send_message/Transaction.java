@@ -133,14 +133,35 @@ public class Transaction {
         //
         // then, send as MMS, else send as Voice or SMS
         if (checkMMS(message)) {
-            try { Looper.prepare(); } catch (Exception e) { }
-            RateController.init(context);
-            DownloadManager.init(context);
-            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getImageNames(), message.getParts(), message.getSubject());
+            this.sendNewMmsMessage(message, null, null);
         } else {
             sendSmsMessage(message.getText(), message.getAddresses(), threadId, message.getDelay());
         }
 
+    }
+
+    /**
+     * Called to send a new message depending on settings and provided Message object
+     * If you want to send message as mms, call this from the UI thread
+     *
+     * @param message - the message that you want to send
+     * @param mmsSent - (optional) custom intent to send upon completion, NULL will send
+     *     com.klinker.android.messaging.MMS_SENT built-in intent.
+     * @param mmsProgress - (optional) custom intent to send for progress info, NULL will send
+     *     com.klinker.android.messaging.MMS_PROGRESS built-in intent.
+     */
+    public void sendNewMmsMessage(Message message, Intent mmsSent, Intent mmsProgress) {
+        this.saveMessage = message.getSave();
+        try { Looper.prepare(); } catch (Exception e) { }
+        RateController.init(context);
+        DownloadManager.init(context);
+        if (mmsSent==null)
+            mmsSent = new Intent(MmsSentReceiver.MMS_SENT);
+        if (mmsProgress==null)
+            mmsProgress = new Intent(MMS_PROGRESS);
+        sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(),
+                message.getImageNames(), message.getParts(), message.getSubject(),
+                mmsSent, mmsProgress);
     }
 
     private void sendSmsMessage(String text, String[] addresses, long threadId, int delay) {
@@ -306,7 +327,8 @@ public class Transaction {
         }
     }
 
-    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, String[] imageNames, List<Message.Part> parts, String subject) {
+    private void sendMmsMessage(String text, String[] addresses, Bitmap[] image, String[] imageNames,
+                                List<Message.Part> parts, String subject, Intent mmsSent, final Intent mmsProgress) {
         // merge the string[] of addresses into a single string so they can be inserted into the database easier
         String address = "";
 
@@ -374,7 +396,7 @@ public class Transaction {
                         Log.v("sending_mms_library", "progress: " + progress);
 
                         // send progress broadcast to update ui if desired...
-                        Intent progressIntent = new Intent(MMS_PROGRESS);
+                        Intent progressIntent = new Intent(mmsProgress);
                         progressIntent.putExtra("progress", progress);
                         context.sendBroadcast(progressIntent);
 
@@ -406,14 +428,16 @@ public class Transaction {
 
             if (settings.getUseSystemSending()) {
                 Log.v(TAG, "using system method for sending");
-                sendMmsThroughSystem(context, subject, data, addresses);
+                sendMmsThroughSystem(context, subject, data, addresses, mmsSent);
             } else {
                 try {
                     MessageInfo info = getBytes(context, saveMessage, address.split(" "),
                             data.toArray(new MMSPart[data.size()]), subject);
                     MmsRequestManager requestManager = new MmsRequestManager(context, info.bytes);
+                    PendingIntent thePendingSentIntent = PendingIntent.getBroadcast(
+                                context, 0, mmsSent, PendingIntent.FLAG_CANCEL_CURRENT);
                     SendRequest request = new SendRequest(requestManager, Utils.getDefaultSubscriptionId(),
-                            info.location, null, null, null, null);
+                            info.location, null, thePendingSentIntent, null, null);
                     MmsNetworkManager manager = new MmsNetworkManager(context, Utils.getDefaultSubscriptionId());
                     request.execute(context, manager);
                 } catch (Exception e) {
@@ -544,7 +568,7 @@ public class Transaction {
     public static final int DEFAULT_PRIORITY = PduHeaders.PRIORITY_NORMAL;
 
     private static void sendMmsThroughSystem(Context context, String subject, List<MMSPart> parts,
-                                             String[] addresses) {
+                                             String[] addresses, Intent mmsSent) {
         try {
             final String fileName = "send." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
             File mSendFile = new File(context.getCacheDir(), fileName);
@@ -554,11 +578,10 @@ public class Transaction {
             Uri messageUri = persister.persist(sendReq, Uri.parse("content://mms/outbox"),
                     true, settings.getGroup(), null);
 
-            Intent intent = new Intent(MmsSentReceiver.MMS_SENT);
-            intent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
-            intent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
+            mmsSent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
+            mmsSent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
             final PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                    context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+                    context, 0, mmsSent, PendingIntent.FLAG_CANCEL_CURRENT);
 
             Uri writerUri = (new Uri.Builder())
                     .authority(context.getPackageName() + ".MmsFileProvider")
