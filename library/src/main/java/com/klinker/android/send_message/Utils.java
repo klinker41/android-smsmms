@@ -343,6 +343,7 @@ public class Utils {
         sendSettings.setSignature(sharedPrefs.getString("signature", ""));
         sendSettings.setSendLongAsMms(true);
         sendSettings.setSendLongAsMmsAfter(3);
+        sendSettings.setForceWiFiToggle(sharedPrefs.getBoolean("mms_force_wifi_toggle", true));
 
         return sendSettings;
     }

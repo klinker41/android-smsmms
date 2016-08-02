@@ -148,8 +148,9 @@ public abstract class MmsRequest {
 
         WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         boolean isWifiEnabled = wifi.isWifiEnabled();
-
-        if (!useWifi(context)) {
+        com.klinker.android.send_message.Settings theSettings = Utils.getDefaultSendSettings(context);
+        //just because we're not using wifi doesn't meant we need to force it off
+        if (!useWifi(context) && theSettings.getForceWiFiToggle()) {
             wifi.setWifiEnabled(false);
         }
 
@@ -239,7 +240,7 @@ public abstract class MmsRequest {
             Utils.setMobileDataEnabled(context, false);
         }
 
-        if (!useWifi(context)) {
+        if (!useWifi(context) && theSettings.getForceWiFiToggle()) {
             wifi.setWifiEnabled(isWifiEnabled);
         }
 

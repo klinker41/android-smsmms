@@ -16,7 +16,6 @@
 
 package com.klinker.android.send_message;
 
-import android.net.wifi.WifiInfo;
 import android.os.Build;
 
 import com.klinker.android.logger.Log;
@@ -31,12 +30,18 @@ public class Settings {
     // MMS options
     private String mmsc;
     private String proxy;
-    private String port;
+    private String port = DEFAULT_PORT;
     private String userAgent;
     private String uaProfUrl;
     private String uaProfTagName;
     private boolean group;
     private boolean useSystemSending;
+    public static final String DEFAULT_PORT = "80" ;
+    /**
+     * Force WiFi antenna off during MMS send.
+     * Defaults to TRUE since that is what the lib did before setting existed.
+     */
+    private boolean bForceWiFiToggle = true;
 
     // SMS options
     private boolean deliveryReports;
@@ -75,6 +80,8 @@ public class Settings {
         this.preText = s.getPreText();
         this.sendLongAsMms = s.getSendLongAsMms();
         this.sendLongAsMmsAfter = s.getSendLongAsMmsAfter();
+        this.bForceWiFiToggle = s.getForceWiFiToggle();
+        this.useSystemSending = s.getUseSystemSending();
     }
 
     /**
@@ -89,6 +96,7 @@ public class Settings {
      * @param signature          a signature to attach at the end of each message
      * @param sendLongAsMms      if a message is too long to be multiple SMS, convert it to a single MMS
      * @param sendLongAsMmsAfter is an int of how many pages long an SMS must be before it is split
+     * @param useSystemSending   is a flag to use system MMS sending
      */
     public Settings(String mmsc, String proxy, String port, boolean group,
                     boolean deliveryReports, boolean split, boolean splitCounter,
@@ -242,6 +250,15 @@ public class Settings {
     }
 
     /**
+     * Sets flag to force WiFi antenna off during MMS send.
+     *
+     * @param forceWiFiToggle - Force WiFi antenna off during MMS send.
+     */
+    public void setForceWiFiToggle(boolean forceWiFiToggle) {
+        this.bForceWiFiToggle = forceWiFiToggle;
+    }
+
+    /**
      * @return MMSC to send through
      */
     public String getMmsc() {
@@ -338,6 +355,13 @@ public class Settings {
      */
     public int getSendLongAsMmsAfter() {
         return this.sendLongAsMmsAfter;
+    }
+
+    /**
+     * @return flag to force WiFi antenna off during MMS send.
+     */
+    public boolean getForceWiFiToggle() {
+        return this.bForceWiFiToggle;
     }
 
     /**
