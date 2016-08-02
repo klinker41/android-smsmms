@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.Telephony;
+import android.text.TextUtils;
 
 import com.google.android.mms.util_alt.SqliteWrapper;
 import com.klinker.android.logger.Log;
@@ -38,19 +39,24 @@ public class MmsSentReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.v(TAG, "MMS has finished sending, marking it as so in the database");
+        String theContentUriStr = intent.getStringExtra(EXTRA_CONTENT_URI);
+        if (!TextUtils.isEmpty(theContentUriStr)) {
+            Uri uri = Uri.parse(theContentUriStr);
+            Log.v(TAG, "MMS has finished sending, marking it as so in the database");
+            Log.v(TAG, uri.toString());
 
-        Uri uri = Uri.parse(intent.getStringExtra(EXTRA_CONTENT_URI));
-        Log.v(TAG, uri.toString());
-
-        ContentValues values = new ContentValues(1);
-        values.put(Telephony.Mms.MESSAGE_BOX, Telephony.Mms.MESSAGE_BOX_SENT);
-        SqliteWrapper.update(context, context.getContentResolver(), uri, values,
-                null, null);
+            ContentValues values = new ContentValues(1);
+            values.put(Telephony.Mms.MESSAGE_BOX, Telephony.Mms.MESSAGE_BOX_SENT);
+            SqliteWrapper.update(context, context.getContentResolver(), uri, values,
+                    null, null);
+        }
 
         String filePath = intent.getStringExtra(EXTRA_FILE_PATH);
-        Log.v(TAG, filePath);
-        new File(filePath).delete();
+        if (!TextUtils.isEmpty(filePath)) {
+            Log.v(TAG, "MMS has finished sending, removing temp file");
+            Log.v(TAG, filePath);
+            new File(filePath).delete();
+        }
     }
 
 }
