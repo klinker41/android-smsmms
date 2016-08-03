@@ -17,6 +17,7 @@
 package com.android.mms.service_alt;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -84,6 +85,7 @@ public class MmsHttpClient {
     private final SocketFactory mSocketFactory;
     private final MmsNetworkManager mHostResolver;
     private final ConnectionPool mConnectionPool;
+    private Intent mMmsProgressIntent = null;
 
     /**
      * Constructor
@@ -174,7 +176,23 @@ public class MmsHttpClient {
                 // Sending request body
                 final OutputStream out =
                         new BufferedOutputStream(connection.getOutputStream());
-                out.write(pdu);
+                //out.write(pdu);
+                //upload in chunks so we can get progress info
+                int totalSize = pdu.length;
+                int bytesTransferred = 0;
+                int chunkSize = 4096;
+                while (bytesTransferred < totalSize) {
+                    int nextChunkSize = totalSize - bytesTransferred;
+                    if (nextChunkSize > chunkSize) {
+                        nextChunkSize = chunkSize;
+                    }
+                    out.write(pdu, bytesTransferred, nextChunkSize);
+                    bytesTransferred += nextChunkSize;
+                    int theProgress = 100 * bytesTransferred / totalSize;
+                    Intent progressIntent = new Intent(mMmsProgressIntent);
+                    progressIntent.putExtra("progress", theProgress);
+                    mContext.sendBroadcast(progressIntent);
+                }
                 out.flush();
                 out.close();
             } else if (METHOD_GET.equals(method)) {
@@ -490,5 +508,10 @@ public class MmsHttpClient {
         sb.append(protocol).append("://").append(host)
                 .append("[").append(urlString.length()).append("]");
         return sb.toString();
+    }
+
+    public MmsHttpClient setMmsProgressIntent(Intent mmsProgress) {
+        mMmsProgressIntent = mmsProgress;
+        return this;
     }
 }

@@ -51,14 +51,16 @@ public class SendRequest extends MmsRequest {
     private byte[] mPduData;
     private final String mLocationUrl;
     private final PendingIntent mSentIntent;
+    private Intent mMmsProgressIntent;
 
     public SendRequest(RequestManager manager, int subId, Uri contentUri, String locationUrl,
-            PendingIntent sentIntent, String creator, Bundle configOverrides) {
+            PendingIntent sentIntent, String creator, Bundle configOverrides, Intent mmsProgress) {
         super(manager, subId, creator, configOverrides);
         mPduUri = contentUri;
         mPduData = null;
         mLocationUrl = locationUrl;
         mSentIntent = sentIntent;
+        mMmsProgressIntent = mmsProgress;
     }
 
     @Override
@@ -69,7 +71,7 @@ public class SendRequest extends MmsRequest {
             Log.e(TAG, "MMS network is not ready!");
             throw new MmsHttpException(0/*statusCode*/, "MMS network is not ready");
         }
-        return mmsHttpClient.execute(
+        return mmsHttpClient.setMmsProgressIntent(mMmsProgressIntent).execute(
                 mLocationUrl != null ? mLocationUrl : apn.getMmscUrl(),
                 mPduData,
                 MmsHttpClient.METHOD_POST,

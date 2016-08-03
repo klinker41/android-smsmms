@@ -437,7 +437,7 @@ public class Transaction {
                     PendingIntent thePendingSentIntent = PendingIntent.getBroadcast(
                                 context, 0, mmsSent, PendingIntent.FLAG_CANCEL_CURRENT);
                     SendRequest request = new SendRequest(requestManager, Utils.getDefaultSubscriptionId(),
-                            info.location, null, thePendingSentIntent, null, null);
+                            info.location, null, thePendingSentIntent, null, null, mmsProgress);
                     MmsNetworkManager manager = new MmsNetworkManager(context, Utils.getDefaultSubscriptionId());
                     request.execute(context, manager);
                 } catch (Exception e) {
