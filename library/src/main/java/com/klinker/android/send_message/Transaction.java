@@ -574,11 +574,12 @@ public class Transaction {
             File mSendFile = new File(context.getCacheDir(), fileName);
 
             SendReq sendReq = buildPdu(context, addresses, subject, parts);
-            PduPersister persister = PduPersister.getPduPersister(context);
-            Uri messageUri = persister.persist(sendReq, Uri.parse("content://mms/outbox"),
-                    true, settings.getGroup(), null);
-
-            mmsSent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
+            if (Utils.isDefaultSmsApp(context)) {
+                PduPersister persister = PduPersister.getPduPersister(context);
+                Uri messageUri = persister.persist(sendReq, Uri.parse("content://mms/outbox"),
+                        true, settings.getGroup(), null);
+                mmsSent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
+            }
             mmsSent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
             final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                     context, 0, mmsSent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -601,6 +602,7 @@ public class Transaction {
                     try {
                         writer.close();
                     } catch (IOException e) {
+                       Log.e(TAG, "Error closing mms file to send");
                     }
                 }
             }
