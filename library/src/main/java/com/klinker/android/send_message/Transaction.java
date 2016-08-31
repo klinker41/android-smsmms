@@ -249,23 +249,28 @@ public class Transaction {
                         dPI.add(settings.getDeliveryReports() && saveMessage ? deliveredPI : null);
                     }
 
-                    try {
-                        Log.v("send_transaction", "sent message");
-                        sendDelayedSms(smsManager, addresses[i], parts, sPI, dPI, delay, messageUri);
-                    } catch (Exception e) {
-                        // whoops...
-                        Log.v("send_transaction", "error sending message");
-                        Log.e(TAG, "exception thrown", e);
-
+                    if (Utils.isDefaultSmsApp(context)) {
                         try {
-                            ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
+                            Log.v("send_transaction", "sent message");
+                            sendDelayedSms(smsManager, addresses[i], parts, sPI, dPI, delay, messageUri);
+                        } catch (Exception e) {
+                            // whoops...
+                            Log.v("send_transaction", "error sending message");
+                            Log.e(TAG, "exception thrown", e);
 
-                                @Override
-                                public void run() {
-                                    Toast.makeText(context, "Message could not be sent", Toast.LENGTH_LONG).show();
-                                }
-                            });
-                        } catch (Exception f) { }
+                            try {
+                                ((Activity) context).getWindow().getDecorView().findViewById(android.R.id.content).post(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "Message could not be sent", Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            } catch (Exception f) { }
+                        }
+                    } else {
+                        // not default app, so just fire it off right away for the hell of it
+                        smsManager.sendMultipartTextMessage(addresses[i], null, parts, sPI, dPI);
                     }
                 }
             }
