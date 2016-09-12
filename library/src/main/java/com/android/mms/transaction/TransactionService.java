@@ -43,6 +43,7 @@ import android.provider.Telephony.MmsSms.PendingMessages;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
 
+import com.android.mms.MmsConfig;
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsNetworkManager;
 import com.android.mms.service_alt.MmsRequestManager;
@@ -344,10 +345,13 @@ public class TransactionService extends Service implements Observer {
                                             this, 0, download, PendingIntent.FLAG_CANCEL_CURRENT);
 
                                     Bundle configOverrides = new Bundle();
-                                    configOverrides.putBoolean(SmsManager.MMS_CONFIG_GROUP_MMS_ENABLED, group);
+                                    String httpParams = MmsConfig.getHttpParams();
+                                    if (!TextUtils.isEmpty(httpParams)) {
+                                        configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
+                                    }
 
                                     SmsManager.getDefault().downloadMultimediaMessage(this,
-                                            PushReceiver.getContentLocation(this, uri), contentUri, null, pendingIntent);
+                                            PushReceiver.getContentLocation(this, uri), contentUri, configOverrides, pendingIntent);
                                 } catch (MmsException e) {
                                     e.printStackTrace();
                                 }
@@ -865,10 +869,15 @@ public class TransactionService extends Service implements Observer {
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                     Uri u = Uri.parse(args.getUri());
+                                    Bundle configOverrides = new Bundle();
+                                    String httpParams = MmsConfig.getHttpParams();
+                                    if (!TextUtils.isEmpty(httpParams)) {
+                                        configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
+                                    }
                                     SmsManager.getDefault().downloadMultimediaMessage(
                                             TransactionService.this,
                                             ((RetrieveTransaction) transaction).getContentLocation(TransactionService.this, u),
-                                            u, null, null
+                                            u, configOverrides, null
                                     );
                                     return;
                                 }
