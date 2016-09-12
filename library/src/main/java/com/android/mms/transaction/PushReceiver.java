@@ -36,6 +36,7 @@ import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
 import android.telephony.SmsManager;
+import android.text.TextUtils;
 
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsNetworkManager;
@@ -203,10 +204,13 @@ public class PushReceiver extends BroadcastReceiver {
                                             mContext, 0, download, PendingIntent.FLAG_CANCEL_CURRENT);
 
                                     Bundle configOverrides = new Bundle();
-                                    configOverrides.putBoolean(SmsManager.MMS_CONFIG_GROUP_MMS_ENABLED, group);
+                                    String httpParams = MmsConfig.getHttpParams();
+                                    if (!TextUtils.isEmpty(httpParams)) {
+                                        configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
+                                    }
 
                                     SmsManager.getDefault().downloadMultimediaMessage(mContext,
-                                            location, contentUri, null, pendingIntent);
+                                            location, contentUri, configOverrides, pendingIntent);
                                 } else {
                                     Log.v(TAG, "receiving with lollipop method");
                                     MmsRequestManager requestManager = new MmsRequestManager(mContext);
@@ -274,6 +278,7 @@ public class PushReceiver extends BroadcastReceiver {
                 PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                         "MMS PushReceiver");
                 wl.acquire(5000);
+                MmsConfig.init(context);
                 new ReceivePushTask(context).execute(intent);
 
                 Log.v("mms_receiver", context.getPackageName() + " received and aborted");

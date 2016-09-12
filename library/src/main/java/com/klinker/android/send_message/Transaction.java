@@ -35,6 +35,7 @@ import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
+import com.android.mms.MmsConfig;
 import com.android.mms.service_alt.MmsNetworkManager;
 import com.android.mms.service_alt.MmsRequestManager;
 import com.android.mms.service_alt.SendRequest;
@@ -594,6 +595,10 @@ public class Transaction {
 
             Bundle configOverrides = new Bundle();
             configOverrides.putBoolean(SmsManager.MMS_CONFIG_GROUP_MMS_ENABLED, settings.getGroup());
+            String httpParams = MmsConfig.getHttpParams();
+            if (!TextUtils.isEmpty(httpParams)) {
+                configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
+            }
 
             if (contentUri != null) {
                 SmsManager.getDefault().sendMultimediaMessage(context,
