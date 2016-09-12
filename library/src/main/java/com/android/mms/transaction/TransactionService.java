@@ -389,6 +389,7 @@ public class TransactionService extends Service implements Observer {
                                         cursor.getColumnIndexOrThrow(
                                                 PendingMessages.ERROR_TYPE));
                                 try {
+                                    DownloadManager.init(this);
                                     DownloadManager downloadManager = DownloadManager.getInstance();
                                     boolean autoDownload = downloadManager.isAuto();
                                     if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
