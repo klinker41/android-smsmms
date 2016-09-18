@@ -150,6 +150,7 @@ public class RetryScheduler implements Observer {
                                 break;
                         }
                         if (errorString != 0) {
+                            DownloadManager.init(mContext.getApplicationContext());
                             DownloadManager.getInstance().showErrorCodeToast(errorString);
                             retry = false;
                         }
@@ -159,6 +160,7 @@ public class RetryScheduler implements Observer {
                         respStatus = getRetrieveStatus(msgId);
                         if (respStatus ==
                                 PduHeaders.RESPONSE_STATUS_ERROR_PERMANENT_MESSAGE_NOT_FOUND) {
+                            DownloadManager.init(mContext.getApplicationContext());
                             DownloadManager.getInstance().showErrorCodeToast(
                                     R.string.service_message_not_found);
                             SqliteWrapper.delete(mContext, mContext.getContentResolver(), uri,
@@ -179,6 +181,7 @@ public class RetryScheduler implements Observer {
 
                         if (isRetryDownloading) {
                             // Downloading process is transiently failed.
+                            DownloadManager.init(mContext.getApplicationContext());
                             DownloadManager.getInstance().markState(
                                     uri, DownloadManager.STATE_TRANSIENT_FAILURE);
                         }
@@ -204,6 +207,7 @@ public class RetryScheduler implements Observer {
                                 markMmsFailed(mContext);
                             }
 
+                            DownloadManager.init(mContext.getApplicationContext());
                             DownloadManager.getInstance().markState(
                                     uri, DownloadManager.STATE_PERMANENT_FAILURE);
                         } else {
