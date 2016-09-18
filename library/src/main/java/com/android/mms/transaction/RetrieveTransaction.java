@@ -134,6 +134,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
 //        } else {
             try {
                 // Change the downloading state of the M-Notification.ind.
+                DownloadManager.init(mContext.getApplicationContext());
                 DownloadManager.getInstance().markState(
                         mUri, DownloadManager.STATE_DOWNLOADING);
 
