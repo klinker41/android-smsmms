@@ -186,7 +186,7 @@ public class DownloadRequest extends MmsRequest {
                 values.put(Telephony.Mms.CREATOR, creator);
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            if (SubscriptionIdChecker.getInstance(context).canUseSubscriptionId()) {
                 values.put(Telephony.Mms.SUBSCRIPTION_ID, subId);
             }
 
