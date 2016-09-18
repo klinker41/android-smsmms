@@ -23,6 +23,7 @@ import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import com.klinker.android.logger.Log;
@@ -62,7 +63,7 @@ public class DownloadManager {
 
     private DownloadManager(Context context) {
         mContext = context;
-        mHandler = new Handler();
+        mHandler = new Handler(Looper.getMainLooper());
         mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         mAutoDownload = getAutoDownloadState(context, mPreferences);
