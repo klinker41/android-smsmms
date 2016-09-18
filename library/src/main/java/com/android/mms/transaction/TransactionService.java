@@ -621,6 +621,7 @@ public class TransactionService extends Service implements Observer {
 //                            MessagingNotification.updateDownloadFailedNotification(this);
                             break;
                         case Transaction.SEND_TRANSACTION:
+                            RateController.init(getApplicationContext());
                             RateController.getInstance().update();
                             break;
                     }
