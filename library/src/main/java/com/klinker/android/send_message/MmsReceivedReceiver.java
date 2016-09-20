@@ -56,10 +56,11 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
         String path = intent.getStringExtra(EXTRA_FILE_PATH);
         Log.v(TAG, path);
 
+        FileInputStream reader = null;
         try {
             File mDownloadFile = new File(path);
             final int nBytes = (int) mDownloadFile.length();
-            FileInputStream reader = new FileInputStream(mDownloadFile);
+            reader = new FileInputStream(mDownloadFile);
             final byte[] response = new byte[nBytes];
             reader.read(response, 0, nBytes);
 
@@ -75,6 +76,14 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
             Log.e(TAG, "MMS received, file not found exception", e);
         } catch (IOException e) {
             Log.e(TAG, "MMS received, io exception", e);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "MMS received, io exception", e);
+                }
+            }
         }
     }
 
