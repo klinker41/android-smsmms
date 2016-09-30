@@ -321,37 +321,11 @@ public class TransactionService extends Service implements Observer {
                             }
 
                             if (useSystem) {
-                                boolean group;
                                 try {
-                                    group = com.klinker.android.send_message.Transaction.settings.getGroup();
-                                } catch (Exception e) {
-                                    group = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("group_message", true);
-                                }
-
-                                Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
-                                        cursor.getLong(columnIndexOfMsgId));
-                                final String fileName = "download." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
-                                File mDownloadFile = new File(this.getCacheDir(), fileName);
-                                Uri contentUri = (new Uri.Builder())
-                                        .authority(this.getPackageName() + ".MmsFileProvider")
-                                        .path(fileName)
-                                        .scheme(ContentResolver.SCHEME_CONTENT)
-                                        .build();
-                                Intent download = new Intent(MmsReceivedReceiver.MMS_RECEIVED);
-                                download.putExtra(MmsReceivedReceiver.EXTRA_FILE_PATH, mDownloadFile.getPath());
-                                try {
-                                    download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, PushReceiver.getContentLocation(this, uri));
-                                    final PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                                            this, 0, download, PendingIntent.FLAG_CANCEL_CURRENT);
-
-                                    Bundle configOverrides = new Bundle();
-                                    String httpParams = MmsConfig.getHttpParams();
-                                    if (!TextUtils.isEmpty(httpParams)) {
-                                        configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
-                                    }
-
-                                    SmsManager.getDefault().downloadMultimediaMessage(this,
-                                            PushReceiver.getContentLocation(this, uri), contentUri, configOverrides, pendingIntent);
+                                    Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
+                                            cursor.getLong(columnIndexOfMsgId));
+                                    com.android.mms.transaction.DownloadManager.getInstance().
+                                            downloadMultimediaMessage(this, PushReceiver.getContentLocation(this, uri));
                                 } catch (MmsException e) {
                                     e.printStackTrace();
                                 }
@@ -870,16 +844,9 @@ public class TransactionService extends Service implements Observer {
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                     Uri u = Uri.parse(args.getUri());
-                                    Bundle configOverrides = new Bundle();
-                                    String httpParams = MmsConfig.getHttpParams();
-                                    if (!TextUtils.isEmpty(httpParams)) {
-                                        configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
-                                    }
-                                    SmsManager.getDefault().downloadMultimediaMessage(
-                                            TransactionService.this,
-                                            ((RetrieveTransaction) transaction).getContentLocation(TransactionService.this, u),
-                                            u, configOverrides, null
-                                    );
+                                    com.android.mms.transaction.DownloadManager.getInstance().
+                                            downloadMultimediaMessage(TransactionService.this,
+                                                    ((RetrieveTransaction) transaction).getContentLocation(TransactionService.this, u));
                                     return;
                                 }
 

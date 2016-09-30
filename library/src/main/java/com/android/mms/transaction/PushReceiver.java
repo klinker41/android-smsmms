@@ -189,28 +189,7 @@ public class PushReceiver extends BroadcastReceiver {
                                 }
 
                                 if (useSystem) {
-                                    Log.v(TAG, "receiving with system method");
-                                    final String fileName = "download." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
-                                    File mDownloadFile = new File(mContext.getCacheDir(), fileName);
-                                    Uri contentUri = (new Uri.Builder())
-                                            .authority(mContext.getPackageName() + ".MmsFileProvider")
-                                            .path(fileName)
-                                            .scheme(ContentResolver.SCHEME_CONTENT)
-                                            .build();
-                                    Intent download = new Intent(MmsReceivedReceiver.MMS_RECEIVED);
-                                    download.putExtra(MmsReceivedReceiver.EXTRA_FILE_PATH, mDownloadFile.getPath());
-                                    download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, location);
-                                    final PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                                            mContext, 0, download, PendingIntent.FLAG_CANCEL_CURRENT);
-
-                                    Bundle configOverrides = new Bundle();
-                                    String httpParams = MmsConfig.getHttpParams();
-                                    if (!TextUtils.isEmpty(httpParams)) {
-                                        configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
-                                    }
-
-                                    SmsManager.getDefault().downloadMultimediaMessage(mContext,
-                                            location, contentUri, configOverrides, pendingIntent);
+                                    DownloadManager.getInstance().downloadMultimediaMessage(mContext, location);
                                 } else {
                                     Log.v(TAG, "receiving with lollipop method");
                                     MmsRequestManager requestManager = new MmsRequestManager(mContext);
