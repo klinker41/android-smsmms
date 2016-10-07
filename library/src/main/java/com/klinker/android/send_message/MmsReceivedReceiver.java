@@ -24,6 +24,7 @@ import android.telephony.SmsManager;
 
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsConfig;
+import com.android.mms.transaction.DownloadManager;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.util_alt.SqliteWrapper;
 import com.klinker.android.logger.Log;
@@ -81,6 +82,7 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
         }
 
         handleHttpError(context, intent);
+        DownloadManager.finishDownload(intent.getStringExtra(EXTRA_LOCATION_URL));
     }
 
     private void handleHttpError(Context context, Intent intent) {
