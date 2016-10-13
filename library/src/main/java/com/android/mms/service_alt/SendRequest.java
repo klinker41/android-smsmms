@@ -153,7 +153,7 @@ public class SendRequest extends MmsRequest {
             if (!TextUtils.isEmpty(mCreator)) {
                 values.put(Telephony.Mms.CREATOR, mCreator);
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            if (SubscriptionIdChecker.getInstance(context).canUseSubscriptionId()) {
                 values.put(Telephony.Mms.SUBSCRIPTION_ID, mSubId);
             }
             if (SqliteWrapper.update(context, context.getContentResolver(), mPduUri, values,

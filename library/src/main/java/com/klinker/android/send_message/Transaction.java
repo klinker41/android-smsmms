@@ -35,6 +35,7 @@ import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
+import com.android.mms.MmsConfig;
 import com.android.mms.service_alt.MmsNetworkManager;
 import com.android.mms.service_alt.MmsRequestManager;
 import com.android.mms.service_alt.SendRequest;
@@ -470,11 +471,16 @@ public class Transaction {
                         if (part.MimeType.startsWith("text")) {
                             partPdu.setCharset(CharacterSets.UTF_8);
                         }
-
+                        // Set Content-Location.
+                        partPdu.setContentLocation(part.Name.getBytes());
+                        int index = part.Name.lastIndexOf(".");
+                        String contentId = (index == -1) ? part.Name
+                                : part.Name.substring(0, index);
+                        partPdu.setContentId(contentId.getBytes());
                         partPdu.setData(part.Data);
 
                         pduBody.addPart(partPdu);
-                        size += (part.Name.getBytes().length + part.MimeType.getBytes().length + part.Data.length);
+                        size += ((2 * part.Name.getBytes().length) + part.MimeType.getBytes().length + part.Data.length + contentId.getBytes().length);
                     } catch (Exception e) {
                     }
                 }
@@ -589,6 +595,10 @@ public class Transaction {
 
             Bundle configOverrides = new Bundle();
             configOverrides.putBoolean(SmsManager.MMS_CONFIG_GROUP_MMS_ENABLED, settings.getGroup());
+            String httpParams = MmsConfig.getHttpParams();
+            if (!TextUtils.isEmpty(httpParams)) {
+                configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
+            }
 
             if (contentUri != null) {
                 SmsManager.getDefault().sendMultimediaMessage(context,
@@ -664,7 +674,7 @@ public class Transaction {
     }
 
     private static int addTextPart(PduBody pb, MMSPart p, int id) {
-        String filename = p.MimeType.split("/")[0] + "_" + id + ".mms";
+        String filename = p.Name;
         final PduPart part = new PduPart();
         // Set Charset if it's a text media.
         if (p.MimeType.startsWith("text")) {

@@ -16,11 +16,15 @@
 
 package com.android.mms.transaction;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -32,15 +36,18 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.*;
+import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.MmsSms.PendingMessages;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
 
+import com.android.mms.MmsConfig;
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsNetworkManager;
 import com.android.mms.service_alt.MmsRequestManager;
+import com.google.android.mms.MmsException;
 import com.klinker.android.logger.Log;
 import android.widget.Toast;
 
@@ -52,6 +59,7 @@ import com.google.android.mms.pdu_alt.NotificationInd;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
+import com.klinker.android.send_message.MmsReceivedReceiver;
 import com.klinker.android.send_message.R;
 import com.klinker.android.send_message.Utils;
 
@@ -303,20 +311,39 @@ public class TransactionService extends Service implements Observer {
                         int transactionType = getTransactionType(msgType);
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            try {
-                                Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
-                                        cursor.getLong(columnIndexOfMsgId));
-                                MmsRequestManager requestManager = new MmsRequestManager(this);
-                                DownloadRequest request = new DownloadRequest(requestManager,
-                                        Utils.getDefaultSubscriptionId(),
-                                        PushReceiver.getContentLocation(this, uri), uri, null, null,
-                                        null, this);
-                                MmsNetworkManager manager = new MmsNetworkManager(this, Utils.getDefaultSubscriptionId());
-                                request.execute(this, manager);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                            boolean useSystem = true;
+                            if (com.klinker.android.send_message.Transaction.settings != null) {
+                                useSystem = com.klinker.android.send_message.Transaction.settings
+                                        .getUseSystemSending();
+                            } else {
+                                useSystem = PreferenceManager.getDefaultSharedPreferences(this)
+                                        .getBoolean("system_mms_sending", useSystem);
                             }
 
+                            if (useSystem) {
+                                try {
+                                    Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
+                                            cursor.getLong(columnIndexOfMsgId));
+                                    com.android.mms.transaction.DownloadManager.getInstance().
+                                            downloadMultimediaMessage(this, PushReceiver.getContentLocation(this, uri));
+                                } catch (MmsException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                try {
+                                    Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
+                                            cursor.getLong(columnIndexOfMsgId));
+                                    MmsRequestManager requestManager = new MmsRequestManager(this);
+                                    DownloadRequest request = new DownloadRequest(requestManager,
+                                            Utils.getDefaultSubscriptionId(),
+                                            PushReceiver.getContentLocation(this, uri), uri, null, null,
+                                            null, this);
+                                    MmsNetworkManager manager = new MmsNetworkManager(this, Utils.getDefaultSubscriptionId());
+                                    request.execute(this, manager);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                             continue;
                         }
 
@@ -340,6 +367,7 @@ public class TransactionService extends Service implements Observer {
                                         cursor.getColumnIndexOrThrow(
                                                 PendingMessages.ERROR_TYPE));
                                 try {
+                                    DownloadManager.init(this);
                                     DownloadManager downloadManager = DownloadManager.getInstance();
                                     boolean autoDownload = downloadManager.isAuto();
                                     if (Log.isLoggable(LogTag.TRANSACTION, Log.VERBOSE)) {
@@ -567,6 +595,7 @@ public class TransactionService extends Service implements Observer {
 //                            MessagingNotification.updateDownloadFailedNotification(this);
                             break;
                         case Transaction.SEND_TRANSACTION:
+                            RateController.init(getApplicationContext());
                             RateController.getInstance().update();
                             break;
                     }
@@ -815,11 +844,9 @@ public class TransactionService extends Service implements Observer {
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                     Uri u = Uri.parse(args.getUri());
-                                    SmsManager.getDefault().downloadMultimediaMessage(
-                                            TransactionService.this,
-                                            ((RetrieveTransaction) transaction).getContentLocation(TransactionService.this, u),
-                                            u, null, null
-                                    );
+                                    com.android.mms.transaction.DownloadManager.getInstance().
+                                            downloadMultimediaMessage(TransactionService.this,
+                                                    ((RetrieveTransaction) transaction).getContentLocation(TransactionService.this, u));
                                     return;
                                 }
 
