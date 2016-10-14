@@ -35,15 +35,20 @@ public class DownloadManager {
     }
 
     private DownloadManager() {
+        
     }
 
     void downloadMultimediaMessage(final Context context, final String location) {
-        MmsDownloadReceiver receiver = mMap.get(location);
-        if (receiver != null) {
+        if (location != null && mMap.get(location) != null) {
             return;
         }
-        receiver = new MmsDownloadReceiver();
-        mMap.put(location, receiver);
+
+        MmsDownloadReceiver receiver = new MmsDownloadReceiver();
+
+        if (location != null) {
+            mMap.put(location, receiver);
+        }
+
         // Use unique action in order to avoid cancellation of notifying download result.
         context.getApplicationContext().registerReceiver(receiver, new IntentFilter(receiver.mAction));
 
@@ -97,6 +102,8 @@ public class DownloadManager {
     }
 
     public static void finishDownload(String location) {
-        mMap.remove(location);
+        if (location != null) {
+            mMap.remove(location);
+        }
     }
 }
