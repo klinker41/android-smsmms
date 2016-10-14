@@ -21,6 +21,10 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * In order to avoid downloading duplicate MMS.
+ * We should manage to call SMSManager.downloadMultimediaMessage().
+ */
 public class DownloadManager {
     private static final String TAG = "DownloadManager";
     private static DownloadManager ourInstance = new DownloadManager();
@@ -63,8 +67,15 @@ public class DownloadManager {
             configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
         }
 
+        grantUriPermission(context, contentUri);
         SmsManager.getDefault().downloadMultimediaMessage(context,
                 location, contentUri, configOverrides, pendingIntent);
+    }
+
+    private void grantUriPermission(Context context, Uri contentUri) {
+        context.grantUriPermission(context.getPackageName() + ".MmsFileProvider",
+                contentUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
     }
 
     private static class MmsDownloadReceiver extends BroadcastReceiver {
@@ -78,12 +89,14 @@ public class DownloadManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             context.unregisterReceiver(this);
-            String location = intent.getStringExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL);
-            mMap.remove(location);
 
             Intent newIntent = (Intent) intent.clone();
             newIntent.setAction(MmsReceivedReceiver.MMS_RECEIVED);
             context.sendBroadcast(newIntent);
         }
+    }
+
+    public static void finishDownload(String location) {
+        mMap.remove(location);
     }
 }

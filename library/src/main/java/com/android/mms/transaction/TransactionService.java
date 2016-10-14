@@ -326,6 +326,9 @@ public class TransactionService extends Service implements Observer {
                                             cursor.getLong(columnIndexOfMsgId));
                                     com.android.mms.transaction.DownloadManager.getInstance().
                                             downloadMultimediaMessage(this, PushReceiver.getContentLocation(this, uri));
+
+                                    // can't handle many messages at once.
+                                    break;
                                 } catch (MmsException e) {
                                     e.printStackTrace();
                                 }
@@ -340,6 +343,9 @@ public class TransactionService extends Service implements Observer {
                                             null, this);
                                     MmsNetworkManager manager = new MmsNetworkManager(this, Utils.getDefaultSubscriptionId());
                                     request.execute(this, manager);
+
+                                    // can't handle many messages at once.
+                                    break;
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
