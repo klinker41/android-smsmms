@@ -69,6 +69,7 @@ public class PduPersister {
 
     private static final long DUMMY_THREAD_ID = Long.MAX_VALUE;
     private static final int DEFAULT_SUBSCRIPTION = 0;
+    private static final int MAX_TEXT_BODY_SIZE = 300 * 1024;
 
     /**
      * The uri of temporary drm objects.
@@ -762,6 +763,33 @@ public class PduPersister {
         return res;
     }
 
+    private static String cutString(String src, int expectSize) {
+        if (src.length() == 0) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder(expectSize);
+        final int length = src.length();
+        for (int i = 0, size = 0; i < length; i = Character.offsetByCodePoints(src, i, 1)) {
+            int codePoint = Character.codePointAt(src, i);
+            if (Character.charCount(codePoint) == 1) {
+                size += 1;
+                if (size > expectSize) {
+                    break;
+                }
+                builder.append((char) codePoint);
+            } else {
+                char[] chars = Character.toChars(codePoint);
+                size += chars.length;
+                if (size > expectSize) {
+                    break;
+                }
+                builder.append(chars);
+            }
+        }
+        return builder.toString();
+    }
+
     /**
      * Save data of the part into storage. The source data may be given
      * by a byte[] or a Uri. If it's a byte[], directly save it
@@ -794,9 +822,18 @@ public class PduPersister {
                 if (data == null) {
                     data = new String("").getBytes(CharacterSets.DEFAULT_CHARSET_NAME);
                 }
-                cv.put(Part.TEXT, new EncodedStringValue(data).getString());
+                String dataText = new EncodedStringValue(data).getString();
+                cv.put(Part.TEXT, dataText);
                 if (mContentResolver.update(uri, cv, null, null) != 1) {
-                    throw new MmsException("unable to update " + uri.toString());
+                    if (data.length > MAX_TEXT_BODY_SIZE) {
+                        ContentValues cv2 = new ContentValues();
+                        cv2.put(Part.TEXT, cutString(dataText, MAX_TEXT_BODY_SIZE));
+                        if (mContentResolver.update(uri, cv2, null, null) != 1) {
+                            throw new MmsException("unable to update " + uri.toString());
+                        }
+                    } else {
+                        throw new MmsException("unable to update " + uri.toString());
+                    }
                 }
             } else {
                 boolean isDrm = DownloadDrmHelper.isDrmConvertNeeded(contentType);
