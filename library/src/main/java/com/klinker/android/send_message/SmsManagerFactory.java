@@ -12,7 +12,19 @@ public class SmsManagerFactory {
     public static SmsManager createSmsManager(int subscriptionId) {
         if (subscriptionId != Settings.DEFAULT_SUBSCRIPTION_ID &&
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            return SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
+            SmsManager manager = null;
+
+            try {
+                manager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (manager != null) {
+                return manager;
+            } else {
+                return SmsManager.getDefault();
+            }
         } else {
             return SmsManager.getDefault();
         }
