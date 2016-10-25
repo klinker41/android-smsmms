@@ -28,6 +28,8 @@ import com.klinker.android.logger.Log;
  */
 public class Settings {
 
+    public static final int DEFAULT_SUBSCRIPTION_ID = -1;
+
     // MMS options
     private String mmsc;
     private String proxy;
@@ -48,11 +50,14 @@ public class Settings {
     private boolean sendLongAsMms;
     private int sendLongAsMmsAfter;
 
+    // SIM options
+    private int subscriptionId = DEFAULT_SUBSCRIPTION_ID;
+
     /**
      * Default constructor to set everything to default values
      */
     public Settings() {
-        this("", "", "0", true, false, false, false, false, "", "", true, 3, true);
+        this("", "", "0", true, false, false, false, false, "", "", true, 3, true, DEFAULT_SUBSCRIPTION_ID);
     }
 
     /**
@@ -75,6 +80,7 @@ public class Settings {
         this.preText = s.getPreText();
         this.sendLongAsMms = s.getSendLongAsMms();
         this.sendLongAsMmsAfter = s.getSendLongAsMmsAfter();
+        this.subscriptionId = s.getSubscriptionId();
     }
 
     /**
@@ -89,11 +95,12 @@ public class Settings {
      * @param signature          a signature to attach at the end of each message
      * @param sendLongAsMms      if a message is too long to be multiple SMS, convert it to a single MMS
      * @param sendLongAsMmsAfter is an int of how many pages long an SMS must be before it is split
+     * @param subscriptionId     is the ID for the SIM card. Can be null unless you are trying to use dual SIM support
      */
     public Settings(String mmsc, String proxy, String port, boolean group,
                     boolean deliveryReports, boolean split, boolean splitCounter,
                     boolean stripUnicode, String signature, String preText, boolean sendLongAsMms,
-                    int sendLongAsMmsAfter, boolean useSystemSending) {
+                    int sendLongAsMmsAfter, boolean useSystemSending, Integer subscriptionId) {
         this.mmsc = mmsc;
         this.proxy = proxy;
         this.port = port;
@@ -110,6 +117,8 @@ public class Settings {
         this.sendLongAsMms = sendLongAsMms;
         this.sendLongAsMmsAfter = sendLongAsMmsAfter;
         setUseSystemSending(useSystemSending);
+
+        this.subscriptionId = subscriptionId != null ? subscriptionId : DEFAULT_SUBSCRIPTION_ID;
     }
 
     /**
@@ -242,6 +251,32 @@ public class Settings {
     }
 
     /**
+     * @param useSystemSending whether or not to use the system sending method on Lollipop+ devices
+     */
+    public void setUseSystemSending(boolean useSystemSending) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            this.useSystemSending = useSystemSending;
+        } else {
+            this.useSystemSending = false;
+            Log.e("Settings", "System sending only available on Lollipop+ devices");
+        }
+    }
+
+    /**
+     * Set the subscription ID that should be used for sending. It isn't applied to receiving at this time.
+     *
+     * @param subscriptionId null if you do not want to use one.
+     */
+    public void setSubscriptionId(Integer subscriptionId) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1 || subscriptionId == null) {
+            // we won't allow you to go away from the default if your device doesn't support it
+            this.subscriptionId = DEFAULT_SUBSCRIPTION_ID;
+        } else {
+            this.subscriptionId = subscriptionId;
+        }
+    }
+
+    /**
      * @return MMSC to send through
      */
     public String getMmsc() {
@@ -341,22 +376,17 @@ public class Settings {
     }
 
     /**
-     * @param useSystemSending whether or not to use the system sending method on Lollipop+ devices
-     */
-    public void setUseSystemSending(boolean useSystemSending) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            this.useSystemSending = useSystemSending;
-        } else {
-            this.useSystemSending = false;
-            Log.e("Settings", "System sending only available on Lollipop+ devices");
-        }
-    }
-
-    /**
      * @return whether or not to use the system sending method on Lollipop+ devices
      */
     public boolean getUseSystemSending() {
         return useSystemSending;
+    }
+
+    /**
+     * @return the subscription ID or the default if one isn't set.
+     */
+    public int getSubscriptionId() {
+        return subscriptionId;
     }
 
     /**

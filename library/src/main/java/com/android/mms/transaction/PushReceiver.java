@@ -35,7 +35,6 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
-import android.telephony.SmsManager;
 import android.text.TextUtils;
 
 import com.android.mms.service_alt.DownloadRequest;
