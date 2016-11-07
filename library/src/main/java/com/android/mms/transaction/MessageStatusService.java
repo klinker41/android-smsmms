@@ -52,11 +52,14 @@ public class MessageStatusService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         // This method is called on a worker thread.
 
-        Uri messageUri = intent.getData();
+        String messageUri = intent.getStringExtra("message_uri");
+        if (messageUri == null) {
+            return;
+        }
         byte[] pdu = intent.getByteArrayExtra("pdu");
         String format = intent.getStringExtra("format");
 
-        SmsMessage message = updateMessageStatus(this, messageUri, pdu, format);
+        SmsMessage message = updateMessageStatus(this, Uri.parse(messageUri), pdu, format);
     }
 
     private SmsMessage updateMessageStatus(Context context, Uri messageUri, byte[] pdu,
@@ -69,6 +72,9 @@ public class MessageStatusService extends IntentService {
         // message's status in the database.
         Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(),
                             messageUri, ID_PROJECTION, null, null, null);
+        if (cursor == null) {
+            return null;
+        }
 
         try {
             if (cursor.moveToFirst()) {
