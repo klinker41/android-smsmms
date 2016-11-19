@@ -59,7 +59,7 @@ public class MessageStatusService extends IntentService {
                 return;
             }
         }
-        
+
         byte[] pdu = intent.getByteArrayExtra("pdu");
         String format = intent.getStringExtra("format");
 
