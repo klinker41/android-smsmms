@@ -52,10 +52,14 @@ public class MessageStatusService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         // This method is called on a worker thread.
 
-        String messageUri = intent.getStringExtra("message_uri");
+        String messageUri = intent.getDataString();
         if (messageUri == null) {
-            return;
+            messageUri = intent.getStringExtra("message_uri");
+            if (messageUri == null) {
+                return;
+            }
         }
+        
         byte[] pdu = intent.getByteArrayExtra("pdu");
         String format = intent.getStringExtra("format");
 
