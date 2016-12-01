@@ -38,7 +38,7 @@ public class DownloadManager {
 
     }
 
-    void downloadMultimediaMessage(final Context context, final String location) {
+    void downloadMultimediaMessage(final Context context, final String location, Uri uri, boolean byPush) {
         if (location == null || mMap.get(location) != null) {
             return;
         }
@@ -60,6 +60,8 @@ public class DownloadManager {
         Intent download = new Intent(receiver.mAction);
         download.putExtra(MmsReceivedReceiver.EXTRA_FILE_PATH, mDownloadFile.getPath());
         download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, location);
+        download.putExtra(MmsReceivedReceiver.EXTRA_TRIGGER_PUSH, byPush);
+        download.putExtra(MmsReceivedReceiver.EXTRA_URI, uri);
         final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context, 0, download, PendingIntent.FLAG_CANCEL_CURRENT);
 
