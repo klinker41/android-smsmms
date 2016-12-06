@@ -48,6 +48,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_RETRIEVED;
 
@@ -62,6 +64,8 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
 
     private static final String LOCATION_SELECTION =
             Telephony.Mms.MESSAGE_TYPE + "=? AND " + Telephony.Mms.CONTENT_LOCATION + " =?";
+
+    private static final ExecutorService RECEIVE_NOTIFICATION_EXECUTOR = Executors.newSingleThreadExecutor();
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -90,7 +94,7 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
             mDownloadFile.delete();
 
             if (task != null) {
-                task.execute();
+                task.executeOnExecutor(RECEIVE_NOTIFICATION_EXECUTOR);
             }
         } catch (FileNotFoundException e) {
             Log.e(TAG, "MMS received, file not found exception", e);
