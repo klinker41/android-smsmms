@@ -188,7 +188,7 @@ public class PushReceiver extends BroadcastReceiver {
                                 }
 
                                 if (useSystem) {
-                                    DownloadManager.getInstance().downloadMultimediaMessage(mContext, location);
+                                    DownloadManager.getInstance().downloadMultimediaMessage(mContext, location, uri, true);
                                 } else {
                                     Log.v(TAG, "receiving with lollipop method");
                                     MmsRequestManager requestManager = new MmsRequestManager(mContext);

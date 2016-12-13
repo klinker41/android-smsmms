@@ -100,7 +100,7 @@ Make sure that you check out the sample's `AndroidManifest.xml` for full details
 To include in your gradle project:
 
 ```groovy
-compile 'com.klinkerapps:android-smsmms:3.4.3'
+compile 'com.klinkerapps:android-smsmms:3.4.4'
 ```
 
 ---
