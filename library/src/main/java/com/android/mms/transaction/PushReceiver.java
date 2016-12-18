@@ -22,7 +22,6 @@ import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IN
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
 import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
 
-import android.app.PendingIntent;
 import android.content.*;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -30,12 +29,10 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
-import android.text.TextUtils;
 
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsNetworkManager;
@@ -53,14 +50,12 @@ import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadOrigInd;
-import com.klinker.android.send_message.MmsReceivedReceiver;
-import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Utils;
 
-import java.io.File;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
@@ -79,6 +74,7 @@ public class PushReceiver extends BroadcastReceiver {
     static final int COLUMN_CONTENT_LOCATION      = 0;
 
     private static Set<String> downloadedUrls = new HashSet<String>();
+    private static final ExecutorService PUSH_RECEIVER_EXECUTOR = Executors.newSingleThreadExecutor();
 
     private class ReceivePushTask extends AsyncTask<Intent,Void,Void> {
         private Context mContext;
@@ -257,7 +253,7 @@ public class PushReceiver extends BroadcastReceiver {
                         "MMS PushReceiver");
                 wl.acquire(5000);
                 MmsConfig.init(context);
-                new ReceivePushTask(context).execute(intent);
+                new ReceivePushTask(context).executeOnExecutor(PUSH_RECEIVER_EXECUTOR, intent);
 
                 Log.v("mms_receiver", context.getPackageName() + " received and aborted");
 
