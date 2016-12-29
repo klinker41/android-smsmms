@@ -133,7 +133,7 @@ public class DownloadManager {
                 selection, selectionArgs, null);
         if (c != null) {
             try {
-                if (c.getCount() == 1) {
+                if (c.getCount() > 0) {
                     return true;
                 }
             } finally {
