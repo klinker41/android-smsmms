@@ -16,6 +16,7 @@
 
 package com.google.android.mms.pdu_alt;
 
+import com.android.mms.util.ExternalLogger;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.InvalidHeaderValueException;
 
@@ -202,6 +203,8 @@ public class PduParser {
                 } else if (ctTypeStr.equals(ContentType.MULTIPART_SIGNED)) {
                     // multipart/signed
                     return retrieveConf;
+                } else {
+                    ExternalLogger.logMessage(LOG_TAG, "Unsupported ContentType: " + ctTypeStr);
                 }
                 return null;
             case PduHeaders.MESSAGE_TYPE_DELIVERY_IND:
