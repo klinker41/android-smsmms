@@ -199,6 +199,9 @@ public class PduParser {
                     mBody.removeAll();
                     mBody.addPart(0, firstPart);
                     return retrieveConf;
+                } else if (ctTypeStr.equals(ContentType.MULTIPART_SIGNED)) {
+                    // multipart/signed
+                    return retrieveConf;
                 }
                 return null;
             case PduHeaders.MESSAGE_TYPE_DELIVERY_IND:
