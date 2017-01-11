@@ -17,6 +17,8 @@
 package com.android.mms.service_alt;
 
 import android.app.PendingIntent;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -143,6 +145,9 @@ public class DownloadRequest extends MmsRequest {
                     (new PduParser(response, mmsConfig.getSupportMmsContentDisposition())).parse();
             if (pdu == null || !(pdu instanceof RetrieveConf)) {
                 Log.e(TAG, "DownloadRequest.persistIfRequired: invalid parsed PDU");
+
+                // Update the error type of the NotificationInd
+                setErrorType(context, locationUrl, Telephony.MmsSms.ERR_TYPE_MMS_PROTO_PERMANENT);
                 return null;
             }
             final RetrieveConf retrieveConf = (RetrieveConf) pdu;
@@ -320,5 +325,58 @@ public class DownloadRequest extends MmsRequest {
         }
 
         throw new MmsException("Cannot get X-Mms-Content-Location from: " + uri);
+    }
+
+    private static Long getId(Context context, String location) {
+        String selection = Telephony.Mms.CONTENT_LOCATION + " = ?";
+        String[] selectionArgs = new String[] { location };
+        Cursor c = android.database.sqlite.SqliteWrapper.query(
+                context, context.getContentResolver(),
+                Telephony.Mms.CONTENT_URI, new String[] { Telephony.Mms._ID },
+                selection, selectionArgs, null);
+        if (c != null) {
+            try {
+                if (c.moveToFirst()) {
+                    return c.getLong(c.getColumnIndex(Telephony.Mms._ID));
+                }
+            } finally {
+                c.close();
+            }
+        }
+        return null;
+    }
+
+    private static void setErrorType(Context context, String locationUrl, int errorType) {
+        Long msgId = getId(context, locationUrl);
+        if (msgId == null) {
+            return;
+        }
+
+        Uri.Builder uriBuilder = Telephony.MmsSms.PendingMessages.CONTENT_URI.buildUpon();
+        uriBuilder.appendQueryParameter("protocol", "mms");
+        uriBuilder.appendQueryParameter("message", String.valueOf(msgId));
+
+        Cursor cursor = android.database.sqlite.SqliteWrapper.query(context, context.getContentResolver(),
+                uriBuilder.build(), null, null, null, null);
+        if (cursor == null) {
+            return;
+        }
+
+        try {
+            if ((cursor.getCount() == 1) && cursor.moveToFirst()) {
+                ContentValues values = new ContentValues();
+                values.put(Telephony.MmsSms.PendingMessages.ERROR_TYPE, errorType);
+
+                int columnIndex = cursor.getColumnIndexOrThrow(
+                        Telephony.MmsSms.PendingMessages._ID);
+                long id = cursor.getLong(columnIndex);
+
+                android.database.sqlite.SqliteWrapper.update(context, context.getContentResolver(),
+                        Telephony.MmsSms.PendingMessages.CONTENT_URI,
+                        values, Telephony.MmsSms.PendingMessages._ID + "=" + id, null);
+            }
+        } finally {
+            cursor.close();
+        }
     }
 }
