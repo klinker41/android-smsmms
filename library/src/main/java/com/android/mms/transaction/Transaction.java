@@ -165,8 +165,8 @@ public abstract class Transaction extends Observable {
      *         an HTTP error code(>=400) returned from the server.
      * @throws com.google.android.mms.MmsException if pdu is null.
      */
-    protected byte[] sendPdu(long token, byte[] pdu,
-            String mmscUrl) throws IOException, MmsException {
+    protected byte[] sendPdu(final long token, final byte[] pdu,
+                             final String mmscUrl) throws IOException, MmsException {
         if (pdu == null) {
             throw new MmsException();
         }
@@ -183,14 +183,18 @@ public abstract class Transaction extends Observable {
                     false, null, 0);
         }
 
-        Utils.ensureRouteToHost(mContext, mmscUrl, mTransactionSettings.getProxyAddress());
-        return HttpUtils.httpConnection(
-                mContext, token,
-                mmscUrl,
-                pdu, HttpUtils.HTTP_POST_METHOD,
-                mTransactionSettings.isProxySet(),
-                mTransactionSettings.getProxyAddress(),
-                mTransactionSettings.getProxyPort());
+        return Utils.ensureRouteToMmsNetwork(mContext, mmscUrl, mTransactionSettings.getProxyAddress(), new Utils.Task<byte[]>() {
+            @Override
+            public byte[] run() throws IOException {
+                return HttpUtils.httpConnection(
+                        mContext, token,
+                        mmscUrl,
+                        pdu, HttpUtils.HTTP_POST_METHOD,
+                        mTransactionSettings.isProxySet(),
+                        mTransactionSettings.getProxyAddress(),
+                        mTransactionSettings.getProxyPort());
+            }
+        });
     }
 
     /**
@@ -202,7 +206,7 @@ public abstract class Transaction extends Observable {
      * @throws java.io.IOException if any error occurred on network interface or
      *         an HTTP error code(>=400) returned from the server.
      */
-    protected byte[] getPdu(String url) throws IOException {
+    protected byte[] getPdu(final String url) throws IOException {
         if (url == null) {
             throw new IOException("Cannot establish route: url is null");
         }
@@ -219,16 +223,20 @@ public abstract class Transaction extends Observable {
                     0);
         }
 
-        Utils.ensureRouteToHost(mContext, url, mTransactionSettings.getProxyAddress());
-        return HttpUtils.httpConnection(
-                mContext,
-                SendingProgressTokenManager.NO_TOKEN,
-                url,
-                null,
-                HttpUtils.HTTP_GET_METHOD,
-                mTransactionSettings.isProxySet(),
-                mTransactionSettings.getProxyAddress(),
-                mTransactionSettings.getProxyPort());
+        return Utils.ensureRouteToMmsNetwork(mContext, url, mTransactionSettings.getProxyAddress(), new Utils.Task<byte[]>() {
+            @Override
+            public byte[] run() throws IOException {
+                return HttpUtils.httpConnection(
+                        mContext,
+                        SendingProgressTokenManager.NO_TOKEN,
+                        url,
+                        null,
+                        HttpUtils.HTTP_GET_METHOD,
+                        mTransactionSettings.isProxySet(),
+                        mTransactionSettings.getProxyAddress(),
+                        mTransactionSettings.getProxyPort());
+            }
+        });
     }
 
     public static boolean useWifi(Context context) {

@@ -177,8 +177,8 @@ public class MmsReceivedService extends IntentService {
          *         an HTTP error code(>=400) returned from the server.
          * @throws com.google.android.mms.MmsException if pdu is null.
          */
-        private byte[] sendPdu(long token, byte[] pdu,
-                               String mmscUrl) throws IOException, MmsException {
+        private byte[] sendPdu(final long token, final byte[] pdu,
+                               final String mmscUrl) throws IOException, MmsException {
             if (pdu == null) {
                 throw new MmsException();
             }
@@ -195,14 +195,18 @@ public class MmsReceivedService extends IntentService {
                         false, null, 0);
             }
 
-            Utils.ensureRouteToHost(mContext, mmscUrl, mTransactionSettings.getProxyAddress());
-            return HttpUtils.httpConnection(
-                    mContext, token,
-                    mmscUrl,
-                    pdu, HttpUtils.HTTP_POST_METHOD,
-                    mTransactionSettings.isProxySet(),
-                    mTransactionSettings.getProxyAddress(),
-                    mTransactionSettings.getProxyPort());
+            return Utils.ensureRouteToMmsNetwork(mContext, mmscUrl, mTransactionSettings.getProxyAddress(), new Utils.Task<byte[]>() {
+                @Override
+                public byte[] run() throws IOException {
+                    return HttpUtils.httpConnection(
+                            mContext, token,
+                            mmscUrl,
+                            pdu, HttpUtils.HTTP_POST_METHOD,
+                            mTransactionSettings.isProxySet(),
+                            mTransactionSettings.getProxyAddress(),
+                            mTransactionSettings.getProxyPort());
+                }
+            });
         }
 
         public abstract void run() throws IOException;
