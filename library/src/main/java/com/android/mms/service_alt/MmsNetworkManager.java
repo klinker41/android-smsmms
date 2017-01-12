@@ -115,13 +115,13 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
      *
      * @throws MmsNetworkException if we fail to acquire it
      */
-    public void acquireNetwork() throws MmsNetworkException {
+    public Network acquireNetwork() throws MmsNetworkException {
         synchronized (this) {
             mMmsRequestCount += 1;
             if (mNetwork != null) {
                 // Already available
                 Log.d(TAG, "MmsNetworkManager: already available");
-                return;
+                return mNetwork;
             }
             Log.d(TAG, "MmsNetworkManager: start new network request");
             // Not available, so start a new request
@@ -136,7 +136,7 @@ public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
                 }
                 if (mNetwork != null || permissionError) {
                     // Success
-                    return;
+                    return mNetwork;
                 }
                 // Calculate remaining waiting time to make sure we wait the full timeout period
                 waitTime = shouldEnd - SystemClock.elapsedRealtime();
