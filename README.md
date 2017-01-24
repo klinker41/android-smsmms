@@ -4,9 +4,9 @@
 
 These are the APIs that Google has so far left out of the Android ecosystem for easily sending any type of message without digging through source code and what not.
 
-##### This library is still in __BETA__ and has a long way to go... APIs may not be final and things will most likely change.
-
 If you've got a better way to do things, send me a pull request! The library was created specifically for [Sliding Messaging Pro](https://play.google.com/store/apps/details?id=com.klinker.android.messaging_donate&hl=en) and [EvolveSMS](https://play.google.com/store/apps/details?id=com.klinker.android.evolve_sms&hl=en) and some things work the way they do specifically for those apps.
+
+It's now used in [Pulse](https://play.google.com/store/apps/details?id=xyz.klinker.messenger) as well.
 
 ---
 
@@ -90,6 +90,21 @@ Lastly, you'll need to include permissions in your manifest depending on what yo
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 ```
+
+### Using on Lollipop+ devices
+
+If you are using this on devices with Android 5.0 or higher, then a simpler method of sending is available.
+
+``` java
+Settings settings = new Settings();
+settings.setUseSystemSending(true);
+Transaction transaction = new Transaction(mContext, settings);
+Message message = new Message(textToSend, addressToSendTo);
+message.setImage(mBitmap); 
+transaction.sendNewMessage(message, threadId)
+```
+
+This will invoke the MMS APIs that were made available in SDK 21. It is recommended over the old approach since you no longer need to ask the user for APNs and much less setup is necessary. The option will only be applied when the device has SDK 21 or higher, otherwise it will fall back to the old method.
 
 For full details on how to implement, please check out the sample application. It has more information on permissions, creating a transaction and sending a message.
 

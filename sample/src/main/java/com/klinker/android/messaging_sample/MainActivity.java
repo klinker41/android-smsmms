@@ -180,27 +180,6 @@ public class MainActivity extends Activity {
     }
 
     public void sendMessage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.System.canWrite(this)) {
-            new AlertDialog.Builder(this)
-                    .setMessage(com.klinker.android.send_message.R.string.write_settings_permission)
-                    .setPositiveButton(com.klinker.android.send_message.R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                            intent.setData(Uri.parse("package:" + getPackageName()));
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                            try {
-                                startActivity(intent);
-                            } catch (Exception e) {
-                                Log.e("MainActivity", "error starting permission intent", e);
-                            }
-                        }
-                    })
-                    .show();
-            return;
-        }
-
         new Thread(new Runnable() {
             @Override
             public void run() {
