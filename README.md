@@ -115,7 +115,7 @@ For full details on how to implement, please check out the sample application. I
 To include in your gradle project:
 
 ```groovy
-compile 'com.klinkerapps:android-smsmms:3.4.5'
+compile 'com.klinkerapps:android-smsmms:3.4.6'
 ```
 
 ---

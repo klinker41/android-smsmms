@@ -14,7 +14,7 @@ The permission system has changed drastically in Marshmallow as well. Previously
 was able to use the permission CHANGE_NETWORK_STATE to request sending MMS through mobile data
 instead of WiFi. This is a requirement for most carriers. This permission now has a SIGNATURE
 level permission, meaning that your app that requests it will not be granted it. To get around
-this, we need to instead us the WRITE_SETTINGS permission. You can see an example of this in the
+this, we need to instead use the WRITE_SETTINGS permission. You can see an example of this in the
 included sample application. Basically, you'll need to make the following changes:
 
 1) include <uses-permission> tag in your manifest:
