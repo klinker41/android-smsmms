@@ -19,7 +19,7 @@ allprojects {
 apply plugin: 'com.android.library'
 
 dependencies {
-    compile 'com.klinkerapps:logger:1.0.3-SNAPSHOT'
+    compile 'com.klinkerapps:logger:1.0.3'
     compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.5.0'
 }
