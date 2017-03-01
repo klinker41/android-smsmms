@@ -17,11 +17,8 @@
 package com.klinker.android.messaging_sample;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -34,7 +31,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import com.android.mms.service_alt.MmsConfigManager;
 import com.klinker.android.logger.Log;
 import com.klinker.android.logger.OnLogListener;
 import com.klinker.android.send_message.ApnUtils;
@@ -82,7 +78,8 @@ public class MainActivity extends Activity {
     private void initSettings() {
         settings = Settings.get(this);
 
-        if (TextUtils.isEmpty(settings.getMmsc())) {
+        if (TextUtils.isEmpty(settings.getMmsc()) &&
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             initApns();
         }
     }
