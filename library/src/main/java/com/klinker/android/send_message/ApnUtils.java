@@ -10,8 +10,10 @@ import android.preference.PreferenceManager;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
-import com.klinker.android.logger.Log;
 import android.widget.Toast;
+
+import com.klinker.android.logger.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -191,7 +193,7 @@ public class ApnUtils {
         TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         String networkOperator = manager.getNetworkOperator();
 
-        if (networkOperator != null && !networkOperator.equals("")) {
+        if (isValidNetworkOperator(networkOperator)) {
             mcc = Integer.parseInt(networkOperator.substring(0, 3));
             String s = networkOperator.substring(3);
             try {
@@ -320,6 +322,19 @@ public class ApnUtils {
         }
 
         return apns;
+    }
+
+    /**
+     * Checks if the given network operator is valid, i.e. it's not null, empty or contains "null"
+     *
+     * @param networkOperator
+     *         The network operator to be checked
+     *
+     * @return True if is a valid operator
+     */
+    private static boolean isValidNetworkOperator(String networkOperator) {
+      return networkOperator != null && !networkOperator.isEmpty() &&
+              !networkOperator.contains("null");
     }
 
     private static void setApns(Context context, APN apn) {
