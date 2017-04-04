@@ -52,23 +52,18 @@ That's it, you're done sending :)
 You'll also need to register a few receivers for when the messages have been sent and for delivery reports to mark them as read... In your manifest, add these lines:
 
 ```xml
-<receiver android:name="com.klinker.android.send_message.SentReceiver" >
-	<intent-filter>
-		<action android:name="[insert package name here].SMS_SENT" />
-	</intent-filter>
-</receiver>
+<receiver
+    android:name="com.klinker.android.send_message.SentReceiver"
+    android:taskAffinity="[insert package name here].SMS_SENT"/>
 
-<receiver android:name="com.klinker.android.send_message.DeliveredReceiver" >
-	<intent-filter>
-                <action android:name="[insert package name here].SMS_DELIVERED" />
-	</intent-filter>
-</receiver>
+<receiver
+    android:name="com.klinker.android.send_message.DeliveredReceiver"
+    android:taskAffinity="[insert package name here].SMS_DELIVERED"/>
+
 <!-- Your custom receiver which is child of com.klinker.android.send_message.MmsSentReceiver -->
-<receiver android:name="[insert your custom receiver here. eg. com.example.sms_mms.receivers.MyMmsSentReceiver]" >
-        <intent-filter>
-	        <action android:name="com.klinker.android.messaging.MMS_SENT" />
-        </intent-filter>
-</receiver>
+<receiver
+    android:name="[insert your custom receiver here. eg. com.example.sms_mms.receivers.MyMmsSentReceiver]"
+    android:taskAffinity="com.klinker.android.messaging.MMS_SENT"/>
 ```
 
 Be sure to replace the [insert package name here] with your package name defined in the manifest. For example, Sliding Messaging's is com.klinker.android.messaging_donate.
@@ -122,7 +117,7 @@ compile 'com.klinkerapps:android-smsmms:3.5.0'
 
 ## License
 
-    Copyright 2014 Jacob Klinker
+    Copyright 2017 Jacob Klinker
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
