@@ -53,8 +53,7 @@
 
         <receiver
             android:name=".SmsReceiver"
-            android:permission="android.permission.BROADCAST_SMS"
-            android:taskAffinity="android.provider.Telephony.SMS_DELIVER">
+            android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
             </intent-filter>
@@ -62,8 +61,7 @@
 
         <receiver
             android:name=".MmsReceiver"
-            android:permission="android.permission.BROADCAST_WAP_PUSH"
-            android:taskAffinity="android.provider.Telephony.WAP_PUSH_DELIVER">
+            android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter>
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
                 <data android:mimeType="application/vnd.wap.mms-message" />
@@ -84,7 +82,6 @@
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE" >
             <intent-filter>
                 <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
-
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:scheme="sms" />
