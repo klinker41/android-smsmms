@@ -58,6 +58,7 @@
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
             </intent-filter>
         </receiver>
+
         <receiver
             android:name=".MmsReceiver"
             android:permission="android.permission.BROADCAST_WAP_PUSH" >
@@ -67,6 +68,7 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
+
         <receiver android:name="com.klinker.android.send_message.MmsSentReceiver">
             <intent-filter>
                 <action android:name="com.klinker.android.messaging.MMS_SENT" />
