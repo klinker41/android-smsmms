@@ -16,8 +16,6 @@
 
 package com.android.mms.transaction;
 
-import java.util.Arrays;
-
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -27,7 +25,6 @@ import android.net.Uri;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Sent;
 import android.text.TextUtils;
-import com.klinker.android.logger.Log;
 
 import com.android.mms.LogTag;
 import com.android.mms.util.RateController;
@@ -39,7 +36,11 @@ import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.SendConf;
 import com.google.android.mms.pdu_alt.SendReq;
+import com.klinker.android.logger.Log;
+import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.Utils;
+
+import java.util.Arrays;
 
 /**
  * The SendTransaction is responsible for sending multimedia messages
@@ -176,7 +177,8 @@ public class SendTransaction extends Transaction implements Runnable {
 
                 Intent intent = new Intent(com.klinker.android.send_message.Transaction.MMS_ERROR);
                 intent.putExtra("stack", builder.toString());
-                mContext.sendBroadcast(intent);
+                BroadcastUtils.sendExplicitBroadcast(
+                        mContext, intent, com.klinker.android.send_message.Transaction.MMS_ERROR);
             }
             notifyObservers();
         }

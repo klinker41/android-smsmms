@@ -382,10 +382,10 @@ public class Transaction {
                         // send progress broadcast to update ui if desired...
                         Intent progressIntent = new Intent(MMS_PROGRESS);
                         progressIntent.putExtra("progress", progress);
-                        context.sendBroadcast(progressIntent);
+                        BroadcastUtils.sendExplicitBroadcast(context, progressIntent, MMS_PROGRESS);
 
                         if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
-                            context.sendBroadcast(new Intent(REFRESH));
+                            BroadcastUtils.sendExplicitBroadcast(context, new Intent(), REFRESH);
 
                             try {
                                 context.unregisterReceiver(this);

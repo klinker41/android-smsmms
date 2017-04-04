@@ -16,16 +16,6 @@
 
 package com.android.mms.transaction;
 
-import static com.android.mms.transaction.TransactionState.FAILED;
-import static com.android.mms.transaction.TransactionState.INITIALIZED;
-import static com.android.mms.transaction.TransactionState.SUCCESS;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF;
-import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_DEFERRED;
-import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_RETRIEVED;
-import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_UNRECOGNIZED;
-
-import java.io.IOException;
-
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
@@ -35,10 +25,9 @@ import android.net.Uri;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
-import android.provider.Telephony.Threads;
 import android.provider.Telephony.Mms.Inbox;
+import android.provider.Telephony.Threads;
 import android.telephony.TelephonyManager;
-import com.klinker.android.logger.Log;
 
 import com.android.mms.LogTag;
 import com.android.mms.MmsConfig;
@@ -51,6 +40,18 @@ import com.google.android.mms.pdu_alt.PduComposer;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
+import com.klinker.android.logger.Log;
+import com.klinker.android.send_message.BroadcastUtils;
+
+import java.io.IOException;
+
+import static com.android.mms.transaction.TransactionState.FAILED;
+import static com.android.mms.transaction.TransactionState.INITIALIZED;
+import static com.android.mms.transaction.TransactionState.SUCCESS;
+import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF;
+import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_DEFERRED;
+import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_RETRIEVED;
+import static com.google.android.mms.pdu_alt.PduHeaders.STATUS_UNRECOGNIZED;
 
 /**
  * The NotificationTransaction is responsible for handling multimedia
@@ -213,7 +214,10 @@ public class NotificationTransaction extends Transaction implements Runnable {
                     // Notify observers with newly received MM.
                     mUri = uri;
                     status = STATUS_RETRIEVED;
-                    mContext.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS));
+                    BroadcastUtils.sendExplicitBroadcast(
+                            mContext,
+                            new Intent(),
+                            com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
                 }
             }
 

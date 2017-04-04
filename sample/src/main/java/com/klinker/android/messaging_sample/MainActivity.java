@@ -34,6 +34,7 @@ import android.widget.ImageView;
 import com.klinker.android.logger.Log;
 import com.klinker.android.logger.OnLogListener;
 import com.klinker.android.send_message.ApnUtils;
+import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.Message;
 import com.klinker.android.send_message.Transaction;
 import com.klinker.android.send_message.Utils;
@@ -73,6 +74,8 @@ public class MainActivity extends Activity {
         initViews();
         initActions();
         initLogging();
+
+        BroadcastUtils.sendExplicitBroadcast(this, new Intent(), "test action");
     }
 
     private void initSettings() {

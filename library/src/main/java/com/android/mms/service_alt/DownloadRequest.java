@@ -42,6 +42,8 @@ import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.RetrieveConf;
 import com.google.android.mms.util_alt.SqliteWrapper;
+import com.klinker.android.send_message.BroadcastUtils;
+import com.klinker.android.send_message.Transaction;
 
 /**
  * Request to download an MMS
@@ -228,9 +230,7 @@ public class DownloadRequest extends MmsRequest {
     }
 
     private static void notifyOfDownload(Context context) {
-        context.sendBroadcast(
-                new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS)
-        );
+        BroadcastUtils.sendExplicitBroadcast(context, new Intent(), Transaction.NOTIFY_OF_MMS);
 
         // TODO, not sure what this is doing... sending a broadcast that
         // the download has finished from a specific user account I believe.

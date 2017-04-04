@@ -27,6 +27,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
@@ -44,7 +45,6 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -53,7 +53,8 @@
 
         <receiver
             android:name=".SmsReceiver"
-            android:permission="android.permission.BROADCAST_SMS" >
+            android:permission="android.permission.BROADCAST_SMS"
+            android:taskAffinity="android.provider.Telephony.SMS_DELIVER">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
             </intent-filter>
@@ -61,25 +62,21 @@
 
         <receiver
             android:name=".MmsReceiver"
-            android:permission="android.permission.BROADCAST_WAP_PUSH" >
+            android:permission="android.permission.BROADCAST_WAP_PUSH"
+            android:taskAffinity="android.provider.Telephony.WAP_PUSH_DELIVER">
             <intent-filter>
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
-
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name="com.klinker.android.send_message.MmsSentReceiver">
-            <intent-filter>
-                <action android:name="com.klinker.android.messaging.MMS_SENT" />
-            </intent-filter>
-        </receiver>
+        <receiver
+            android:name="com.klinker.android.send_message.MmsSentReceiver"
+            android:taskAffinity="com.klinker.android.messaging.MMS_SENT"/>
 
-        <receiver android:name="com.klinker.android.send_message.MmsReceivedReceiver">
-            <intent-filter>
-                <action android:name="com.klinker.android.messaging.MMS_RECEIVED" />
-            </intent-filter>
-        </receiver>
+        <receiver
+            android:name="com.klinker.android.send_message.MmsReceivedReceiver"
+            android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED"/>
 
         <service
             android:name=".HeadlessSmsSendService"

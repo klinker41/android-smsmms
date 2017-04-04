@@ -16,13 +16,12 @@
 
 package com.android.mms.transaction;
 
-import static android.provider.Telephony.Sms.Intents.WAP_PUSH_DELIVER_ACTION;
-import static android.provider.Telephony.Sms.Intents.WAP_PUSH_RECEIVED_ACTION;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
-import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
-
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SqliteWrapper;
@@ -34,13 +33,11 @@ import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
 
+import com.android.mms.LogTag;
+import com.android.mms.MmsConfig;
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsNetworkManager;
 import com.android.mms.service_alt.MmsRequestManager;
-import com.klinker.android.logger.Log;
-
-import com.android.mms.LogTag;
-import com.android.mms.MmsConfig;
 import com.google.android.mms.ContentType;
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.DeliveryInd;
@@ -50,12 +47,20 @@ import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadOrigInd;
+import com.klinker.android.logger.Log;
+import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.Utils;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static android.provider.Telephony.Sms.Intents.WAP_PUSH_DELIVER_ACTION;
+import static android.provider.Telephony.Sms.Intents.WAP_PUSH_RECEIVED_ACTION;
+import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_DELIVERY_IND;
+import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND;
+import static com.google.android.mms.pdu_alt.PduHeaders.MESSAGE_TYPE_READ_ORIG_IND;
 
 /**
  * Receives Intent.WAP_PUSH_RECEIVED_ACTION intents and starts the
@@ -208,7 +213,10 @@ public class PushReceiver extends BroadcastReceiver {
                                 } else {
                                     Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
                                     notificationBroadcast.putExtra("receive_through_stock", true);
-                                    mContext.sendBroadcast(notificationBroadcast);
+                                    BroadcastUtils.sendExplicitBroadcast(
+                                            mContext,
+                                            notificationBroadcast,
+                                            com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
                                 }
                             }
                         } else if (LOCAL_LOGV) {
@@ -262,7 +270,10 @@ public class PushReceiver extends BroadcastReceiver {
                 clearAbortBroadcast();
                 Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
                 notificationBroadcast.putExtra("receive_through_stock", true);
-                context.sendBroadcast(notificationBroadcast);
+                BroadcastUtils.sendExplicitBroadcast(
+                        context,
+                        notificationBroadcast,
+                        com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
 
                 Log.v("mms_receiver", context.getPackageName() + " received and not aborted");
             }

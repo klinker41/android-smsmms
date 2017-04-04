@@ -88,12 +88,12 @@ public class SentReceiver extends BroadcastReceiver {
                     }
                 }
 
-                context.sendBroadcast(new Intent(Transaction.NOTIFY_SMS_FAILURE));
-
+                BroadcastUtils.sendExplicitBroadcast(
+                        context, new Intent(), Transaction.NOTIFY_SMS_FAILURE);
                 break;
         }
 
-        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+        BroadcastUtils.sendExplicitBroadcast(context, new Intent(), Transaction.REFRESH);
     }
 
     private void markFirstAsSent(Context context) {
