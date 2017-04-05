@@ -11,7 +11,7 @@ allprojects {
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.0"
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "com.klinker.android.send_message.sample"
@@ -35,5 +35,5 @@ android {
 
 dependencies {
     compile project(":library")
-    compile 'com.android.support:recyclerview-v7:25.0.0'
+    compile 'com.android.support:recyclerview-v7:25.3.1'
 }
