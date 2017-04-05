@@ -568,6 +568,7 @@ public class Transaction {
             Intent intent = new Intent(MmsSentReceiver.MMS_SENT);
             intent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
             intent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
+            BroadcastUtils.addClassName(context, intent, MmsSentReceiver.MMS_SENT);
             final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                     context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
