@@ -39,7 +39,7 @@ And then all you have to do is send the message
 sendTransaction.sendNewMessage(message, threadId)
 ```
 
-Note: threadId can be nullified, but this sometimes results in a new thread being created instead of the message being added to an existing thread
+Note: threadId can be nullified (using Transaction.NO_THREAD_ID), but this sometimes results in a new thread being created instead of the message being added to an existing thread
 
 If you want to send MMS messages, be sure to add this to your manifest:
 
