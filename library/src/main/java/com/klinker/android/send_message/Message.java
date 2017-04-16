@@ -75,7 +75,7 @@ public class Message {
      * @param address is the phone number to send to
      */
     public Message(String text, String address) {
-        this(text, address.trim().split(" "));
+        this(text, new String[] { address.replaceAll("\\D+", "") });
     }
 
     /**
@@ -86,7 +86,7 @@ public class Message {
      * @param subject is the subject of the mms message
      */
     public Message(String text, String address, String subject) {
-        this(text, address.trim().split(" "), subject);
+        this(text, new String[] { address.replaceAll("\\D+", "") }, subject);
     }
 
     /**
@@ -128,7 +128,7 @@ public class Message {
      * @param image   is the image that you want to send
      */
     public Message(String text, String address, Bitmap image) {
-        this(text, address.trim().split(" "), new Bitmap[]{image});
+        this(text, new String[] { address.replaceAll("\\D+", "") }, new Bitmap[]{image});
     }
 
     /**
@@ -140,7 +140,7 @@ public class Message {
      * @param subject is the subject of the mms message
      */
     public Message(String text, String address, Bitmap image, String subject) {
-        this(text, address.trim().split(" "), new Bitmap[]{image}, subject);
+        this(text, new String[] { address.replaceAll("\\D+", "") }, new Bitmap[]{image}, subject);
     }
 
     /**
@@ -174,7 +174,7 @@ public class Message {
      * @param images  is an array of images that you want to send
      */
     public Message(String text, String address, Bitmap[] images) {
-        this(text, address.trim().split(" "), images);
+        this(text, new String[] { address.replaceAll("\\D+", "") }, images);
     }
 
     /**
@@ -186,7 +186,7 @@ public class Message {
      * @param subject is the subject of the mms message
      */
     public Message(String text, String address, Bitmap[] images, String subject) {
-        this(text, address.trim().split(" "), images, subject);
+        this(text, new String[] { address.replaceAll("\\D+", "") }, images, subject);
     }
 
     /**
@@ -247,7 +247,7 @@ public class Message {
      */
     public void setAddress(String address) {
         this.addresses = new String[1];
-        this.addresses[0] = address;
+        this.addresses[0] = address.replaceAll("\\D+", "");
     }
 
     /**
