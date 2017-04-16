@@ -352,7 +352,7 @@ public class Transaction {
             }
         }
 
-        if (!text.equals("")) {
+        if (text != null && !text.equals("")) {
             // add text to the end of the part and send
             MMSPart part = new MMSPart();
             part.Name = "text";
