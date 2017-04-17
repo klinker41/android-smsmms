@@ -17,13 +17,15 @@
 
 package com.android.mms.transaction;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import android.content.Context;
+import android.content.Intent;
+
+import com.klinker.android.send_message.BroadcastUtils;
 
 import org.apache.http.entity.ByteArrayEntity;
 
-import android.content.Context;
-import android.content.Intent;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class ProgressCallbackEntity extends ByteArrayEntity {
     private static final int DEFAULT_PIECE_SIZE = 4096;
@@ -83,7 +85,7 @@ public class ProgressCallbackEntity extends ByteArrayEntity {
             Intent intent = new Intent(PROGRESS_STATUS_ACTION);
             intent.putExtra("progress", progress);
             intent.putExtra("token", mToken);
-            mContext.sendBroadcast(intent);
+            BroadcastUtils.sendExplicitBroadcast(mContext, intent, PROGRESS_STATUS_ACTION);
         }
     }
 }

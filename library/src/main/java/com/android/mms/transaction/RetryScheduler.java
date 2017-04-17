@@ -31,12 +31,13 @@ import android.net.Uri;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.MmsSms.PendingMessages;
-import com.klinker.android.logger.Log;
 
 import com.android.mms.LogTag;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduPersister;
+import com.klinker.android.logger.Log;
+import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.R;
 
 public class RetryScheduler implements Observer {
@@ -253,11 +254,16 @@ public class RetryScheduler implements Observer {
             String where = Mms._ID + " = '" + id + "'";
             context.getContentResolver().update(Mms.CONTENT_URI, values, where, null);
 
-            context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.REFRESH));
-            context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.NOTIFY_SMS_FAILURE));
+            BroadcastUtils.sendExplicitBroadcast(
+                    mContext, new Intent(), com.klinker.android.send_message.Transaction.REFRESH);
+            BroadcastUtils.sendExplicitBroadcast(
+                    mContext,
+                    new Intent(),
+                    com.klinker.android.send_message.Transaction.NOTIFY_SMS_FAILURE);
 
             // broadcast that mms has failed and you can notify user from there if you would like
-            context.sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.MMS_ERROR));
+            BroadcastUtils.sendExplicitBroadcast(
+                    mContext, new Intent(), com.klinker.android.send_message.Transaction.MMS_ERROR);
         } catch (Exception e) {
         }
     }

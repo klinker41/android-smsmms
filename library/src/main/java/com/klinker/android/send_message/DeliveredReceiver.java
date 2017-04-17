@@ -50,7 +50,8 @@ public class DeliveredReceiver extends BroadcastReceiver {
                 Intent delivered = new Intent(Transaction.NOTIFY_OF_DELIVERY);
                 delivered.putExtra("result", true);
                 delivered.putExtra("message_uri", uri == null ? "" : uri.toString());
-                context.sendBroadcast(delivered);
+                BroadcastUtils.sendExplicitBroadcast(
+                        context, delivered, Transaction.NOTIFY_OF_DELIVERY);
 
                 if (uri != null) {
                     ContentValues values = new ContentValues();
@@ -80,7 +81,8 @@ public class DeliveredReceiver extends BroadcastReceiver {
                 Intent notDelivered = new Intent(Transaction.NOTIFY_OF_DELIVERY);
                 notDelivered.putExtra("result", false);
                 notDelivered.putExtra("message_uri", uri == null ? "" : uri.toString());
-                context.sendBroadcast(notDelivered);
+                BroadcastUtils.sendExplicitBroadcast(
+                        context, notDelivered, Transaction.NOTIFY_OF_DELIVERY);
 
                 if (uri != null) {
                     ContentValues values = new ContentValues();
@@ -107,6 +109,6 @@ public class DeliveredReceiver extends BroadcastReceiver {
                 break;
         }
 
-        context.sendBroadcast(new Intent("com.klinker.android.send_message.REFRESH"));
+        BroadcastUtils.sendExplicitBroadcast(context, new Intent(), Transaction.REFRESH);
     }
 }

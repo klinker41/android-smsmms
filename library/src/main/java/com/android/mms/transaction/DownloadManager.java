@@ -19,6 +19,7 @@ import android.text.TextUtils;
 
 import com.android.mms.MmsConfig;
 import com.klinker.android.logger.Log;
+import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.MmsReceivedReceiver;
 
 import java.io.File;
@@ -110,7 +111,7 @@ public class DownloadManager {
 
             Intent newIntent = (Intent) intent.clone();
             newIntent.setAction(MmsReceivedReceiver.MMS_RECEIVED);
-            context.sendBroadcast(newIntent);
+            BroadcastUtils.sendExplicitBroadcast(context, newIntent, MmsReceivedReceiver.MMS_RECEIVED);
         }
     }
 

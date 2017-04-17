@@ -186,10 +186,16 @@ public class Transaction {
                 Log.v("send_transaction", "message id: " + messageId);
 
                 // set up sent and delivered pending intents to be used with message request
-                PendingIntent sentPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_SENT)
-                        .putExtra("message_uri", messageUri == null ? "" : messageUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
-                PendingIntent deliveredPI = PendingIntent.getBroadcast(context, messageId, new Intent(SMS_DELIVERED)
-                        .putExtra("message_uri", messageUri == null ? "" : messageUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
+                Intent sentIntent = new Intent(SMS_SENT);
+                sentIntent.putExtra("message_uri", messageUri == null ? "" : messageUri.toString());
+                BroadcastUtils.addClassName(context, sentIntent, SMS_SENT);
+                PendingIntent sentPI = PendingIntent.getBroadcast(
+                        context, messageId, sentIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                Intent deliveredIntent = new Intent(SMS_DELIVERED);
+                deliveredIntent.putExtra("message_uri", messageUri == null ? "" : messageUri.toString());
+                BroadcastUtils.addClassName(context, deliveredIntent, SMS_DELIVERED);
+                PendingIntent deliveredPI = PendingIntent.getBroadcast(
+                        context, messageId, deliveredIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 ArrayList<PendingIntent> sPI = new ArrayList<PendingIntent>();
                 ArrayList<PendingIntent> dPI = new ArrayList<PendingIntent>();
@@ -382,10 +388,10 @@ public class Transaction {
                         // send progress broadcast to update ui if desired...
                         Intent progressIntent = new Intent(MMS_PROGRESS);
                         progressIntent.putExtra("progress", progress);
-                        context.sendBroadcast(progressIntent);
+                        BroadcastUtils.sendExplicitBroadcast(context, progressIntent, MMS_PROGRESS);
 
                         if (progress == ProgressCallbackEntity.PROGRESS_COMPLETE) {
-                            context.sendBroadcast(new Intent(REFRESH));
+                            BroadcastUtils.sendExplicitBroadcast(context, new Intent(), REFRESH);
 
                             try {
                                 context.unregisterReceiver(this);
@@ -568,6 +574,7 @@ public class Transaction {
             Intent intent = new Intent(MmsSentReceiver.MMS_SENT);
             intent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
             intent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
+            BroadcastUtils.addClassName(context, intent, MmsSentReceiver.MMS_SENT);
             final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                     context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 

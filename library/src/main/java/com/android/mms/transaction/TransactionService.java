@@ -16,15 +16,8 @@
 
 package com.android.mms.transaction;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
-
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -35,32 +28,39 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.*;
+import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.MmsSms.PendingMessages;
 import android.text.TextUtils;
-
-import com.android.mms.MmsConfig;
-import com.android.mms.service_alt.DownloadRequest;
-import com.android.mms.service_alt.MmsNetworkManager;
-import com.android.mms.service_alt.MmsRequestManager;
-import com.google.android.mms.MmsException;
-import com.klinker.android.logger.Log;
 import android.widget.Toast;
 
 import com.android.mms.LogTag;
+import com.android.mms.service_alt.DownloadRequest;
+import com.android.mms.service_alt.MmsNetworkManager;
+import com.android.mms.service_alt.MmsRequestManager;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.RateController;
+import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.GenericPdu;
 import com.google.android.mms.pdu_alt.NotificationInd;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
-import com.klinker.android.send_message.MmsReceivedReceiver;
+import com.klinker.android.logger.Log;
+import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.R;
 import com.klinker.android.send_message.Utils;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * The TransactionService of the MMS Client is responsible for handling requests
@@ -622,7 +622,7 @@ public class TransactionService extends Service implements Observer {
                 Log.v(TAG, "update: broadcast transaction result " + result);
             }
             // Broadcast the result of the transaction.
-            sendBroadcast(intent);
+            BroadcastUtils.sendExplicitBroadcast(this, intent, TRANSACTION_COMPLETED_ACTION);
         } finally {
             transaction.detach(this);
             stopSelfIfIdle(serviceId);
@@ -1135,7 +1135,10 @@ public class TransactionService extends Service implements Observer {
                     // If this APN doesn't have an MMSC, mark everything as failed and bail.
                     if (TextUtils.isEmpty(settings.getMmscUrl())) {
                         Log.v(TAG, "   empty MMSC url, bail");
-                        sendBroadcast(new Intent(com.klinker.android.send_message.Transaction.MMS_ERROR));
+                        BroadcastUtils.sendExplicitBroadcast(
+                                TransactionService.this,
+                                new Intent(),
+                                com.klinker.android.send_message.Transaction.MMS_ERROR);
                         mServiceHandler.markAllPendingTransactionsAsFailed();
                         endMmsConnectivity();
                         stopSelf();
