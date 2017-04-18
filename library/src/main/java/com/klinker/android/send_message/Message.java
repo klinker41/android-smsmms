@@ -294,7 +294,17 @@ public class Message {
      * @param audio is the single audio sample to send to recipient
      */
     public void addAudio(byte[] audio) {
-        addMedia(audio, "audio/wav");
+        addAudio(audio, null);
+    }
+
+    /**
+     * Sets audio file.  Must be in wav format.
+     *
+     * @param audio is the single audio sample to send to recipient
+     * @param name is the name of the file
+     */
+    public void addAudio(byte[] audio, String name) {
+        addMedia(audio, "audio/wav", name);
     }
 
     /**
@@ -313,7 +323,17 @@ public class Message {
      * @param video is the single video sample to send to recipient
      */
     public void addVideo(byte[] video) {
-        addMedia(video, "video/3gpp");
+        addVideo(video, null);
+    }
+
+    /**
+     * Adds video file
+     *
+     * @param video is the single video sample to send to recipient
+     * @param name is the name of the video file
+     */
+    public void addVideo(byte[] video, String name) {
+        addMedia(video, "video/3gpp", name);
     }
 
     /**
@@ -335,6 +355,17 @@ public class Message {
      */
     public void addMedia(byte[] media, String mimeType) {
         this.parts.add(new Part(media, mimeType, null));
+    }
+
+    /**
+     * Adds other media
+     *
+     * @param media is the media you want to send
+     * @param mimeType is the mimetype of the media
+     * @param name is the name of the file
+     */
+    public void addMedia(byte[] media, String mimeType, String name) {
+        this.parts.add(new Part(media, mimeType, name));
     }
 
     /**

@@ -337,7 +337,7 @@ public class Transaction {
 
             MMSPart part = new MMSPart();
             part.MimeType = "image/jpeg";
-            part.Name = (imageNames != null) ? imageNames[i] : ("image" + i);
+            part.Name = (imageNames != null) ? imageNames[i] : ("image_" + System.currentTimeMillis());
             part.Data = imageBytes;
             data.add(part);
         }
