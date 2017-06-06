@@ -20,6 +20,7 @@ import android.graphics.Bitmap;
 import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -517,13 +518,20 @@ public class Message {
      * @return a byte array of the image data
      */
     public static byte[] bitmapToByteArray(Bitmap image) {
+		byte[] output = new byte[0];
         if (image == null) {
             Log.v("Message", "image is null, returning byte array of size 0");
-            return new byte[0];
+            return output;
         }
-
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
-        return stream.toByteArray();
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		try {
+			image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
+			output = stream.toByteArray();
+		} finally {
+			try {
+				stream.close();
+			} catch (IOException e) {}
+		}
+		return output;
     }
 }
