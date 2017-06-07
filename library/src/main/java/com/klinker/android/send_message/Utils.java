@@ -1,9 +1,6 @@
 package com.klinker.android.send_message;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -11,22 +8,17 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-import android.telephony.SubscriptionInfo;
-import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
 import com.android.mms.service_alt.MmsNetworkManager;
 import com.android.mms.service_alt.exception.MmsNetworkException;
-import com.klinker.android.logger.Log;
 import com.google.android.mms.util_alt.SqliteWrapper;
+import com.klinker.android.logger.Log;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -34,7 +26,6 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -81,6 +72,7 @@ public class Utils {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private static <T> T ensureRouteToMmsNetworkMarshmallow(Context context, Task<T> task) throws IOException {
         final MmsNetworkManager networkManager = new MmsNetworkManager(context.getApplicationContext(), Utils.getDefaultSubscriptionId());
         final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -99,6 +91,7 @@ public class Utils {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private static <T> T ensureRouteToMmsNetworkLollipop(Context context, Task<T> task) throws IOException {
         final MmsNetworkManager networkManager = new MmsNetworkManager(context.getApplicationContext(), Utils.getDefaultSubscriptionId());
         Network network = null;
