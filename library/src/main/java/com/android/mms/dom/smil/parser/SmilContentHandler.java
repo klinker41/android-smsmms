@@ -24,7 +24,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.klinker.android.logger.Log;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 import com.android.mms.dom.smil.SmilDocumentImpl;
 
 public class SmilContentHandler extends DefaultHandler {

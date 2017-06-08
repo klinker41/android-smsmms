@@ -16,8 +16,6 @@
 
 package com.android.mms.util;
 
-import com.android.mms.LogTag;
-
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -26,6 +24,8 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SqliteWrapper;
 import android.provider.Telephony.Mms.Rate;
+
+import com.android.mms.logs.LogTag;
 import com.klinker.android.logger.Log;
 
 public class RateController {

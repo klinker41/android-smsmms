@@ -29,7 +29,7 @@ import android.provider.Telephony.Sms.Inbox;
 import android.telephony.SmsMessage;
 import com.klinker.android.logger.Log;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 
 /**
  * Service that gets started by the MessageStatusReceiver when a message status report is

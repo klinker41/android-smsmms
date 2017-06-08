@@ -29,7 +29,7 @@ import android.provider.Telephony.Mms.Inbox;
 import android.text.TextUtils;
 import com.klinker.android.logger.Log;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 import com.android.mms.MmsConfig;
 import com.android.mms.util.DownloadManager;
 import com.google.android.mms.MmsException;

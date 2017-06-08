@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.mms;
+package com.android.mms.logs;
 
 import com.klinker.android.logger.Log;
 

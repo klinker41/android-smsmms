@@ -25,7 +25,7 @@ import org.w3c.dom.smil.TimeList;
 
 import com.klinker.android.logger.Log;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 import com.android.mms.dom.events.EventImpl;
 
 public class SmilMediaElementImpl extends SmilElementImpl implements

@@ -33,7 +33,7 @@ import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 import com.android.mms.MmsConfig;
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsNetworkManager;
