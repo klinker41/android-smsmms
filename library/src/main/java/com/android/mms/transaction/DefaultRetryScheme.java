@@ -16,7 +16,7 @@
 
 package com.android.mms.transaction;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 
 import android.content.Context;
 import android.util.Config;
