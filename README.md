@@ -95,7 +95,7 @@ Settings settings = new Settings();
 settings.setUseSystemSending(true);
 Transaction transaction = new Transaction(mContext, settings);
 Message message = new Message(textToSend, addressToSendTo);
-message.setImage(mBitmap); 
+message.setImage(mBitmap);
 transaction.sendNewMessage(message, threadId)
 ```
 
@@ -110,7 +110,7 @@ For full details on how to implement, please check out the sample application. I
 To include in your gradle project:
 
 ```groovy
-compile 'com.klinkerapps:android-smsmms:4.1.0'
+compile 'com.klinkerapps:android-smsmms:4.1.1'
 ```
 
 ---
