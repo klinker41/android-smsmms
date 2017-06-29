@@ -42,7 +42,7 @@ import android.text.TextUtils;
 import android.util.Config;
 import com.klinker.android.logger.Log;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 import com.android.mms.MmsConfig;
 
 public class HttpUtils {

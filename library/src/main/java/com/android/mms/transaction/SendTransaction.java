@@ -26,7 +26,7 @@ import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Sent;
 import android.text.TextUtils;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 import com.android.mms.util.RateController;
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.pdu_alt.EncodedStringValue;

@@ -28,7 +28,7 @@ import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.MmsSms.PendingMessages;
 import com.klinker.android.logger.Log;
 
-import com.android.mms.LogTag;
+import com.android.mms.logs.LogTag;
 import com.android.mms.util.SendingProgressTokenManager;
 import com.google.android.mms.InvalidHeaderValueException;
 import com.google.android.mms.MmsException;

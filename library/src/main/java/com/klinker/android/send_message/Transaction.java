@@ -21,18 +21,12 @@ import android.app.PendingIntent;
 import android.content.*;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
 import com.android.mms.MmsConfig;
@@ -42,7 +36,6 @@ import com.android.mms.service_alt.SendRequest;
 import com.klinker.android.logger.Log;
 import android.widget.Toast;
 import com.android.mms.dom.smil.parser.SmilXmlSerializer;
-import com.android.mms.transaction.HttpUtils;
 import com.android.mms.transaction.MmsMessageSender;
 import com.android.mms.transaction.ProgressCallbackEntity;
 import com.android.mms.util.DownloadManager;
@@ -58,7 +51,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Class to process transaction requests for sending
@@ -70,6 +62,10 @@ public class Transaction {
     private static final String TAG = "Transaction";
     public static Settings settings;
     private Context context;
+
+    private Intent explicitSentSmsReceiver;
+    private Intent explicitSentMmsReceiver;
+    private Intent explicitDeliveredSmsReceiver;
 
     private boolean saveMessage = true;
 
@@ -144,6 +140,45 @@ public class Transaction {
 
     }
 
+    /**
+     * Optional: define a {@link BroadcastReceiver} that will get started when Android notifies us that the SMS has
+     * been marked as "sent". If you do not define a receiver here, it will look for the .SMS_SENT receiver
+     * that was defined in the AndroidManifest, as discussed in the README.md.
+     *
+     * @param intent the receiver that you want to start when the message gets marked as sent.
+     */
+    public Transaction setExplicitBroadcastForSentSms(Intent intent) {
+        explicitSentSmsReceiver = intent;
+        return this;
+    }
+
+    /**
+     * Optional: define a {@link BroadcastReceiver} that will get started when Android notifies us that the MMS has
+     * been marked as "sent". If you do not define a receiver here, it will look for the .MMS_SENT receiver
+     * that was defined in the AndroidManifest, as discussed in the README.md.
+     *
+     * @param intent the receiver that you want to start when the message gets marked as sent.
+     */
+    public Transaction setExplicitBroadcastForSentMms(Intent intent) {
+        explicitSentMmsReceiver = intent;
+        return this;
+    }
+
+    /**
+     * Optional: define a {@link BroadcastReceiver} that will get started when Android notifies us that the SMS has
+     * been marked as "delivered". If you do not define a receiver here, it will look for the .SMS_DELIVERED
+     * receiver that was defined in the AndroidManifest, as discussed in the README.md.
+     * <p/>
+     * Providing a receiver here does not guarantee that it will ever get started. If the {@link Settings}
+     * object does not have delivery reports turned on, this receiver will never get called.
+     *
+     * @param intent the receiver that you want to start when the message gets marked as sent.
+     */
+    public Transaction setExplicitBroadcastForDeliveredSms(Intent intent) {
+        explicitDeliveredSmsReceiver = intent;
+        return this;
+    }
+
     private void sendSmsMessage(String text, String[] addresses, long threadId, int delay) {
         Log.v("send_transaction", "message text: " + text);
         Uri messageUri = null;
@@ -186,14 +221,27 @@ public class Transaction {
                 Log.v("send_transaction", "message id: " + messageId);
 
                 // set up sent and delivered pending intents to be used with message request
-                Intent sentIntent = new Intent(SMS_SENT);
+                Intent sentIntent;
+                if (explicitSentSmsReceiver == null) {
+                    sentIntent = new Intent(SMS_SENT);
+                    BroadcastUtils.addClassName(context, sentIntent, SMS_SENT);
+                } else {
+                    sentIntent = explicitSentSmsReceiver;
+                }
+
                 sentIntent.putExtra("message_uri", messageUri == null ? "" : messageUri.toString());
-                BroadcastUtils.addClassName(context, sentIntent, SMS_SENT);
                 PendingIntent sentPI = PendingIntent.getBroadcast(
                         context, messageId, sentIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                Intent deliveredIntent = new Intent(SMS_DELIVERED);
+
+                Intent deliveredIntent;
+                if (explicitDeliveredSmsReceiver == null) {
+                    deliveredIntent = new Intent(SMS_DELIVERED);
+                    BroadcastUtils.addClassName(context, deliveredIntent, SMS_DELIVERED);
+                } else {
+                    deliveredIntent = explicitDeliveredSmsReceiver;
+                }
+
                 deliveredIntent.putExtra("message_uri", messageUri == null ? "" : messageUri.toString());
-                BroadcastUtils.addClassName(context, deliveredIntent, SMS_DELIVERED);
                 PendingIntent deliveredPI = PendingIntent.getBroadcast(
                         context, messageId, deliveredIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -418,7 +466,7 @@ public class Transaction {
 
             if (settings.getUseSystemSending()) {
                 Log.v(TAG, "using system method for sending");
-                sendMmsThroughSystem(context, subject, data, addresses);
+                sendMmsThroughSystem(context, subject, data, addresses, explicitSentMmsReceiver);
             } else {
                 try {
                     MessageInfo info = getBytes(context, saveMessage, address.split(" "),
@@ -561,7 +609,7 @@ public class Transaction {
     public static final int DEFAULT_PRIORITY = PduHeaders.PRIORITY_NORMAL;
 
     private static void sendMmsThroughSystem(Context context, String subject, List<MMSPart> parts,
-                                             String[] addresses) {
+                                             String[] addresses, Intent explicitSentMmsReceiver) {
         try {
             final String fileName = "send." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
             File mSendFile = new File(context.getCacheDir(), fileName);
@@ -571,10 +619,16 @@ public class Transaction {
             Uri messageUri = persister.persist(sendReq, Uri.parse("content://mms/outbox"),
                     true, settings.getGroup(), null);
 
-            Intent intent = new Intent(MmsSentReceiver.MMS_SENT);
+            Intent intent;
+            if (explicitSentMmsReceiver == null) {
+                intent = new Intent(MmsSentReceiver.MMS_SENT);
+                BroadcastUtils.addClassName(context, intent, MmsSentReceiver.MMS_SENT);
+            } else {
+                intent = explicitSentMmsReceiver;
+            }
+
             intent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
             intent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
-            BroadcastUtils.addClassName(context, intent, MmsSentReceiver.MMS_SENT);
             final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                     context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
