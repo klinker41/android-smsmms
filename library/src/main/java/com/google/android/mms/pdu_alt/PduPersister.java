@@ -1602,7 +1602,7 @@ public class PduPersister {
      */
     public Cursor getPendingMessages(long dueTime) {
         if (!checkReadSmsPermissions()) {
-          Log.w(TAG, "");
+          Log.w(TAG, "No read sms permissions have been granted");
           return null;
         }
         Uri.Builder uriBuilder = PendingMessages.CONTENT_URI.buildUpon();
