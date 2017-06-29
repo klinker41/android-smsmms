@@ -16,6 +16,29 @@
 
 package com.google.android.mms.pdu_alt;
 
+import android.Manifest;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteException;
+import android.drm.DrmManagerClient;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.MediaStore;
+import android.provider.Telephony.Mms;
+import android.provider.Telephony.Mms.Addr;
+import android.provider.Telephony.Mms.Part;
+import android.provider.Telephony.MmsSms;
+import android.provider.Telephony.MmsSms.PendingMessages;
+import android.provider.Telephony.Threads;
+import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
+import android.text.TextUtils;
+
 import com.google.android.mms.ContentType;
 import com.google.android.mms.InvalidHeaderValueException;
 import com.google.android.mms.MmsException;
@@ -24,26 +47,6 @@ import com.google.android.mms.util_alt.DrmConvertSession;
 import com.google.android.mms.util_alt.PduCache;
 import com.google.android.mms.util_alt.PduCacheEntry;
 import com.google.android.mms.util_alt.SqliteWrapper;
-
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteException;
-import android.drm.DrmManagerClient;
-import android.net.Uri;
-import android.provider.MediaStore;
-import android.provider.Telephony.Mms;
-import android.provider.Telephony.MmsSms;
-import android.provider.Telephony.Threads;
-import android.provider.Telephony.Mms.Addr;
-import android.provider.Telephony.Mms.Part;
-import android.provider.Telephony.MmsSms.PendingMessages;
-import android.telephony.PhoneNumberUtils;
-import android.telephony.TelephonyManager;
-import android.text.TextUtils;
 import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -56,8 +59,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * This class is the high-level manager of PDU storage.
@@ -1598,6 +1601,10 @@ public class PduPersister {
      * Find all messages to be sent or downloaded before certain time.
      */
     public Cursor getPendingMessages(long dueTime) {
+        if (!checkReadSmsPermissions()) {
+          Log.w(TAG, "");
+          return null;
+        }
         Uri.Builder uriBuilder = PendingMessages.CONTENT_URI.buildUpon();
         uriBuilder.appendQueryParameter("protocol", "mms");
 
@@ -1612,5 +1619,14 @@ public class PduPersister {
         return SqliteWrapper.query(mContext, mContentResolver,
                 uriBuilder.build(), null, selection, selectionArgs,
                 PendingMessages.DUE_TIME);
+    }
+  
+    /**
+     * Check if read permissions for SMS have been granted
+     */
+    private boolean checkReadSmsPermissions() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                mContext.checkSelfPermission(Manifest.permission.READ_SMS) ==
+                        PackageManager.PERMISSION_GRANTED;
     }
 }
