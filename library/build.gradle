@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 
 dependencies {
     compile 'com.klinkerapps:logger:1.0.3'
-    compile 'com.squareup.okhttp:okhttp:2.5.0'
-    compile 'com.squareup.okhttp:okhttp-urlconnection:2.5.0'
+    compile 'com.squareup.okhttp3:okhttp:3.8.1'
+    compile 'com.squareup.okhttp3:okhttp-urlconnection:3.0.0'
 }
 
 android {
