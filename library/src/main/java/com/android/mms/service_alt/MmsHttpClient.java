@@ -21,15 +21,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.mms.service_alt.exception.MmsHttpException;
-import com.squareup.okhttp.ConnectionPool;
-import com.squareup.okhttp.ConnectionSpec;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Protocol;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.internal.Internal;
-import com.squareup.okhttp.internal.huc.HttpURLConnectionImpl;
-import com.squareup.okhttp.internal.huc.HttpsURLConnectionImpl;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -51,11 +42,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.net.SocketFactory;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+
+import okhttp3.Authenticator;
+import okhttp3.ConnectionPool;
+import okhttp3.ConnectionSpec;
+import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
+import okhttp3.internal.huc.OkHttpsURLConnection;
 
 /**
  * MMS HTTP client for sending and downloading MMS messages
@@ -94,7 +96,7 @@ public class MmsHttpClient {
      * @param connectionPool The connection pool for creating an OKHttp client
      */
     public MmsHttpClient(Context context, SocketFactory socketFactory, MmsNetworkManager hostResolver,
-            ConnectionPool connectionPool) {
+                         ConnectionPool connectionPool) {
         mContext = context;
         mSocketFactory = socketFactory;
         mHostResolver = hostResolver;
@@ -116,7 +118,7 @@ public class MmsHttpClient {
      * @throws MmsHttpException For any failures
      */
     public byte[] execute(String urlString, byte[] pdu, String method, boolean isProxySet,
-            String proxyHost, int proxyPort, MmsConfig.Overridden mmsConfig)
+                          String proxyHost, int proxyPort, MmsConfig.Overridden mmsConfig)
             throws MmsHttpException {
         Log.d(TAG, "HTTP: " + method + " " + redactUrlForNonVerbose(urlString)
                 + (isProxySet ? (", proxy=" + proxyHost + ":" + proxyPort) : "")
@@ -238,83 +240,47 @@ public class MmsHttpClient {
      */
     private HttpURLConnection openConnection(URL url, final Proxy proxy) throws MalformedURLException {
         final String protocol = url.getProtocol();
-        OkHttpClient okHttpClient;
-        if (protocol.equals("http")) {
-            okHttpClient = new OkHttpClient();
-            okHttpClient.setFollowRedirects(false);
-            okHttpClient.setProtocols(Arrays.asList(Protocol.HTTP_1_1));
-            okHttpClient.setProxySelector(new ProxySelector() {
-                @Override
-                public List<Proxy> select(URI uri) {
-                    if (proxy != null) {
-                        return Arrays.asList(proxy);
-                    } else {
-                        return new ArrayList<Proxy>();
+        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.protocols(Arrays.asList(Protocol.HTTP_1_1))
+                .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT))
+                .connectionPool(new ConnectionPool(3, 60000, TimeUnit.MILLISECONDS))
+                .authenticator(new Authenticator() {
+                    @Override
+                    public Request authenticate(Route route, Response response) throws IOException {
+                        return null;
                     }
-                }
+                })
+                .proxySelector(new ProxySelector() {
+                    @Override
+                    public List<Proxy> select(URI uri) {
+                        if (proxy != null) {
+                            return Arrays.asList(proxy);
+                        } else {
+                            return new ArrayList<Proxy>();
+                        }
+                    }
 
-                @Override
-                public void connectFailed(URI uri, SocketAddress address, IOException failure) {
+                    @Override
+                    public void connectFailed(URI uri, SocketAddress address, IOException failure) {
 
-                }
-            });
-            okHttpClient.setAuthenticator(new com.squareup.okhttp.Authenticator() {
-                @Override
-                public Request authenticate(Proxy proxy, Response response) throws IOException {
-                    return null;
-                }
+                    }
+                });
 
-                @Override
-                public Request authenticateProxy(Proxy proxy, Response response) throws IOException {
-                    return null;
-                }
-            });
-            okHttpClient.setConnectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT));
-            okHttpClient.setConnectionPool(new ConnectionPool(3, 60000));
-            okHttpClient.setSocketFactory(SocketFactory.getDefault());
-            Internal.instance.setNetwork(okHttpClient, mHostResolver);
+        if (protocol.equals("http")) {
+            builder.followRedirects(false)
+                    .socketFactory(SocketFactory.getDefault());
 
             if (proxy != null) {
-                okHttpClient.setProxy(proxy);
+                builder.proxy(proxy);
             }
-
-            return new HttpURLConnectionImpl(url, okHttpClient);
         } else if (protocol.equals("https")) {
-            okHttpClient = new OkHttpClient();
-            okHttpClient.setProtocols(Arrays.asList(Protocol.HTTP_1_1));
-            HostnameVerifier verifier = HttpsURLConnection.getDefaultHostnameVerifier();
-            okHttpClient.setHostnameVerifier(verifier);
-            okHttpClient.setSslSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
-            okHttpClient.setProxySelector(new ProxySelector() {
-                @Override
-                public List<Proxy> select(URI uri) {
-                    return Arrays.asList(proxy);
-                }
-
-                @Override
-                public void connectFailed(URI uri, SocketAddress address, IOException failure) {
-
-                }
-            });
-            okHttpClient.setAuthenticator(new com.squareup.okhttp.Authenticator() {
-                @Override
-                public Request authenticate(Proxy proxy, Response response) throws IOException {
-                    return null;
-                }
-
-                @Override
-                public Request authenticateProxy(Proxy proxy, Response response) throws IOException {
-                    return null;
-                }
-            });
-            okHttpClient.setConnectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT));
-            okHttpClient.setConnectionPool(new ConnectionPool(3, 60000));
-            Internal.instance.setNetwork(okHttpClient, mHostResolver);
-
-            return new HttpsURLConnectionImpl(url, okHttpClient);
+            builder.hostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier())
+                    .sslSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
         } else {
             throw new MalformedURLException("Invalid URL or unrecognized protocol " + protocol);
         }
+
+        return new OkHttpsURLConnection(url, builder.build());
     }
 
     private static void logHttpHeaders(Map<String, List<String>> headers) {
@@ -404,7 +370,7 @@ public class MmsHttpClient {
      * @return The HTTP param with macro resolved to real value
      */
     private static String resolveMacro(Context context, String value,
-            MmsConfig.Overridden mmsConfig) {
+                                       MmsConfig.Overridden mmsConfig) {
         if (TextUtils.isEmpty(value)) {
             return value;
         }
