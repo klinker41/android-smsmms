@@ -47,7 +47,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.SocketFactory;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 
 import okhttp3.Authenticator;
@@ -58,8 +57,7 @@ import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
-import okhttp3.internal.huc.HttpURLConnectionImpl;
-import okhttp3.internal.huc.HttpsURLConnectionImpl;
+import okhttp3.internal.huc.OkHttpsURLConnection;
 
 /**
  * MMS HTTP client for sending and downloading MMS messages
@@ -242,67 +240,47 @@ public class MmsHttpClient {
      */
     private HttpURLConnection openConnection(URL url, final Proxy proxy) throws MalformedURLException {
         final String protocol = url.getProtocol();
-        OkHttpClient okHttpClient;
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.protocols(Arrays.asList(Protocol.HTTP_1_1))
+                .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT))
+                .connectionPool(new ConnectionPool(3, 60000, TimeUnit.MILLISECONDS))
                 .authenticator(new Authenticator() {
                     @Override
                     public Request authenticate(Route route, Response response) throws IOException {
                         return null;
                     }
                 })
-                .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT))
-                .connectionPool(new ConnectionPool(3, 60000, TimeUnit.MILLISECONDS));
+                .proxySelector(new ProxySelector() {
+                    @Override
+                    public List<Proxy> select(URI uri) {
+                        if (proxy != null) {
+                            return Arrays.asList(proxy);
+                        } else {
+                            return new ArrayList<Proxy>();
+                        }
+                    }
+
+                    @Override
+                    public void connectFailed(URI uri, SocketAddress address, IOException failure) {
+
+                    }
+                });
 
         if (protocol.equals("http")) {
             builder.followRedirects(false)
-                    .proxySelector(new ProxySelector() {
-                        @Override
-                        public List<Proxy> select(URI uri) {
-                            if (proxy != null) {
-                                return Arrays.asList(proxy);
-                            } else {
-                                return new ArrayList<Proxy>();
-                            }
-                        }
-
-                        @Override
-                        public void connectFailed(URI uri, SocketAddress address, IOException failure) {
-
-                        }
-                    })
                     .socketFactory(SocketFactory.getDefault());
 
             if (proxy != null) {
                 builder.proxy(proxy);
             }
-
-            okHttpClient = builder.build();
-
-            return new HttpURLConnectionImpl(url, okHttpClient);
         } else if (protocol.equals("https")) {
-            HostnameVerifier verifier = HttpsURLConnection.getDefaultHostnameVerifier();
-
-            builder.hostnameVerifier(verifier)
-                    .sslSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory())
-                    .proxySelector(new ProxySelector() {
-                        @Override
-                        public List<Proxy> select(URI uri) {
-                            return Arrays.asList(proxy);
-                        }
-
-                        @Override
-                        public void connectFailed(URI uri, SocketAddress address, IOException failure) {
-
-                        }
-                    });
-
-            okHttpClient = builder.build();
-
-            return new HttpsURLConnectionImpl(url, okHttpClient);
+            builder.hostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier())
+                    .sslSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
         } else {
             throw new MalformedURLException("Invalid URL or unrecognized protocol " + protocol);
         }
+
+        return new OkHttpsURLConnection(url, builder.build());
     }
 
     private static void logHttpHeaders(Map<String, List<String>> headers) {
