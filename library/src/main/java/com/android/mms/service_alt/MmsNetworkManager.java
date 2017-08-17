@@ -20,20 +20,21 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
 import android.net.NetworkRequest;
+import android.net.NetworkInfo;
 import android.net.SSLCertificateSocketFactory;
 import android.os.Build;
 import android.os.SystemClock;
 
+import com.klinker.android.logger.Log;
+
 import com.android.mms.service_alt.exception.MmsNetworkException;
+import com.squareup.okhttp.ConnectionPool;
 
 import java.net.InetAddress;
-import java.util.concurrent.TimeUnit;
+import java.net.UnknownHostException;
 
-import okhttp3.ConnectionPool;
-
-public class MmsNetworkManager {
+public class MmsNetworkManager implements com.squareup.okhttp.internal.Network {
     private static final String TAG = "MmsNetworkManager";
     // Timeout used to call ConnectivityManager.requestNetwork
     private static final int NETWORK_REQUEST_TIMEOUT_MILLIS = 60 * 1000;
@@ -119,10 +120,10 @@ public class MmsNetworkManager {
             mMmsRequestCount += 1;
             if (mNetwork != null) {
                 // Already available
-                android.util.Log.d(TAG, "MmsNetworkManager: already available");
+                Log.d(TAG, "MmsNetworkManager: already available");
                 return mNetwork;
             }
-            android.util.Log.d(TAG, "MmsNetworkManager: start new network request");
+            Log.d(TAG, "MmsNetworkManager: start new network request");
             // Not available, so start a new request
             newRequest();
             final long shouldEnd = SystemClock.elapsedRealtime() + NETWORK_ACQUIRE_TIMEOUT_MILLIS;
@@ -131,7 +132,7 @@ public class MmsNetworkManager {
                 try {
                     this.wait(waitTime);
                 } catch (InterruptedException e) {
-                    android.util.Log.w(TAG, "MmsNetworkManager: acquire network wait interrupted");
+                    Log.w(TAG, "MmsNetworkManager: acquire network wait interrupted");
                 }
                 if (mNetwork != null || permissionError) {
                     // Success
@@ -141,7 +142,7 @@ public class MmsNetworkManager {
                 waitTime = shouldEnd - SystemClock.elapsedRealtime();
             }
             // Timed out, so release the request and fail
-            android.util.Log.d(TAG, "MmsNetworkManager: timed out");
+            Log.d(TAG, "MmsNetworkManager: timed out");
             releaseRequestLocked(mNetworkCallback);
             throw new MmsNetworkException("Acquiring network timed out");
         }
@@ -154,7 +155,7 @@ public class MmsNetworkManager {
         synchronized (this) {
             if (mMmsRequestCount > 0) {
                 mMmsRequestCount -= 1;
-                android.util.Log.d(TAG, "MmsNetworkManager: release, count=" + mMmsRequestCount);
+                Log.d(TAG, "MmsNetworkManager: release, count=" + mMmsRequestCount);
                 if (mMmsRequestCount < 1) {
                     releaseRequestLocked(mNetworkCallback);
                 }
@@ -172,7 +173,7 @@ public class MmsNetworkManager {
             @Override
             public void onAvailable(Network network) {
                 super.onAvailable(network);
-                android.util.Log.d(TAG, "NetworkCallbackListener.onAvailable: network=" + network);
+                Log.d(TAG, "NetworkCallbackListener.onAvailable: network=" + network);
                 synchronized (MmsNetworkManager.this) {
                     mNetwork = network;
                     MmsNetworkManager.this.notifyAll();
@@ -182,7 +183,7 @@ public class MmsNetworkManager {
             @Override
             public void onLost(Network network) {
                 super.onLost(network);
-                android.util.Log.d(TAG, "NetworkCallbackListener.onLost: network=" + network);
+                Log.d(TAG, "NetworkCallbackListener.onLost: network=" + network);
                 synchronized (MmsNetworkManager.this) {
                     releaseRequestLocked(this);
                     MmsNetworkManager.this.notifyAll();
@@ -204,7 +205,7 @@ public class MmsNetworkManager {
             connectivityManager.requestNetwork(
                     mNetworkRequest, mNetworkCallback);
         } catch (SecurityException e) {
-            android.util.Log.e(TAG, "permission exception... skipping it for testing purposes", e);
+            Log.e(TAG, "permission exception... skipping it for testing purposes", e);
             permissionError = true;
         }
     }
@@ -221,7 +222,7 @@ public class MmsNetworkManager {
             try {
                 connectivityManager.unregisterNetworkCallback(callback);
             } catch (Exception e) {
-                android.util.Log.e(TAG, "couldn't unregister", e);
+                Log.e(TAG, "couldn't unregister", e);
             }
         }
         resetLocked();
@@ -244,6 +245,18 @@ public class MmsNetworkManager {
 
     private static final InetAddress[] EMPTY_ADDRESS_ARRAY = new InetAddress[0];
 
+    @Override
+    public InetAddress[] resolveInetAddresses(String host) throws UnknownHostException {
+        Network network = null;
+        synchronized (this) {
+            if (mNetwork == null) {
+                return EMPTY_ADDRESS_ARRAY;
+            }
+            network = mNetwork;
+        }
+        return network.getAllByName(host);
+    }
+
     private ConnectivityManager getConnectivityManager() {
         if (mConnectivityManager == null) {
             mConnectivityManager = (ConnectivityManager) mContext.getSystemService(
@@ -254,7 +267,7 @@ public class MmsNetworkManager {
 
     private ConnectionPool getOrCreateConnectionPoolLocked() {
         if (mConnectionPool == null) {
-            mConnectionPool = new ConnectionPool(httpMaxConnections, httpKeepAliveDurationMs, TimeUnit.MILLISECONDS);
+            mConnectionPool = new ConnectionPool(httpMaxConnections, httpKeepAliveDurationMs);
         }
         return mConnectionPool;
     }
@@ -295,7 +308,7 @@ public class MmsNetworkManager {
         Network network = null;
         synchronized (this) {
             if (mNetwork == null) {
-                android.util.Log.d(TAG, "MmsNetworkManager: getApnName: network not available");
+                Log.d(TAG, "MmsNetworkManager: getApnName: network not available");
                 mNetworkRequest = new NetworkRequest.Builder()
                         .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                         .build();
@@ -309,7 +322,8 @@ public class MmsNetworkManager {
         if (mmsNetworkInfo != null) {
             apnName = mmsNetworkInfo.getExtraInfo();
         }
-        android.util.Log.d(TAG, "MmsNetworkManager: getApnName: " + apnName);
+        Log.d(TAG, "MmsNetworkManager: getApnName: " + apnName);
         return apnName;
     }
+
 }
