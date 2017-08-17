@@ -39,7 +39,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -58,7 +57,6 @@ import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
-import okhttp3.internal.huc.OkHttpURLConnection;
 import okhttp3.internal.huc.OkHttpsURLConnection;
 
 /**
@@ -243,8 +241,8 @@ public class MmsHttpClient {
     private HttpURLConnection openConnection(URL url, final Proxy proxy) throws MalformedURLException {
         final String protocol = url.getProtocol();
         final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .connectionSpecs(Collections.singletonList(ConnectionSpec.CLEARTEXT))
+        builder.protocols(Arrays.asList(Protocol.HTTP_1_1))
+                .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT))
                 .connectionPool(new ConnectionPool(3, 60000, TimeUnit.MILLISECONDS))
                 .authenticator(new Authenticator() {
                     @Override
@@ -268,25 +266,21 @@ public class MmsHttpClient {
                     }
                 });
 
-        switch (protocol) {
-            case "http":
-                builder.followRedirects(false)
-                        .socketFactory(SocketFactory.getDefault());
+        if (protocol.equals("http")) {
+            builder.followRedirects(false)
+                    .socketFactory(SocketFactory.getDefault());
 
-                if (proxy != null) {
-                    builder.proxy(proxy);
-                }
-
-                return new OkHttpURLConnection(url, builder.build());
-            case "https":
-                builder.hostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier())
-                        .sslSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
-
-                return new OkHttpsURLConnection(url, builder.build());
-            default:
-                throw new MalformedURLException("Invalid URL or unrecognized protocol " + protocol);
+            if (proxy != null) {
+                builder.proxy(proxy);
+            }
+        } else if (protocol.equals("https")) {
+            builder.hostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier())
+                    .sslSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
+        } else {
+            throw new MalformedURLException("Invalid URL or unrecognized protocol " + protocol);
         }
 
+        return new OkHttpsURLConnection(url, builder.build());
     }
 
     private static void logHttpHeaders(Map<String, List<String>> headers) {
