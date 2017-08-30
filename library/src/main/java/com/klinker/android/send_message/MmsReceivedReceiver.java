@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.util.Log;
 
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsConfig;
@@ -42,12 +43,13 @@ import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.RetrieveConf;
 import com.google.android.mms.util_alt.SqliteWrapper;
-import com.klinker.android.logger.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -67,6 +69,16 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
 
     private static final ExecutorService RECEIVE_NOTIFICATION_EXECUTOR = Executors.newSingleThreadExecutor();
 
+    public MmscInformation getMmscInfoForReceptionAck() {
+        // Override this and provide the MMSC to send the ACK to.
+        // some carriers will download duplicate MMS messages without this ACK. When using the
+        // system sending method, apparently Google does not do this for us. Not sure why.
+        // You might have to have users manually enter their APN settings if you cannot get them
+        // from the system somehow.
+
+        return null;
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.v(TAG, "MMS has finished downloading, persisting it to the database");
@@ -82,7 +94,7 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
             final byte[] response = new byte[nBytes];
             reader.read(response, 0, nBytes);
 
-            CommonAsyncTask task = getNotificationTask(context, intent, response);
+            List<CommonAsyncTask> tasks = getNotificationTask(context, intent, response);
 
             DownloadRequest.persist(context, response,
                     new MmsConfig.Overridden(new MmsConfig(context), null),
@@ -93,8 +105,10 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
             Log.v(TAG, "response length: " + response.length);
             mDownloadFile.delete();
 
-            if (task != null) {
-                task.executeOnExecutor(RECEIVE_NOTIFICATION_EXECUTOR);
+            if (tasks != null) {
+                Log.v(TAG, "running the common async notifier for download");
+                for (CommonAsyncTask task : tasks)
+                    task.executeOnExecutor(RECEIVE_NOTIFICATION_EXECUTOR);
             }
         } catch (FileNotFoundException e) {
             Log.e(TAG, "MMS received, file not found exception", e);
@@ -136,7 +150,7 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
 
     private static abstract class CommonAsyncTask extends AsyncTask<Void, Void, Void> {
         protected final Context mContext;
-        private final TransactionSettings mTransactionSettings;
+        protected final TransactionSettings mTransactionSettings;
         final NotificationInd mNotificationInd;
         final String mContentLocation;
 
@@ -263,8 +277,10 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
             // the MMS proxy-relay doesn't require an ACK.
             byte[] tranId = mRetrieveConf.getTransactionId();
             if (tranId != null) {
+                Log.v(TAG, "sending ACK to MMSC: " + mTransactionSettings.getMmscUrl());
                 // Create M-Acknowledge.ind
                 com.google.android.mms.pdu_alt.AcknowledgeInd acknowledgeInd = null;
+
                 try {
                     acknowledgeInd = new com.google.android.mms.pdu_alt.AcknowledgeInd(
                             PduHeaders.CURRENT_MMS_VERSION, tranId);
@@ -291,8 +307,14 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
         }
     }
 
-    private static CommonAsyncTask getNotificationTask(Context context, Intent intent, byte[] response) {
+    private List<CommonAsyncTask> getNotificationTask(Context context, Intent intent, byte[] response) {
         if (response.length == 0) {
+            Log.v(TAG, "MmsReceivedReceiver.sendNotification blank response");
+            return null;
+        }
+
+        if (getMmscInfoForReceptionAck() == null) {
+            Log.v(TAG, "No MMSC information set, so no notification tasks will be able to complete");
             return null;
         }
 
@@ -305,16 +327,30 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
         }
 
         try {
-            NotificationInd ind = getNotificationInd(context, intent);
-            TransactionSettings transactionSettings = new TransactionSettings(context, null);
-            if (intent.getBooleanExtra(EXTRA_TRIGGER_PUSH, false)) {
-                return new NotifyRespTask(context, ind, transactionSettings);
-            } else {
-                return new AcknowledgeIndTask(context, ind, transactionSettings, (RetrieveConf) pdu);
-            }
+            final NotificationInd ind = getNotificationInd(context, intent);
+            final MmscInformation mmsc = getMmscInfoForReceptionAck();
+            final TransactionSettings transactionSettings = new TransactionSettings(mmsc.mmscUrl, mmsc.mmsProxy, mmsc.proxyPort);
+
+            final List<CommonAsyncTask> responseTasks = new ArrayList<>();
+            responseTasks.add(new AcknowledgeIndTask(context, ind, transactionSettings, (RetrieveConf) pdu));
+            responseTasks.add(new NotifyRespTask(context, ind, transactionSettings));
+
+            return responseTasks;
         } catch (MmsException e) {
             Log.e(TAG, "error", e);
             return null;
+        }
+    }
+
+    protected static class MmscInformation {
+        String mmscUrl;
+        String mmsProxy;
+        int proxyPort;
+
+        public MmscInformation(String mmscUrl, String mmsProxy, int proxyPort) {
+            this.mmscUrl = mmscUrl;
+            this.mmsProxy = mmsProxy;
+            this.proxyPort = proxyPort;
         }
     }
 }
