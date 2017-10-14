@@ -342,7 +342,7 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
         }
     }
 
-    protected static class MmscInformation {
+    public static class MmscInformation {
         String mmscUrl;
         String mmsProxy;
         int proxyPort;
