@@ -87,6 +87,9 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
         Log.v(TAG, path);
 
         FileInputStream reader = null;
+        Uri messageUri = null;
+        String errorMessage = null;
+
         try {
             File mDownloadFile = new File(path);
             final int nBytes = (int) mDownloadFile.length();
@@ -96,7 +99,7 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
 
             List<CommonAsyncTask> tasks = getNotificationTask(context, intent, response);
 
-            DownloadRequest.persist(context, response,
+            messageUri = DownloadRequest.persist(context, response,
                     new MmsConfig.Overridden(new MmsConfig(context), null),
                     intent.getStringExtra(EXTRA_LOCATION_URL),
                     Utils.getDefaultSubscriptionId(), null);
@@ -111,14 +114,17 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
                     task.executeOnExecutor(RECEIVE_NOTIFICATION_EXECUTOR);
             }
         } catch (FileNotFoundException e) {
-            Log.e(TAG, "MMS received, file not found exception", e);
+            errorMessage = "MMS received, file not found exception";
+            Log.e(TAG, errorMessage, e);
         } catch (IOException e) {
-            Log.e(TAG, "MMS received, io exception", e);
+            errorMessage = "MMS received, io exception";
+            Log.e(TAG, errorMessage, e);
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
+                    errorMessage = "MMS received, io exception";
                     Log.e(TAG, "MMS received, io exception", e);
                 }
             }
@@ -126,6 +132,23 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
 
         handleHttpError(context, intent);
         DownloadManager.finishDownload(intent.getStringExtra(EXTRA_LOCATION_URL));
+
+        if (messageUri != null) {
+            onMessageReceived(messageUri);
+        }
+
+        if (errorMessage != null) {
+            onError(errorMessage);
+        }
+    }
+
+    protected void onMessageReceived(Uri messageUri) {
+        // Override this in a custom receiver, if you want access to the message, outside of the
+        // internal SMS/MMS database
+    }
+
+    protected void onError(String error) {
+
     }
 
     private void handleHttpError(Context context, Intent intent) {
