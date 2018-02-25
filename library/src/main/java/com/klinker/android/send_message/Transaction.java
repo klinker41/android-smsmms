@@ -615,9 +615,6 @@ public class Transaction {
             File mSendFile = new File(context.getCacheDir(), fileName);
 
             SendReq sendReq = buildPdu(context, addresses, subject, parts);
-            PduPersister persister = PduPersister.getPduPersister(context);
-            Uri messageUri = persister.persist(sendReq, Uri.parse("content://mms/outbox"),
-                    true, settings.getGroup(), null);
 
             Intent intent;
             if (explicitSentMmsReceiver == null) {
@@ -627,7 +624,13 @@ public class Transaction {
                 intent = explicitSentMmsReceiver;
             }
 
-            intent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
+            if (Utils.isDefaultSmsApp(context)) {
+                PduPersister persister = PduPersister.getPduPersister(context);
+                Uri messageUri = persister.persist(sendReq, Uri.parse("content://mms/outbox"),
+                        true, settings.getGroup(), null);
+                intent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
+            }
+
             intent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
             final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                     context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
