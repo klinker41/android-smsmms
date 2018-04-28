@@ -27,22 +27,13 @@ import com.klinker.android.logger.Log;
 
 import java.util.Calendar;
 
-public class DeliveredReceiver extends BroadcastReceiver {
+public abstract class DeliveredReceiver extends StatusUpdatedReceiver {
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public final void updateInInternalDatabase(Context context, Intent intent) {
         Log.v("delivery_receiver", "marking message as delivered");
-        Uri uri;
 
-        try {
-            uri = Uri.parse(intent.getStringExtra("message_uri"));
-
-            if (uri.equals("")) {
-                uri = null;
-            }
-        } catch (Exception e) {
-            uri = null;
-        }
+        final Uri uri = getUri(intent);
 
         switch (getResultCode()) {
             case Activity.RESULT_OK:
@@ -110,5 +101,21 @@ public class DeliveredReceiver extends BroadcastReceiver {
         }
 
         BroadcastUtils.sendExplicitBroadcast(context, new Intent(), Transaction.REFRESH);
+    }
+
+    private Uri getUri(Intent intent) {
+        Uri uri;
+
+        try {
+            uri = Uri.parse(intent.getStringExtra("message_uri"));
+
+            if (uri.equals("")) {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+
+        return uri;
     }
 }

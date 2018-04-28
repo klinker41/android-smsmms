@@ -26,22 +26,12 @@ import android.net.Uri;
 import android.telephony.SmsManager;
 import com.klinker.android.logger.Log;
 
-public class SentReceiver extends BroadcastReceiver {
+public abstract class SentReceiver extends StatusUpdatedReceiver {
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public final void updateInInternalDatabase(Context context, Intent intent) {
         Log.v("sent_receiver", "marking message as sent");
-        Uri uri;
-
-        try {
-            uri = Uri.parse(intent.getStringExtra("message_uri"));
-
-            if (uri.equals("")) {
-                uri = null;
-            }
-        } catch (Exception e) {
-            uri = null;
-        }
+        final Uri uri = getUri(intent);
 
         switch (getResultCode()) {
             case Activity.RESULT_OK:
@@ -94,6 +84,22 @@ public class SentReceiver extends BroadcastReceiver {
         }
 
         BroadcastUtils.sendExplicitBroadcast(context, new Intent(), Transaction.REFRESH);
+    }
+
+    private Uri getUri(Intent intent) {
+        Uri uri;
+
+        try {
+            uri = Uri.parse(intent.getStringExtra("message_uri"));
+
+            if (uri.equals("")) {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+
+        return uri;
     }
 
     private void markFirstAsSent(Context context) {

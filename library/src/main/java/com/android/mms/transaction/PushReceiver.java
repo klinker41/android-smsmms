@@ -83,8 +83,11 @@ public class PushReceiver extends BroadcastReceiver {
 
     private class ReceivePushTask extends AsyncTask<Intent,Void,Void> {
         private Context mContext;
-        public ReceivePushTask(Context context) {
+        private PendingResult pendingResult;
+
+        ReceivePushTask(Context context, PendingResult pendingResult) {
             mContext = context;
+            this.pendingResult = pendingResult;
         }
 
         @Override
@@ -240,6 +243,11 @@ public class PushReceiver extends BroadcastReceiver {
 
             return null;
         }
+
+        @Override
+        public void onPostExecute(Void result) {
+            pendingResult.finish();
+        }
     }
 
     @Override
@@ -254,18 +262,11 @@ public class PushReceiver extends BroadcastReceiver {
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
             if ((!sharedPrefs.getBoolean("receive_with_stock", false) && Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && sharedPrefs.getBoolean("override", true))
                     || Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                // Hold a wake lock for 5 seconds, enough to give any
-                // services we start time to take their own wake locks.
-                PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
-                PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                        "MMS PushReceiver");
-                wl.acquire(5000);
+                final PendingResult pendingResult = goAsync();
                 MmsConfig.init(context);
-                new ReceivePushTask(context).executeOnExecutor(PUSH_RECEIVER_EXECUTOR, intent);
+                new ReceivePushTask(context, pendingResult).executeOnExecutor(PUSH_RECEIVER_EXECUTOR, intent);
 
                 Log.v("mms_receiver", context.getPackageName() + " received and aborted");
-
-                abortBroadcast();
             } else {
                 clearAbortBroadcast();
                 Intent notificationBroadcast = new Intent(com.klinker.android.send_message.Transaction.NOTIFY_OF_MMS);
