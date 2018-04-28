@@ -29,11 +29,11 @@ import com.klinker.android.logger.Log;
 public abstract class SentReceiver extends StatusUpdatedReceiver {
 
     @Override
-    public final void updateInInternalDatabase(Context context, Intent intent) {
+    public final void updateInInternalDatabase(Context context, Intent intent, int resultCode) {
         Log.v("sent_receiver", "marking message as sent");
         final Uri uri = getUri(intent);
 
-        switch (getResultCode()) {
+        switch (resultCode) {
             case Activity.RESULT_OK:
                 if (uri != null) {
                     try {
@@ -59,7 +59,7 @@ public abstract class SentReceiver extends StatusUpdatedReceiver {
                     ContentValues values = new ContentValues();
                     values.put("type", 5);
                     values.put("read", true);
-                    values.put("error_code", getResultCode());
+                    values.put("error_code", resultCode);
                     context.getContentResolver().update(uri, values, null, null);
                 } else {
                     Log.v("sent_receiver", "using first message");
@@ -71,7 +71,7 @@ public abstract class SentReceiver extends StatusUpdatedReceiver {
                         ContentValues values = new ContentValues();
                         values.put("type", 5);
                         values.put("read", 1);
-                        values.put("error_code", getResultCode());
+                        values.put("error_code", resultCode);
                         context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
 
                         query.close();

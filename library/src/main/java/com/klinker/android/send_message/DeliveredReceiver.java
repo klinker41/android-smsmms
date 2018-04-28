@@ -30,12 +30,12 @@ import java.util.Calendar;
 public abstract class DeliveredReceiver extends StatusUpdatedReceiver {
 
     @Override
-    public final void updateInInternalDatabase(Context context, Intent intent) {
+    public final void updateInInternalDatabase(Context context, Intent intent, int resultCode) {
         Log.v("delivery_receiver", "marking message as delivered");
 
         final Uri uri = getUri(intent);
 
-        switch (getResultCode()) {
+        switch (resultCode) {
             case Activity.RESULT_OK:
                 // notify user that message was delivered
                 Intent delivered = new Intent(Transaction.NOTIFY_OF_DELIVERY);
@@ -80,7 +80,7 @@ public abstract class DeliveredReceiver extends StatusUpdatedReceiver {
                     values.put("status", "64");
                     values.put("date_sent", Calendar.getInstance().getTimeInMillis());
                     values.put("read", true);
-                    values.put("error_code", getResultCode());
+                    values.put("error_code", resultCode);
                     context.getContentResolver().update(uri, values, null, null);
                 } else {
                     Cursor query2 = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, "date desc");
@@ -91,7 +91,7 @@ public abstract class DeliveredReceiver extends StatusUpdatedReceiver {
                         ContentValues values = new ContentValues();
                         values.put("status", "64");
                         values.put("read", true);
-                        values.put("error_code", getResultCode());
+                        values.put("error_code", resultCode);
                         context.getContentResolver().update(Uri.parse("content://sms/sent"), values, "_id=" + id, null);
                     }
 

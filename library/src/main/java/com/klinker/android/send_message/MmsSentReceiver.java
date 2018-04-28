@@ -37,7 +37,7 @@ public abstract class MmsSentReceiver extends StatusUpdatedReceiver {
     public static final String EXTRA_FILE_PATH = "file_path";
 
     @Override
-    public final void updateInInternalDatabase(Context context, Intent intent) {
+    public final void updateInInternalDatabase(Context context, Intent intent, int resultCode) {
         Log.v(TAG, "MMS has finished sending, marking it as so, in the database");
 
         Uri uri = Uri.parse(intent.getStringExtra(EXTRA_CONTENT_URI));
