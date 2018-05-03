@@ -33,54 +33,58 @@ public abstract class SentReceiver extends StatusUpdatedReceiver {
         Log.v("sent_receiver", "marking message as sent");
         final Uri uri = getUri(intent);
 
-        switch (resultCode) {
-            case Activity.RESULT_OK:
-                if (uri != null) {
-                    try {
-                        Log.v("sent_receiver", "using supplied uri");
-                        ContentValues values = new ContentValues();
-                        values.put("type", 2);
-                        values.put("read", 1);
-                        context.getContentResolver().update(uri, values, null, null);
-                    } catch (NullPointerException e) {
+        try {
+            switch (resultCode) {
+                case Activity.RESULT_OK:
+                    if (uri != null) {
+                        try {
+                            Log.v("sent_receiver", "using supplied uri");
+                            ContentValues values = new ContentValues();
+                            values.put("type", 2);
+                            values.put("read", 1);
+                            context.getContentResolver().update(uri, values, null, null);
+                        } catch (NullPointerException e) {
+                            markFirstAsSent(context);
+                        }
+                    } else {
                         markFirstAsSent(context);
                     }
-                } else {
-                    markFirstAsSent(context);
-                }
 
-                break;
-            case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-            case SmsManager.RESULT_ERROR_NO_SERVICE:
-            case SmsManager.RESULT_ERROR_NULL_PDU:
-            case SmsManager.RESULT_ERROR_RADIO_OFF:
-                if (uri != null) {
-                    Log.v("sent_receiver", "using supplied uri");
-                    ContentValues values = new ContentValues();
-                    values.put("type", 5);
-                    values.put("read", true);
-                    values.put("error_code", resultCode);
-                    context.getContentResolver().update(uri, values, null, null);
-                } else {
-                    Log.v("sent_receiver", "using first message");
-                    Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
-
-                    // mark message failed
-                    if (query != null && query.moveToFirst()) {
-                        String id = query.getString(query.getColumnIndex("_id"));
+                    break;
+                case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                case SmsManager.RESULT_ERROR_NO_SERVICE:
+                case SmsManager.RESULT_ERROR_NULL_PDU:
+                case SmsManager.RESULT_ERROR_RADIO_OFF:
+                    if (uri != null) {
+                        Log.v("sent_receiver", "using supplied uri");
                         ContentValues values = new ContentValues();
                         values.put("type", 5);
-                        values.put("read", 1);
+                        values.put("read", true);
                         values.put("error_code", resultCode);
-                        context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+                        context.getContentResolver().update(uri, values, null, null);
+                    } else {
+                        Log.v("sent_receiver", "using first message");
+                        Cursor query = context.getContentResolver().query(Uri.parse("content://sms/outbox"), null, null, null, null);
 
-                        query.close();
+                        // mark message failed
+                        if (query != null && query.moveToFirst()) {
+                            String id = query.getString(query.getColumnIndex("_id"));
+                            ContentValues values = new ContentValues();
+                            values.put("type", 5);
+                            values.put("read", 1);
+                            values.put("error_code", resultCode);
+                            context.getContentResolver().update(Uri.parse("content://sms/outbox"), values, "_id=" + id, null);
+
+                            query.close();
+                        }
                     }
-                }
 
-                BroadcastUtils.sendExplicitBroadcast(
-                        context, new Intent(), Transaction.NOTIFY_SMS_FAILURE);
-                break;
+                    BroadcastUtils.sendExplicitBroadcast(
+                            context, new Intent(), Transaction.NOTIFY_SMS_FAILURE);
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         BroadcastUtils.sendExplicitBroadcast(context, new Intent(), Transaction.REFRESH);

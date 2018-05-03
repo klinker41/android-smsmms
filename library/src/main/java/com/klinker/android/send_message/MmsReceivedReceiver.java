@@ -314,7 +314,12 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
 
                     // insert the 'from' address per spec
                     String lineNumber = Utils.getMyPhoneNumber(mContext);
-                    acknowledgeInd.setFrom(new EncodedStringValue(lineNumber));
+
+                    if (lineNumber != null) {
+                        acknowledgeInd.setFrom(new EncodedStringValue(lineNumber));
+                    } else {
+                        acknowledgeInd.setFrom(new EncodedStringValue(""));
+                    }
 
                     // Pack M-Acknowledge.ind and send it
                     if(com.android.mms.MmsConfig.getNotifyWapMMSC()) {

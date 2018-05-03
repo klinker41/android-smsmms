@@ -259,11 +259,17 @@ public class TransactionService extends Service implements Observer {
     }
 
     public void onNewIntent(Intent intent, int serviceId) {
-        mobileDataEnabled = Utils.isMobileDataEnabled(this);
+        try {
+            mobileDataEnabled = Utils.isMobileDataEnabled(this);
+        } catch (Exception e) {
+            mobileDataEnabled = true;
+        }
+
         mConnMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (!mobileDataEnabled) {
             Utils.setMobileDataEnabled(this, true);
         }
+
         if (mConnMgr == null) {
             endMmsConnectivity();
             stopSelf(serviceId);
