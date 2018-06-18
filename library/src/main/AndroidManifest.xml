@@ -11,5 +11,7 @@
                   android:grantUriPermissions="true"
                   android:exported="false" />
 
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+
     </application>
 </manifest>
