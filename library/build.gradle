@@ -19,14 +19,13 @@ allprojects {
 apply plugin: 'com.android.library'
 
 dependencies {
-    compile 'com.klinkerapps:logger:1.0.3'
-    compile 'com.squareup.okhttp:okhttp:2.5.0'
-    compile 'com.squareup.okhttp:okhttp-urlconnection:2.5.0'
+    implementation 'com.klinkerapps:logger:1.0.3'
+    implementation 'com.squareup.okhttp:okhttp:2.5.0'
+    implementation 'com.squareup.okhttp:okhttp-urlconnection:2.5.0'
 }
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.0"
 
     defaultConfig {
         minSdkVersion 21
