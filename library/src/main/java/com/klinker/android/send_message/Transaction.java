@@ -25,6 +25,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.Parcelable;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.text.TextUtils;
@@ -71,6 +72,8 @@ public class Transaction {
 
     public String SMS_SENT = ".SMS_SENT";
     public String SMS_DELIVERED = ".SMS_DELIVERED";
+    public static final String SENT_SMS_BUNDLE = "com.klinker.android.send_message.SENT_SMS_BUNDLE";
+    public static final String DELIVERED_SMS_BUNDLE = "com.klinker.android.send_message.DELIVERED_SMS_BUNDLE";
 
     public static String NOTIFY_SMS_FAILURE = ".NOTIFY_SMS_FAILURE";
     public static final String MMS_ERROR = "com.klinker.android.send_message.MMS_ERROR";
@@ -114,8 +117,11 @@ public class Transaction {
      *
      * @param message  is the message that you want to send
      * @param threadId is the thread id of who to send the message to (can also be set to Transaction.NO_THREAD_ID)
+     * @param sentMessageParcelable is the piece of data that will be retrieved when BroadcastReceiver is called for sent message
+     * @param deliveredParcelable is the piece of data that will be retrieved when BroadcastReceiver is called for delivered message
      */
-    public void sendNewMessage(Message message, long threadId) {
+    public void sendNewMessage(Message message, long threadId,
+                               Parcelable sentMessageParcelable, Parcelable deliveredParcelable) {
         this.saveMessage = message.getSave();
 
         // if message:
@@ -135,9 +141,21 @@ public class Transaction {
             DownloadManager.init(context);
             sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getImageNames(), message.getParts(), message.getSubject());
         } else {
-            sendSmsMessage(message.getText(), message.getAddresses(), threadId, message.getDelay());
+            sendSmsMessage(message.getText(), message.getAddresses(), threadId, message.getDelay(),
+                    sentMessageParcelable, deliveredParcelable);
         }
 
+    }
+
+    /**
+     * Called to send a new message depending on settings and provided Message object
+     * If you want to send message as mms, call this from the UI thread
+     *
+     * @param message  is the message that you want to send
+     * @param threadId is the thread id of who to send the message to (can also be set to Transaction.NO_THREAD_ID)
+     */
+    public void sendNewMessage(Message message, long threadId) {
+        this.sendNewMessage(message, threadId, new Bundle(), new Bundle());
     }
 
     /**
@@ -179,7 +197,8 @@ public class Transaction {
         return this;
     }
 
-    private void sendSmsMessage(String text, String[] addresses, long threadId, int delay) {
+    private void sendSmsMessage(String text, String[] addresses, long threadId, int delay,
+                                Parcelable sentMessageParcelable, Parcelable deliveredParcelable) {
         Log.v("send_transaction", "message text: " + text);
         Uri messageUri = null;
         int messageId = 0;
@@ -230,6 +249,7 @@ public class Transaction {
                 }
 
                 sentIntent.putExtra("message_uri", messageUri == null ? "" : messageUri.toString());
+                sentIntent.putExtra(SENT_SMS_BUNDLE, sentMessageParcelable);
                 PendingIntent sentPI = PendingIntent.getBroadcast(
                         context, messageId, sentIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -242,6 +262,7 @@ public class Transaction {
                 }
 
                 deliveredIntent.putExtra("message_uri", messageUri == null ? "" : messageUri.toString());
+                deliveredIntent.putExtra(DELIVERED_SMS_BUNDLE, deliveredParcelable);
                 PendingIntent deliveredPI = PendingIntent.getBroadcast(
                         context, messageId, deliveredIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
