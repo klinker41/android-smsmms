@@ -139,7 +139,15 @@ public class Transaction {
             try { Looper.prepare(); } catch (Exception e) { }
             RateController.init(context);
             DownloadManager.init(context);
-            sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getImageNames(), message.getParts(), message.getSubject());
+
+            if (!settings.getGroup()) {
+                // send individual MMS to each person in the group of addresses
+                for (String address : message.getAddresses()) {
+                    sendMmsMessage(message.getText(), new String[] { address }, message.getImages(), message.getImageNames(), message.getParts(), message.getSubject());
+                }
+            } else {
+                sendMmsMessage(message.getText(), message.getAddresses(), message.getImages(), message.getImageNames(), message.getParts(), message.getSubject());
+            }
         } else {
             sendSmsMessage(message.getText(), message.getAddresses(), threadId, message.getDelay(),
                     sentMessageParcelable, deliveredParcelable);

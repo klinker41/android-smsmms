@@ -110,7 +110,7 @@ For full details on how to implement, please check out the sample application. I
 To include in your gradle project:
 
 ```groovy
-implementation 'com.klinkerapps:android-smsmms:5.1.0'
+compile 'com.klinkerapps:android-smsmms:5.1.1'
 ```
 
 ---
