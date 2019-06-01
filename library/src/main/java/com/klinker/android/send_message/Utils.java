@@ -44,6 +44,18 @@ public class Utils {
     private static final String TAG = "Utils";
     public static final int DEFAULT_SUBSCRIPTION_ID = 1;
 
+    private static final OwnNumber DEFAULT_OWN_NUMBER = new OwnNumber(){
+        @Override
+        public String onYield(Context context) {
+            TelephonyManager mTelephonyMgr;
+            mTelephonyMgr = (TelephonyManager)
+                    context.getSystemService(Context.TELEPHONY_SERVICE);
+            return mTelephonyMgr.getLine1Number();
+        }
+    };
+
+    private static OwnNumber OVERRIDEN_OWN_NUMBER;
+
     /**
      * Gets the current users phone number
      *
@@ -51,10 +63,14 @@ public class Utils {
      * @return a string of the phone number on the device
      */
     public static String getMyPhoneNumber(Context context) {
-        TelephonyManager mTelephonyMgr;
-        mTelephonyMgr = (TelephonyManager)
-                context.getSystemService(Context.TELEPHONY_SERVICE);
-        return mTelephonyMgr.getLine1Number();
+        if (OVERRIDEN_OWN_NUMBER != null) {
+            return OVERRIDEN_OWN_NUMBER.yield(context);
+        }
+        return DEFAULT_OWN_NUMBER.yield(context);
+    }
+
+    public static void setOwnNumberOverride(OwnNumber ownNumber) {
+        OVERRIDEN_OWN_NUMBER = ownNumber;
     }
 
     public interface Task<T> {

@@ -48,6 +48,7 @@ import com.google.android.mms.util_alt.PduCache;
 import com.google.android.mms.util_alt.PduCacheEntry;
 import com.google.android.mms.util_alt.SqliteWrapper;
 import com.klinker.android.logger.Log;
+import com.klinker.android.send_message.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -1516,7 +1517,7 @@ public class PduPersister {
         if (excludeMyNumber && array.length == 1 && addressType == PduHeaders.TO) {
             return;
         }
-        String myNumber = excludeMyNumber ? mTelephonyManager.getLine1Number() : null;
+        String myNumber = excludeMyNumber ? Utils.getMyPhoneNumber(mContext) : null;
         for (EncodedStringValue v : array) {
             if (v != null) {
                 String number = v.getString();

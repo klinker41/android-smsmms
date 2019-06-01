@@ -27,6 +27,7 @@ import android.util.Base64;
 import com.klinker.android.logger.Log;
 
 import com.klinker.android.send_message.R;
+import com.klinker.android.send_message.Utils;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -559,13 +560,14 @@ public class MmsConfig {
                     Context.TELEPHONY_SERVICE);
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
-                return telephonyManager.getLine1Number();
+                return Utils.getMyPhoneNumber(context);
             } else {
                 try {
                     Method method = telephonyManager.getClass().getMethod("getLine1NumberForSubscriber", int.class);
-                    return (String) method.invoke(telephonyManager, subId);
+                    String number = (String) method.invoke(telephonyManager, subId);
+                    return number;
                 } catch (Exception e) {
-                    return telephonyManager.getLine1Number();
+                    return Utils.getMyPhoneNumber(context);
                 }
             }
         }
