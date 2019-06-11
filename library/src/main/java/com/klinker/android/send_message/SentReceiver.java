@@ -29,7 +29,7 @@ import com.klinker.android.logger.Log;
 public abstract class SentReceiver extends StatusUpdatedReceiver {
 
     @Override
-    public final void updateInInternalDatabase(Context context, Intent intent, int resultCode) {
+    public void updateInInternalDatabase(Context context, Intent intent, int resultCode) {
         Log.v("sent_receiver", "marking message as sent");
         final Uri uri = getUri(intent);
 

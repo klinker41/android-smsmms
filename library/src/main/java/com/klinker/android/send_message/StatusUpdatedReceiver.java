@@ -19,8 +19,8 @@ public abstract class StatusUpdatedReceiver extends BroadcastReceiver {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                updateInInternalDatabase(context, intent, resultCode);
                 onMessageStatusUpdated(context, intent, resultCode);
+                updateInInternalDatabase(context, intent, resultCode);
                 result.finish();
             }
         }).start();

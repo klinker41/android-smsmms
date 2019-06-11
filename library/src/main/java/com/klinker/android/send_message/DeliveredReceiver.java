@@ -30,7 +30,7 @@ import java.util.Calendar;
 public abstract class DeliveredReceiver extends StatusUpdatedReceiver {
 
     @Override
-    public final void updateInInternalDatabase(Context context, Intent intent, int resultCode) {
+    public void updateInInternalDatabase(Context context, Intent intent, int resultCode) {
         Log.v("delivery_receiver", "marking message as delivered");
 
         final Uri uri = getUri(intent);
