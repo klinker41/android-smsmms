@@ -246,7 +246,9 @@ public class PushReceiver extends BroadcastReceiver {
 
         @Override
         public void onPostExecute(Void result) {
-            pendingResult.finish();
+            if (pendingResult != null) {
+                pendingResult.finish();
+            }
         }
     }
 
@@ -262,9 +264,8 @@ public class PushReceiver extends BroadcastReceiver {
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
             if ((!sharedPrefs.getBoolean("receive_with_stock", false) && Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && sharedPrefs.getBoolean("override", true))
                     || Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                final PendingResult pendingResult = goAsync();
                 MmsConfig.init(context);
-                new ReceivePushTask(context, pendingResult).executeOnExecutor(PUSH_RECEIVER_EXECUTOR, intent);
+                new ReceivePushTask(context, null).executeOnExecutor(PUSH_RECEIVER_EXECUTOR, intent);
 
                 Log.v("mms_receiver", context.getPackageName() + " received and aborted");
             } else {
