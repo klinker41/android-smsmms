@@ -15,13 +15,11 @@ public abstract class StatusUpdatedReceiver extends BroadcastReceiver {
     @Override
     public final void onReceive(final Context context, final Intent intent) {
         final int resultCode = getResultCode();
-        final PendingResult result = goAsync();
         new Thread(new Runnable() {
             @Override
             public void run() {
                 onMessageStatusUpdated(context, intent, resultCode);
                 updateInInternalDatabase(context, intent, resultCode);
-                result.finish();
             }
         }).start();
     }

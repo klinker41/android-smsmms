@@ -90,7 +90,6 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
         final String path = intent.getStringExtra(EXTRA_FILE_PATH);
         Log.v(TAG, path);
 
-        final PendingResult result = goAsync();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -148,8 +147,6 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
                 if (errorMessage != null) {
                     onError(context, errorMessage);
                 }
-
-                result.finish();
             }
         }).start();
     }
