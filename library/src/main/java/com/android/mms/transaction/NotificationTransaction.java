@@ -40,6 +40,7 @@ import com.google.android.mms.pdu_alt.PduComposer;
 import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
+import com.google.android.mms.pdu_alt.RetrieveConf;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.BroadcastUtils;
 
@@ -197,8 +198,11 @@ public class NotificationTransaction extends Transaction implements Runnable {
                             com.klinker.android.send_message.Transaction.settings.getGroup(), null);
 
                     // Use local time instead of PDU time
-                    ContentValues values = new ContentValues(1);
+                    ContentValues values = new ContentValues(2);
                     values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
+                    // Store PDU time as sent time for received message
+                    RetrieveConf retrieveConf = (RetrieveConf) pdu;
+                    values.put(Mms.DATE_SENT, retrieveConf.getDate());
                     SqliteWrapper.update(mContext, mContext.getContentResolver(),
                             uri, values, null, null);
 
