@@ -28,13 +28,12 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
 
-import com.android.mms.logs.LogTag;
 import com.android.mms.MmsConfig;
+import com.android.mms.logs.LogTag;
 import com.android.mms.service_alt.DownloadRequest;
 import com.android.mms.service_alt.MmsNetworkManager;
 import com.android.mms.service_alt.MmsRequestManager;
@@ -49,6 +48,7 @@ import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadOrigInd;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.BroadcastUtils;
+import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Utils;
 
 import java.util.HashSet;
@@ -192,7 +192,8 @@ public class PushReceiver extends BroadcastReceiver {
                                 }
 
                                 if (useSystem) {
-                                    DownloadManager.getInstance().downloadMultimediaMessage(mContext, location, uri, true);
+                                    int subId = intent.getIntExtra("subscription", Settings.DEFAULT_SUBSCRIPTION_ID);
+                                    DownloadManager.getInstance().downloadMultimediaMessage(mContext, location, uri, true, subId);
                                 } else {
                                     Log.v(TAG, "receiving with lollipop method");
                                     MmsRequestManager requestManager = new MmsRequestManager(mContext);

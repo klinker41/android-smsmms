@@ -21,6 +21,7 @@ import com.android.mms.MmsConfig;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.MmsReceivedReceiver;
+import com.klinker.android.send_message.SmsManagerFactory;
 
 import java.io.File;
 import java.util.Random;
@@ -44,7 +45,7 @@ public class DownloadManager {
 
     }
 
-    public void downloadMultimediaMessage(final Context context, final String location, Uri uri, boolean byPush) {
+    public void downloadMultimediaMessage(final Context context, final String location, Uri uri, boolean byPush, int subscriptionId) {
         if (location == null || mMap.get(location) != null) {
             return;
         }
@@ -83,7 +84,7 @@ public class DownloadManager {
         }
 
         grantUriPermission(context, contentUri);
-        SmsManager.getDefault().downloadMultimediaMessage(context,
+        SmsManagerFactory.createSmsManager(subscriptionId).downloadMultimediaMessage(context,
                 location, contentUri, configOverrides, pendingIntent);
     }
 
