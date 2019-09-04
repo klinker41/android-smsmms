@@ -168,8 +168,10 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                             group, null);
 
                     // Use local time instead of PDU time
-                    ContentValues values = new ContentValues(2);
+                    ContentValues values = new ContentValues(3);
                     values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
+                    // Store PDU time as sent time for received message
+                    values.put(Mms.DATE_SENT, retrieveConf.getDate());
                     values.put(Mms.MESSAGE_SIZE, resp.length);
                     SqliteWrapper.update(mContext, mContext.getContentResolver(),
                             msgUri, values, null, null);
