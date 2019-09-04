@@ -57,6 +57,7 @@ import com.google.android.mms.pdu_alt.PduPersister;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.R;
+import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Utils;
 
 import java.io.IOException;
@@ -317,9 +318,11 @@ public class TransactionService extends Service implements Observer {
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             boolean useSystem = true;
+                            int subId = Settings.DEFAULT_SUBSCRIPTION_ID;
                             if (com.klinker.android.send_message.Transaction.settings != null) {
                                 useSystem = com.klinker.android.send_message.Transaction.settings
                                         .getUseSystemSending();
+                                subId = com.klinker.android.send_message.Transaction.settings.getSubscriptionId();
                             } else {
                                 useSystem = PreferenceManager.getDefaultSharedPreferences(this)
                                         .getBoolean("system_mms_sending", useSystem);
@@ -330,7 +333,7 @@ public class TransactionService extends Service implements Observer {
                                     Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI,
                                             cursor.getLong(columnIndexOfMsgId));
                                     com.android.mms.transaction.DownloadManager.getInstance().
-                                            downloadMultimediaMessage(this, PushReceiver.getContentLocation(this, uri), uri, false);
+                                            downloadMultimediaMessage(this, PushReceiver.getContentLocation(this, uri), uri, false, subId);
 
                                     // can't handle many messages at once.
                                     break;
@@ -857,7 +860,7 @@ public class TransactionService extends Service implements Observer {
                                     Uri u = Uri.parse(args.getUri());
                                     com.android.mms.transaction.DownloadManager.getInstance().
                                             downloadMultimediaMessage(TransactionService.this,
-                                                    ((RetrieveTransaction) transaction).getContentLocation(TransactionService.this, u), u, false);
+                                                    ((RetrieveTransaction) transaction).getContentLocation(TransactionService.this, u), u, false, Settings.DEFAULT_SUBSCRIPTION_ID);
                                     return;
                                 }
 
