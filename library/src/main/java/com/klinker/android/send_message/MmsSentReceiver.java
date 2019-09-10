@@ -27,7 +27,7 @@ import com.klinker.android.logger.Log;
 
 import java.io.File;
 
-public abstract class MmsSentReceiver extends StatusUpdatedReceiver {
+public class MmsSentReceiver extends StatusUpdatedReceiver {
 
     private static final String TAG = "MmsSentReceiver";
 
@@ -50,6 +50,11 @@ public abstract class MmsSentReceiver extends StatusUpdatedReceiver {
         String filePath = intent.getStringExtra(EXTRA_FILE_PATH);
         Log.v(TAG, filePath);
         new File(filePath).delete();
+    }
+
+    @Override
+    public void onMessageStatusUpdated(Context context, Intent intent, int resultCode) {
+
     }
 
 }
