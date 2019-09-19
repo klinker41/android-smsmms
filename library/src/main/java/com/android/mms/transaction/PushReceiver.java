@@ -31,6 +31,7 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
+import android.text.TextUtils;
 
 import com.android.mms.MmsConfig;
 import com.android.mms.logs.LogTag;
@@ -171,7 +172,16 @@ public class PushReceiver extends BroadcastReceiver {
                                     group,
                                     null);
 
-                            String location = getContentLocation(mContext, uri);
+                            String location;
+                            try {
+                                location = getContentLocation(mContext, uri);
+                            } catch (MmsException ex) {
+                                location = p.getContentLocationFromPduHeader(pdu);
+                                if (TextUtils.isEmpty(location)) {
+                                    throw ex;
+                                }
+                            }
+
                             if (downloadedUrls.contains(location)) {
                                 Log.v(TAG, "already added this download, don't download again");
                                 return null;
