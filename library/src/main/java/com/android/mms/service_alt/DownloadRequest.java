@@ -17,8 +17,6 @@
 package com.android.mms.service_alt;
 
 import android.app.PendingIntent;
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -26,15 +24,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
-
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.mms.service_alt.exception.MmsHttpException;
-
 import com.google.android.mms.MmsException;
 import com.google.android.mms.pdu_alt.GenericPdu;
 import com.google.android.mms.pdu_alt.PduHeaders;
@@ -198,15 +193,31 @@ public class DownloadRequest extends MmsRequest {
                 values.put(Telephony.Mms.SUBSCRIPTION_ID, subId);
             }
 
-            if (SqliteWrapper.update(
-                    context,
-                    context.getContentResolver(),
-                    messageUri,
-                    values,
-                    null/*where*/,
-                    null/*selectionArg*/) != 1) {
-                Log.e(TAG, "DownloadRequest.persistIfRequired: can not update message");
+            try {
+                int rowsUpdated = SqliteWrapper.update(
+                        context,
+                        context.getContentResolver(),
+                        messageUri,
+                        values,
+                        null/*where*/,
+                        null/*selectionArg*/);
+                if (rowsUpdated != 1) {
+                    Log.e(TAG, "DownloadRequest.persistIfRequired: can not update message");
+                }
+
+            } catch (SQLiteException ex) {
+                // if the exception says no such column like sub_id, ignore this value and try update
+                if (ex.getMessage().contains("no such column: sub_id")) {
+                    // ignore this column and proceed.
+                    values.remove(Telephony.Mms.SUBSCRIPTION_ID);
+                    int rowsUpdated = SqliteWrapper.update(context, context.getContentResolver(), messageUri,
+                            values, null/*where*/, null/*selectionArg*/);
+                    Log.i(TAG, "DownloadRequest.persistIfRequired: updated " + rowsUpdated + " message without sub_id info");
+                } else {
+                    throw ex;
+                }
             }
+
             // Delete the corresponding NotificationInd
             SqliteWrapper.delete(context,
                     context.getContentResolver(),
