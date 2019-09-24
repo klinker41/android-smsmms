@@ -143,7 +143,6 @@ public class DownloadManager {
             }
         }
 
-        // pass through as Transaction Service was used only below 22 api
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+        return false;
     }
 }
