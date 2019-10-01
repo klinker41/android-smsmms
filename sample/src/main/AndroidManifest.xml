@@ -73,7 +73,7 @@
             android:taskAffinity="com.klinker.android.messaging.MMS_SENT"/>
 
         <receiver
-            android:name="com.klinker.android.send_message.MmsReceivedReceiver"
+            android:name=".MmsReceivedReceiverImpl"
             android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED"/>
 
         <service
