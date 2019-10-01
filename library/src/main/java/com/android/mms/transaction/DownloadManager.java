@@ -77,15 +77,18 @@ public class DownloadManager {
         final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context, 0, download, PendingIntent.FLAG_CANCEL_CURRENT);
 
+        final SmsManager smsManager = SmsManagerFactory.createSmsManager(subscriptionId);
+
         Bundle configOverrides = new Bundle();
         String httpParams = MmsConfig.getHttpParams();
         if (!TextUtils.isEmpty(httpParams)) {
             configOverrides.putString(SmsManager.MMS_CONFIG_HTTP_PARAMS, httpParams);
+        } else {
+            configOverrides = smsManager.getCarrierConfigValues();
         }
 
         grantUriPermission(context, contentUri);
-        SmsManagerFactory.createSmsManager(subscriptionId).downloadMultimediaMessage(context,
-                location, contentUri, configOverrides, pendingIntent);
+        smsManager.downloadMultimediaMessage(context, location, contentUri, configOverrides, pendingIntent);
     }
 
     private void grantUriPermission(Context context, Uri contentUri) {

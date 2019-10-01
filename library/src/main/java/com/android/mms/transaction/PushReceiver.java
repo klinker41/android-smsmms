@@ -28,9 +28,11 @@ import android.database.sqlite.SqliteWrapper;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Inbox;
+import android.telephony.SmsManager;
 import android.text.TextUtils;
 
 import com.android.mms.MmsConfig;
@@ -50,6 +52,7 @@ import com.google.android.mms.pdu_alt.ReadOrigInd;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.BroadcastUtils;
 import com.klinker.android.send_message.Settings;
+import com.klinker.android.send_message.SmsManagerFactory;
 import com.klinker.android.send_message.Utils;
 
 import java.util.HashSet;
@@ -141,7 +144,18 @@ public class PushReceiver extends BroadcastReceiver {
                     case MESSAGE_TYPE_NOTIFICATION_IND: {
                         NotificationInd nInd = (NotificationInd) pdu;
 
-                        if (MmsConfig.getTransIdEnabled()) {
+                        boolean appendTransactionId = false;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            int subId = intent.getIntExtra("subscription", Settings.DEFAULT_SUBSCRIPTION_ID);
+                            Bundle configOverrides = SmsManagerFactory.createSmsManager(subId).getCarrierConfigValues();
+                            appendTransactionId = configOverrides.getBoolean(SmsManager.MMS_CONFIG_APPEND_TRANSACTION_ID);
+
+                            if (appendTransactionId) {
+                                Log.v(TAG, "appending the transaction ID, based on the SMS manager overrides");
+                            }
+                        }
+
+                        if (MmsConfig.getTransIdEnabled() || appendTransactionId) {
                             byte [] contentLocation = nInd.getContentLocation();
                             if ('=' == contentLocation[contentLocation.length - 1]) {
                                 byte [] transactionId = nInd.getTransactionId();
