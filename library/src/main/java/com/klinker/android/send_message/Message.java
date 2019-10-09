@@ -55,6 +55,7 @@ public class Message {
     }
     private String text;
     private String subject;
+    private String fromAddress;
     private String[] addresses;
     private Bitmap[] images;
     private String[] imageNames;
@@ -239,6 +240,14 @@ public class Message {
      */
     public void setAddresses(String[] addresses) {
         this.addresses = addresses;
+    }
+
+    /**
+     * sets from address info
+     * @param fromAddress from address
+     */
+    public void setFromAddress(String fromAddress) {
+        this.fromAddress = fromAddress;
     }
 
     /**
@@ -449,6 +458,14 @@ public class Message {
     }
 
     /**
+     * Gets the from address of the message
+     * @return the string of the from address
+     */
+    public String getFromAddress() {
+        return fromAddress;
+    }
+
+    /**
      * Gets the addresses of the message
      *
      * @return an array of strings with all of the addresses
@@ -474,7 +491,7 @@ public class Message {
     public String[] getImageNames() {
         return this.imageNames;
     }
-    
+
     /**
      * Gets the audio sample in the message
      *

@@ -12,6 +12,8 @@ import android.preference.PreferenceManager;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
@@ -55,6 +57,23 @@ public class Utils {
         mTelephonyMgr = (TelephonyManager)
                 context.getSystemService(Context.TELEPHONY_SERVICE);
         return mTelephonyMgr.getLine1Number();
+    }
+
+
+    public static String getMyPhoneNumberFromSubscription(Context context, int subscriptionId) {
+        if (DEFAULT_SUBSCRIPTION_ID == subscriptionId) {
+            return getMyPhoneNumber(context);
+        } else {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP_MR1) {
+                SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+                SubscriptionInfo subscriptionInfo = subscriptionManager.getActiveSubscriptionInfo(subscriptionId);
+                if (subscriptionInfo != null) {
+                    return subscriptionInfo.getNumber();
+                }
+            }
+
+            return getMyPhoneNumber(context);
+        }
     }
 
     public interface Task<T> {
