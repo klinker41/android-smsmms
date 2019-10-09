@@ -533,15 +533,9 @@ public class Transaction {
         sendRequest.setDate(Calendar.getInstance().getTimeInMillis() / 1000L);
 
         try {
-            String phoneNumber = Utils.getMyPhoneNumberFromSubscription(context, settings.getSubscriptionId());
-            if (!TextUtils.isEmpty(phoneNumber)) {
-                sendRequest.setFrom(new EncodedStringValue(phoneNumber));
-            } else if (!TextUtils.isEmpty(fromAddress)) {
-                sendRequest.setFrom(new EncodedStringValue(fromAddress));
-            }
+            sendRequest.prepareFromAddress(context, fromAddress, settings.getSubscriptionId());
         } catch (Exception e) {
             Log.e(TAG, "error getting from address", e);
-            sendRequest.setFrom(new EncodedStringValue(fromAddress));
         }
 
         final PduBody pduBody = new PduBody();
@@ -717,12 +711,7 @@ public class Transaction {
                                     List<MMSPart> parts) {
         final SendReq req = new SendReq();
         // From, per spec
-        String phoneNumber = Utils.getMyPhoneNumberFromSubscription(context, settings.getSubscriptionId());
-        if (!TextUtils.isEmpty(phoneNumber)) {
-            req.setFrom(new EncodedStringValue(phoneNumber));
-        } else if (!TextUtils.isEmpty(fromAddress)) {
-            req.setFrom(new EncodedStringValue(fromAddress));
-        }
+        req.prepareFromAddress(context, fromAddress, settings.getSubscriptionId());
         // To
         for (String recipient : recipients) {
             req.addTo(new EncodedStringValue(recipient));

@@ -16,9 +16,13 @@
 
 package com.google.android.mms.pdu_alt;
 
+import android.content.Context;
+import android.text.TextUtils;
+
 import com.klinker.android.logger.Log;
 
 import com.google.android.mms.InvalidHeaderValueException;
+import com.klinker.android.send_message.Utils;
 
 public class SendReq extends MultimediaMessagePdu {
     private static final String TAG = "SendReq";
@@ -291,6 +295,22 @@ public class SendReq extends MultimediaMessagePdu {
      */
     public void setTransactionId(byte[] value) {
         mPduHeaders.setTextString(value, PduHeaders.TRANSACTION_ID);
+    }
+
+    /**
+     * prepares and sets from address info in the request.
+     *
+     * @param context context
+     * @param fromAddress from address info from client this takes priority
+     * @param subscriptionId subscription id to use
+     */
+    public void prepareFromAddress(Context context, String fromAddress, int subscriptionId) {
+        String phoneNumber = Utils.getMyPhoneNumberFromSubscription(context, subscriptionId);
+        if (!TextUtils.isEmpty(fromAddress)) {
+            setFrom(new EncodedStringValue(fromAddress));
+        } else if (!TextUtils.isEmpty(phoneNumber)) {
+            setFrom(new EncodedStringValue(phoneNumber));
+        }
     }
 
     /*
