@@ -1260,6 +1260,10 @@ public class PduPersister {
         }
     }
 
+    public String getContentLocationFromPduHeader(GenericPdu pdu) {
+        return toIsoString(pdu.getPduHeaders().getTextString(PduHeaders.CONTENT_LOCATION));
+    }
+
     /**
      * Persist a PDU object to specific location in the storage.
      *
@@ -1620,7 +1624,7 @@ public class PduPersister {
                 uriBuilder.build(), null, selection, selectionArgs,
                 PendingMessages.DUE_TIME);
     }
-  
+
     /**
      * Check if read permissions for SMS have been granted
      */
