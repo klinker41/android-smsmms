@@ -301,15 +301,15 @@ public class SendReq extends MultimediaMessagePdu {
      * prepares and sets from address info in the request.
      *
      * @param context context
-     * @param fromAddress from address info from client this takes priority
+     * @param fromAddress from address info from client
      * @param subscriptionId subscription id to use
      */
     public void prepareFromAddress(Context context, String fromAddress, int subscriptionId) {
         String phoneNumber = Utils.getMyPhoneNumberFromSubscription(context, subscriptionId);
-        if (!TextUtils.isEmpty(fromAddress)) {
-            setFrom(new EncodedStringValue(fromAddress));
-        } else if (!TextUtils.isEmpty(phoneNumber)) {
+        if (!TextUtils.isEmpty(phoneNumber)) {
             setFrom(new EncodedStringValue(phoneNumber));
+        } else if (!TextUtils.isEmpty(fromAddress)) {
+            setFrom(new EncodedStringValue(fromAddress));
         }
     }
 
