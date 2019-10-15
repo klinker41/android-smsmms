@@ -17,6 +17,8 @@
 package com.klinker.android.send_message;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
+
 import com.klinker.android.logger.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -62,6 +64,7 @@ public class Message {
     private List<Part> parts = new ArrayList<Part>();
     private boolean save;
     private int delay;
+    private Uri messageUri;
 
     /**
      * Default constructor
@@ -550,5 +553,21 @@ public class Message {
 			} catch (IOException e) {}
 		}
 		return output;
+    }
+
+    /**
+     * Gets existing message uri
+     *
+     * @return existing message uri
+     */
+    public Uri getMessageUri() {
+        return messageUri;
+    }
+
+    /**
+     * Sets existing message uri
+     */
+    public void setMessageUri(Uri messageUri) {
+        this.messageUri = messageUri;
     }
 }
