@@ -44,6 +44,7 @@ import com.klinker.android.logger.Log;
 
 import com.android.mms.logs.LogTag;
 import com.android.mms.MmsConfig;
+import com.klinker.android.send_message.Utils;
 
 public class HttpUtils {
     private static final String TAG = LogTag.TRANSACTION;
@@ -173,9 +174,7 @@ public class HttpUtils {
             String extraHttpParams = MmsConfig.getHttpParams();
 
             if (extraHttpParams != null) {
-                String line1Number = ((TelephonyManager)context
-                        .getSystemService(Context.TELEPHONY_SERVICE))
-                        .getLine1Number();
+                String line1Number = Utils.getMyPhoneNumber(context);
                 String line1Key = MmsConfig.getHttpParamsLine1Key();
                 String paramList[] = extraHttpParams.split("\\|");
 
