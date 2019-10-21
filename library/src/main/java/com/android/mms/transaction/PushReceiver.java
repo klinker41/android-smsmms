@@ -147,7 +147,6 @@ public class PushReceiver extends BroadcastReceiver {
 
                         boolean appendTransactionId = false;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            int subId = intent.getIntExtra("subscription", Settings.DEFAULT_SUBSCRIPTION_ID);
                             Bundle configOverrides = SmsManagerFactory.createSmsManager(subId).getCarrierConfigValues();
                             appendTransactionId = configOverrides.getBoolean(SmsManager.MMS_CONFIG_APPEND_TRANSACTION_ID);
 
