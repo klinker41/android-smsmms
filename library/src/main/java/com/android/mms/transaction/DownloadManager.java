@@ -74,6 +74,7 @@ public class DownloadManager {
         download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, location);
         download.putExtra(MmsReceivedReceiver.EXTRA_TRIGGER_PUSH, byPush);
         download.putExtra(MmsReceivedReceiver.EXTRA_URI, uri);
+        download.putExtra(MmsReceivedReceiver.SUBSCRIPTION_ID, subscriptionId);
         final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context, 0, download, PendingIntent.FLAG_CANCEL_CURRENT);
 

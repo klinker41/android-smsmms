@@ -29,6 +29,7 @@ import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.RetrieveConf;
 import com.google.android.mms.util_alt.SqliteWrapper;
+import com.klinker.android.send_message.Settings;
 
 public class MmsRequestManager implements MmsRequest.RequestManager {
 
@@ -76,9 +77,11 @@ public class MmsRequestManager implements MmsRequest.RequestManager {
 
             Uri msgUri;
             boolean group;
+            int subId = Settings.DEFAULT_SUBSCRIPTION_ID;
 
             try {
                 group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                subId = com.klinker.android.send_message.Transaction.settings.getSubscriptionId();
             } catch (Exception e) {
                 group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
             }
@@ -86,7 +89,7 @@ public class MmsRequestManager implements MmsRequest.RequestManager {
             // Store M-Retrieve.conf into Inbox
             PduPersister persister = PduPersister.getPduPersister(context);
             msgUri = persister.persist(retrieveConf, Telephony.Mms.Inbox.CONTENT_URI, true,
-                    group, null);
+                    group, null, subId);
 
             // Use local time instead of PDU time
             ContentValues values = new ContentValues(3);

@@ -43,6 +43,7 @@ import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.RetrieveConf;
 import com.klinker.android.logger.Log;
 import com.klinker.android.send_message.BroadcastUtils;
+import com.klinker.android.send_message.Settings;
 
 import java.io.IOException;
 
@@ -113,15 +114,17 @@ public class NotificationTransaction extends Transaction implements Runnable {
             // Save the pdu. If we can start downloading the real pdu immediately, don't allow
             // persist() to create a thread for the notificationInd because it causes UI jank.
             boolean group;
+            int subId = Settings.DEFAULT_SUBSCRIPTION_ID;
 
             try {
                 group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                subId = com.klinker.android.send_message.Transaction.settings.getSubscriptionId();
             } catch (Exception e) {
                 group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
             }
             mUri = PduPersister.getPduPersister(context).persist(
                         ind, Inbox.CONTENT_URI, !allowAutoDownload(mContext),
-                        group, null);
+                        group, null, subId);
         } catch (MmsException e) {
             Log.e(TAG, "Failed to save NotificationInd in constructor.", e);
             throw new IllegalArgumentException();
@@ -195,7 +198,7 @@ public class NotificationTransaction extends Transaction implements Runnable {
                     // Save the received PDU (must be a M-RETRIEVE.CONF).
                     PduPersister p = PduPersister.getPduPersister(mContext);
                     Uri uri = p.persist(pdu, Inbox.CONTENT_URI, true,
-                            com.klinker.android.send_message.Transaction.settings.getGroup(), null);
+                            com.klinker.android.send_message.Transaction.settings.getGroup(), null, com.klinker.android.send_message.Transaction.settings.getSubscriptionId());
 
                     // Use local time instead of PDU time
                     ContentValues values = new ContentValues(2);

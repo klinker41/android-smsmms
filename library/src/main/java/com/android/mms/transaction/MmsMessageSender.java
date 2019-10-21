@@ -39,6 +39,7 @@ import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.ReadRecInd;
 import com.google.android.mms.pdu_alt.SendReq;
 import com.google.android.mms.util_alt.SqliteWrapper;
+import com.klinker.android.send_message.Settings;
 
 public class MmsMessageSender implements MessageSender {
     private static final String TAG = LogTag.TAG;
@@ -168,14 +169,16 @@ public class MmsMessageSender implements MessageSender {
             readRec.setDate(System.currentTimeMillis() / 1000);
 
             boolean group;
+            int subId = Settings.DEFAULT_SUBSCRIPTION_ID;
 
             try {
                 group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                subId = com.klinker.android.send_message.Transaction.settings.getSubscriptionId();
             } catch (Exception e) {
                 group = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("group_message", true);
             }
             PduPersister.getPduPersister(context).persist(readRec, Mms.Outbox.CONTENT_URI, true,
-                    group, null);
+                    group, null, subId);
             context.startService(new Intent(context, TransactionService.class));
         } catch (InvalidHeaderValueException e) {
             Log.e(TAG, "Invalide header value", e);

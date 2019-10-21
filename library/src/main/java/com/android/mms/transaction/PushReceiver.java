@@ -113,6 +113,7 @@ public class PushReceiver extends BroadcastReceiver {
             ContentResolver cr = mContext.getContentResolver();
             int type = pdu.getMessageType();
             long threadId = -1;
+            int subId = intent.getIntExtra("subscription", Settings.DEFAULT_SUBSCRIPTION_ID);
 
             try {
                 switch (type) {
@@ -134,7 +135,7 @@ public class PushReceiver extends BroadcastReceiver {
                         }
 
                         Uri uri = p.persist(pdu, Uri.parse("content://mms/inbox"), true,
-                                group, null);
+                                group, null, subId);
                         // Update thread ID for ReadOrigInd & DeliveryInd.
                         ContentValues values = new ContentValues(1);
                         values.put(Mms.THREAD_ID, threadId);
@@ -146,7 +147,6 @@ public class PushReceiver extends BroadcastReceiver {
 
                         boolean appendTransactionId = false;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            int subId = intent.getIntExtra("subscription", Settings.DEFAULT_SUBSCRIPTION_ID);
                             Bundle configOverrides = SmsManagerFactory.createSmsManager(subId).getCarrierConfigValues();
                             appendTransactionId = configOverrides.getBoolean(SmsManager.MMS_CONFIG_APPEND_TRANSACTION_ID);
 
@@ -184,7 +184,8 @@ public class PushReceiver extends BroadcastReceiver {
                             Uri uri = p.persist(pdu, Inbox.CONTENT_URI,
                                     !NotificationTransaction.allowAutoDownload(mContext),
                                     group,
-                                    null);
+                                    null,
+                                    subId);
 
                             String location;
                             try {
@@ -216,7 +217,6 @@ public class PushReceiver extends BroadcastReceiver {
                                 }
 
                                 if (useSystem) {
-                                    int subId = intent.getIntExtra("subscription", Settings.DEFAULT_SUBSCRIPTION_ID);
                                     DownloadManager.getInstance().downloadMultimediaMessage(mContext, location, uri, true, subId);
                                 } else {
                                     Log.v(TAG, "receiving with lollipop method");

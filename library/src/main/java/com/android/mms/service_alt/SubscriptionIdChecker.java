@@ -10,7 +10,7 @@ import android.util.Log;
 
 import com.google.android.mms.util_alt.SqliteWrapper;
 
-class SubscriptionIdChecker {
+public class SubscriptionIdChecker {
     private static final String TAG = "SubscriptionIdChecker";
 
     private static SubscriptionIdChecker sInstance;
@@ -37,7 +37,7 @@ class SubscriptionIdChecker {
         }
     }
 
-    static synchronized SubscriptionIdChecker getInstance(Context context) {
+    public static synchronized SubscriptionIdChecker getInstance(Context context) {
         if (sInstance == null) {
             sInstance = new SubscriptionIdChecker();
             sInstance.check(context);
@@ -45,7 +45,7 @@ class SubscriptionIdChecker {
         return sInstance;
     }
 
-    boolean canUseSubscriptionId() {
+    public boolean canUseSubscriptionId() {
         return mCanUseSubscriptionId;
     }
 }
