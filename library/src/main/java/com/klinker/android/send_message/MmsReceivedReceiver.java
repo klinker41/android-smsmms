@@ -64,6 +64,7 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
     public static final String EXTRA_LOCATION_URL = "location_url";
     public static final String EXTRA_TRIGGER_PUSH = "trigger_push";
     public static final String EXTRA_URI = "notification_ind_uri";
+    public static final String SUBSCRIPTION_ID = "subscription_id";
 
     private static final String LOCATION_SELECTION =
             Telephony.Mms.MESSAGE_TYPE + "=? AND " + Telephony.Mms.CONTENT_LOCATION + " =?";
@@ -88,6 +89,7 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
         Log.v(TAG, "MMS has finished downloading, persisting it to the database");
 
         final String path = intent.getStringExtra(EXTRA_FILE_PATH);
+        final int subscriptionId = intent.getIntExtra(SUBSCRIPTION_ID, Utils.getDefaultSubscriptionId());
         Log.v(TAG, path);
 
         new Thread(new Runnable() {
@@ -109,7 +111,7 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
                     messageUri = DownloadRequest.persist(context, response,
                             new MmsConfig.Overridden(new MmsConfig(context), null),
                             intent.getStringExtra(EXTRA_LOCATION_URL),
-                            Utils.getDefaultSubscriptionId(), null);
+                            subscriptionId, null);
 
                     Log.v(TAG, "response saved successfully");
                     Log.v(TAG, "response length: " + response.length);
