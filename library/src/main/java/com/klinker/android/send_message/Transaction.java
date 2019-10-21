@@ -614,7 +614,7 @@ public class Transaction {
         if (saveMessage) {
             try {
                 PduPersister persister = PduPersister.getPduPersister(context);
-                info.location = persister.persist(sendRequest, Uri.parse("content://mms/outbox"), true, settings.getGroup(), null);
+                info.location = persister.persist(sendRequest, Uri.parse("content://mms/outbox"), true, settings.getGroup(), null, settings.getSubscriptionId());
             } catch (Exception e) {
                 Log.v("sending_mms_library", "error saving mms message");
                 Log.e(TAG, "exception thrown", e);
@@ -656,7 +656,7 @@ public class Transaction {
                 // this will be the default behavior if we do not explicitly set the save flag to false
                 PduPersister persister = PduPersister.getPduPersister(context);
                 messageUri = persister.persist(sendReq, Uri.parse("content://mms/outbox"),
-                        true, settings.getGroup(), null);
+                        true, settings.getGroup(), null, settings.getSubscriptionId());
             } else {
                 messageUri = existingMessageUri;
                 Log.v(TAG, messageUri.toString());

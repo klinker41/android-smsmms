@@ -40,6 +40,7 @@ import com.google.android.mms.pdu_alt.PduHeaders;
 import com.google.android.mms.pdu_alt.PduParser;
 import com.google.android.mms.pdu_alt.PduPersister;
 import com.google.android.mms.pdu_alt.RetrieveConf;
+import com.klinker.android.send_message.Settings;
 import com.klinker.android.send_message.Utils;
 
 /**
@@ -155,9 +156,11 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                     mTransactionState.setContentUri(mUri);
                 } else {
                     boolean group;
+                    int subId = Settings.DEFAULT_SUBSCRIPTION_ID;
 
                     try {
                         group = com.klinker.android.send_message.Transaction.settings.getGroup();
+                        subId = com.klinker.android.send_message.Transaction.settings.getSubscriptionId();
                     } catch (Exception e) {
                         group = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("group_message", true);
                     }
@@ -165,7 +168,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                     // Store M-Retrieve.conf into Inbox
                     PduPersister persister = PduPersister.getPduPersister(mContext);
                     msgUri = persister.persist(retrieveConf, Inbox.CONTENT_URI, true,
-                            group, null);
+                            group, null, subId);
 
                     // Use local time instead of PDU time
                     ContentValues values = new ContentValues(3);
