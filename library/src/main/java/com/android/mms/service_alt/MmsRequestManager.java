@@ -92,11 +92,15 @@ public class MmsRequestManager implements MmsRequest.RequestManager {
                     group, null, subId);
 
             // Use local time instead of PDU time
-            ContentValues values = new ContentValues(3);
+            ContentValues values = new ContentValues();
             values.put(Telephony.Mms.DATE, System.currentTimeMillis() / 1000L);
-            // Store PDU time as sent time for received message
-            values.put(Telephony.Mms.DATE_SENT, retrieveConf.getDate());
             values.put(Telephony.Mms.MESSAGE_SIZE, response.length);
+            try {
+                // Store PDU time as sent time for received message
+                values.put(Telephony.Mms.DATE_SENT, retrieveConf.getDate());
+            } catch (Exception e) {
+            }
+
             SqliteWrapper.update(context, context.getContentResolver(),
                     msgUri, values, null, null);
 

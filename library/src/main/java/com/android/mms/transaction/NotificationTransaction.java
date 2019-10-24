@@ -203,9 +203,14 @@ public class NotificationTransaction extends Transaction implements Runnable {
                     // Use local time instead of PDU time
                     ContentValues values = new ContentValues(2);
                     values.put(Mms.DATE, System.currentTimeMillis() / 1000L);
-                    // Store PDU time as sent time for received message
-                    RetrieveConf retrieveConf = (RetrieveConf) pdu;
-                    values.put(Mms.DATE_SENT, retrieveConf.getDate());
+
+                    try {
+                        // Store PDU time as sent time for received message
+                        RetrieveConf retrieveConf = (RetrieveConf) pdu;
+                        values.put(Mms.DATE_SENT, retrieveConf.getDate());
+                    } catch (Exception e) {
+                    }
+
                     SqliteWrapper.update(mContext, mContext.getContentResolver(),
                             uri, values, null, null);
 

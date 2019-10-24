@@ -183,7 +183,6 @@ public class DownloadRequest extends MmsRequest {
             // Update some of the properties of the message
             final ContentValues values = new ContentValues();
             values.put(Telephony.Mms.DATE, System.currentTimeMillis() / 1000L);
-            values.put(Telephony.Mms.DATE_SENT, retrieveConf.getDate());
             values.put(Telephony.Mms.READ, 0);
             values.put(Telephony.Mms.SEEN, 0);
             if (!TextUtils.isEmpty(creator)) {
@@ -192,6 +191,11 @@ public class DownloadRequest extends MmsRequest {
 
             if (SubscriptionIdChecker.getInstance(context).canUseSubscriptionId()) {
                 values.put(Telephony.Mms.SUBSCRIPTION_ID, subId);
+            }
+
+            try {
+                values.put(Telephony.Mms.DATE_SENT, retrieveConf.getDate());
+            } catch (Exception e) {
             }
 
             try {
