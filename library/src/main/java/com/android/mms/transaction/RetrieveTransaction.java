@@ -179,7 +179,7 @@ public class RetrieveTransaction extends Transaction implements Runnable {
                         values.put(Mms.DATE_SENT, retrieveConf.getDate());
                     } catch (Exception e) {
                     }
-                    
+
                     SqliteWrapper.update(mContext, mContext.getContentResolver(),
                             msgUri, values, null, null);
 
