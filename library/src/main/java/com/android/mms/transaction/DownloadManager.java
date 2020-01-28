@@ -1,6 +1,7 @@
 
 package com.android.mms.transaction;
 
+import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -45,13 +46,9 @@ public class DownloadManager {
 
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void downloadMultimediaMessage(final Context context, final String location, Uri uri, boolean byPush, int subscriptionId) {
         if (location == null || mMap.get(location) != null) {
-            return;
-        }
-
-        // TransactionService can keep uri and location in memory while SmsManager download Mms.
-        if (!isNotificationExist(context, location)) {
             return;
         }
 
@@ -62,7 +59,7 @@ public class DownloadManager {
         context.getApplicationContext().registerReceiver(receiver, new IntentFilter(receiver.mAction));
 
         Log.v(TAG, "receiving with system method");
-        final String fileName = "download." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
+        final String fileName = "download." + Math.abs(new Random().nextLong()) + ".dat";
         File mDownloadFile = new File(context.getCacheDir(), fileName);
         Uri contentUri = (new Uri.Builder())
                 .authority(context.getPackageName() + ".MmsFileProvider")
@@ -112,7 +109,7 @@ public class DownloadManager {
             context.unregisterReceiver(this);
 
             PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
-            PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MMS DownloadReceiver");
+            PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "smsmms:download-mms-lock");
             wakeLock.acquire(60 * 1000);
 
             Intent newIntent = (Intent) intent.clone();
@@ -125,29 +122,5 @@ public class DownloadManager {
         if (location != null) {
             mMap.remove(location);
         }
-    }
-
-    private static boolean isNotificationExist(Context context, String location) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return true;
-        }
-
-        String selection = Telephony.Mms.CONTENT_LOCATION + " = ?";
-        String[] selectionArgs = new String[] { location };
-        Cursor c = SqliteWrapper.query(
-                context, context.getContentResolver(),
-                Telephony.Mms.CONTENT_URI, new String[] { Telephony.Mms._ID },
-                selection, selectionArgs, null);
-        if (c != null) {
-            try {
-                if (c.getCount() > 0) {
-                    return true;
-                }
-            } finally {
-                c.close();
-            }
-        }
-
-        return false;
     }
 }
