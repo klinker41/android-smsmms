@@ -246,8 +246,10 @@ public class Transaction {
                 Log.v("send_transaction", "inserted to uri: " + messageUri);
 
                 Cursor query = context.getContentResolver().query(messageUri, new String[] {"_id"}, null, null, null);
-                if (query != null && query.moveToFirst()) {
-                    messageId = query.getInt(0);
+                if (query != null) {
+                    if (query.moveToFirst()) {
+                        messageId = query.getInt(0);
+                    }
                     query.close();
                 }
 
