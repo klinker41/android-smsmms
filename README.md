@@ -12,7 +12,7 @@ It's now used in [Pulse](https://play.google.com/store/apps/details?id=xyz.klink
 
 ## Library Overview
 
-Sending messages is very easy to do.
+Sending messages is very easy to do. and it takes small time
 
 First, create a settings object with all of your required information for what you want to do. If you don't set something, then it will just be set to a default and that feature may not work. For example, if you need MMS, set the MMSC, proxy, and port, or else you will get an error every time.
 
@@ -116,7 +116,8 @@ compile 'com.klinkerapps:android-smsmms:5.2.6'
 ---
 
 ## License
-
+    
+    Licence is must for that
     Copyright 2017 Jacob Klinker
 
     Licensed under the Apache License, Version 2.0 (the "License");
