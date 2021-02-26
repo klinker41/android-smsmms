@@ -9,12 +9,12 @@ import com.klinker.android.send_message.MmsReceivedReceiver;
 public class MmsReceivedReceiverImpl extends MmsReceivedReceiver {
 
     @Override
-    public void onMessageReceived(Context context, Uri messageUri) {
+    public void onMessageReceived(Context context, Uri messageUri, String transactionId) {
         Log.v("MmsReceived", "message received: " + messageUri.toString());
     }
 
     @Override
-    public void onError(Context context, String error) {
+    public void onError(Context context, String error, String transactionId) {
         Log.v("MmsReceived", "error: " + error);
     }
 
