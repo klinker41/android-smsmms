@@ -19,6 +19,7 @@ package com.klinker.android.send_message;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -71,8 +72,8 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
 
     private static final ExecutorService RECEIVE_NOTIFICATION_EXECUTOR = Executors.newSingleThreadExecutor();
 
-    public abstract void onMessageReceived(Context context, Uri messageUri);
-    public abstract void onError(Context context, String error);
+    public abstract void onMessageReceived(Context context, Uri messageUri, String transactionId);
+    public abstract void onError(Context context, String error, String transactionId);
 
     public MmscInformation getMmscInfoForReceptionAck() {
         // Override this and provide the MMSC to send the ACK to.
@@ -82,6 +83,28 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
         // from the system somehow.
 
         return null;
+    }
+
+    /**
+     * Retrieve the transaction id from the original incoming mms.
+     * PushReceiver removes the transaction id from the pdu table once mms is downloaded. If an application wants to map it to its internal database, this method is used
+     * to get the transaction id and dispatches the success/failure including it
+     *
+     * @param context
+     * @param locationUrl the locationUrl from the incoming mms
+     * @return
+     */
+    private String getOriginalMmsTransactionId(Context context, String locationUrl) {
+        String transactionId = null;
+        Cursor cursor = SqliteWrapper.query(context, context.getContentResolver(), Telephony.Mms.CONTENT_URI, null, "m_type=? AND ct_l =?", new String[]{Integer.toString(130), locationUrl}, null);
+
+        if (cursor != null) {
+            if (cursor.moveToNext()) {
+                transactionId = cursor.getString(cursor.getColumnIndex(Telephony.Mms.TRANSACTION_ID));
+            }
+        }
+
+        return transactionId;
     }
 
     @Override
@@ -98,6 +121,7 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
                 FileInputStream reader = null;
                 Uri messageUri = null;
                 String errorMessage = null;
+                String originalTransactionId = getOriginalMmsTransactionId(context, intent.getStringExtra(EXTRA_LOCATION_URL));
 
                 try {
                     File mDownloadFile = new File(path);
@@ -142,12 +166,14 @@ public abstract class MmsReceivedReceiver extends BroadcastReceiver {
                 handleHttpError(context, intent);
                 DownloadManager.finishDownload(intent.getStringExtra(EXTRA_LOCATION_URL));
 
+                // Dispatches the information with original transaction id in order for application to retrieve it internally in case they are using an external database
+                // to store the messages
                 if (messageUri != null) {
-                    onMessageReceived(context, messageUri);
+                    onMessageReceived(context, messageUri, originalTransactionId);
                 }
 
                 if (errorMessage != null) {
-                    onError(context, errorMessage);
+                    onError(context, errorMessage, originalTransactionId);
                 }
             }
         }).start();
