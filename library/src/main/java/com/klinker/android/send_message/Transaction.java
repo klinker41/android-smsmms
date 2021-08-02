@@ -76,6 +76,7 @@ public class Transaction {
     public String SMS_DELIVERED = ".SMS_DELIVERED";
     public static final String SENT_SMS_BUNDLE = "com.klinker.android.send_message.SENT_SMS_BUNDLE";
     public static final String DELIVERED_SMS_BUNDLE = "com.klinker.android.send_message.DELIVERED_SMS_BUNDLE";
+    public static final String SENT_MMS_BUNDLE = "com.klinker.android.send_message.SENT_MMS_BUNDLE";
 
     public static String NOTIFY_SMS_FAILURE = ".NOTIFY_SMS_FAILURE";
     public static final String MMS_ERROR = "com.klinker.android.send_message.MMS_ERROR";
@@ -147,12 +148,12 @@ public class Transaction {
                 for (String address : message.getAddresses()) {
                     sendMmsMessage(message.getText(), message.getFromAddress(), new String[] { address },
                             message.getImages(), message.getImageNames(), message.getParts(), message.getSubject(),
-                            message.getSave(), message.getMessageUri());
+                            message.getSave(), message.getMessageUri(), sentMessageParcelable);
                 }
             } else {
                 sendMmsMessage(message.getText(), message.getFromAddress(), message.getAddresses(),
                         message.getImages(), message.getImageNames(), message.getParts(), message.getSubject(),
-                        message.getSave(), message.getMessageUri());
+                        message.getSave(), message.getMessageUri(), sentMessageParcelable);
             }
         } else {
             sendSmsMessage(message.getText(), message.getAddresses(), threadId, message.getDelay(),
@@ -404,7 +405,8 @@ public class Transaction {
     }
 
     private void sendMmsMessage(String text, String fromAddress, String[] addresses, Bitmap[] image,
-                                String[] imageNames, List<Message.Part> parts, String subject, boolean save, Uri messageUri) {
+                                String[] imageNames, List<Message.Part> parts, String subject, boolean save, Uri messageUri,
+                                Parcelable sentMessageParcelable) {
         // merge the string[] of addresses into a single string so they can be inserted into the database easier
         String address = "";
 
@@ -504,7 +506,7 @@ public class Transaction {
 
             if (settings.getUseSystemSending()) {
                 Log.v(TAG, "using system method for sending");
-                sendMmsThroughSystem(context, subject, data, fromAddress, addresses, explicitSentMmsReceiver, save, messageUri);
+                sendMmsThroughSystem(context, subject, data, fromAddress, addresses, explicitSentMmsReceiver, save, messageUri, sentMessageParcelable);
             } else {
                 try {
                     MessageInfo info = getBytes(context, saveMessage, fromAddress, address.split(" "),
@@ -647,7 +649,8 @@ public class Transaction {
     public static final int DEFAULT_PRIORITY = PduHeaders.PRIORITY_NORMAL;
 
     private static void sendMmsThroughSystem(Context context, String subject, List<MMSPart> parts, String fromAddress,
-                                             String[] addresses, Intent explicitSentMmsReceiver, boolean save, Uri existingMessageUri) {
+                                             String[] addresses, Intent explicitSentMmsReceiver, boolean save, Uri existingMessageUri,
+                                             Parcelable sentMessageParcelable) {
         try {
             final String fileName = "send." + String.valueOf(Math.abs(new Random().nextLong())) + ".dat";
             File mSendFile = new File(context.getCacheDir(), fileName);
@@ -681,6 +684,7 @@ public class Transaction {
 
             intent.putExtra(MmsSentReceiver.EXTRA_CONTENT_URI, messageUri.toString());
             intent.putExtra(MmsSentReceiver.EXTRA_FILE_PATH, mSendFile.getPath());
+            intent.putExtra(SENT_MMS_BUNDLE, sentMessageParcelable);
             final PendingIntent pendingIntent = PendingIntent.getBroadcast(
                     context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
